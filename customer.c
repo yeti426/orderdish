@@ -82,3 +82,37 @@ void check_bill(){
     printf("支付成功，等待商家确认！！\n");
     getch();
 }
+
+
+
+
+/*
+ * 功能：查询订单当前状态
+ */
+void order_status(){
+    system("cls");
+
+    char fstr[50] ="order//";
+    create_order_name(table_no,fstr);
+
+    FILE*fp =fopen(fstr,"r");
+    if(!fp){
+        printf("您还没有下单!!!\n");
+        getch();
+        return ;
+    }
+
+    int flag;
+    fscanf(fp,"%d",&flag);
+    fclose(fp);
+
+    printf("订单状态：")；
+    switch(flag){
+        case 1:printf("已下单，待支付\n");break;
+        case 2:printf("已支付，等待商家确认\n");break;
+        case 3:printf("商家已确认，正在备餐\n");break;
+        default:printf("未知状态\n");
+    }
+
+    getch();
+}

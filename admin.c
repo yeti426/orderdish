@@ -17,6 +17,35 @@ void create_order_name(int table_num,char* fstr){
 }
 
 
+/*
+ * 功能：计算订单总金额及各分类金额
+ */
+void calculate_value(char* fstr,double* all,
+                     double* hot,double* cold,
+                     double* staple,double* drink){
 
+    FILE* fp =fopen(fstr,"r");
+    int temp;
+    fscanf(fp,"%d",&temp);
+
+    int no,type,nums;
+    char name[20];
+    double price;
+
+    while(!feof(fp)){
+        fscanf(fp,"%d %s %lf %d %d",%no,name,&price,%type,%nums);
+
+        *all +=price *nums;
+
+        switch(type){
+            case 1: *hot +=price *nums;break;
+            case 2: *cold +=price *nums;break;
+            case 3: *staple +=price *nums;break;
+            case 4: *drink +=price *nums;break;
+
+        }
+    }
+    fclose(fp);
+}
 
 
