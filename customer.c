@@ -106,7 +106,7 @@ void order_status(){
     fscanf(fp,"%d",&flag);
     fclose(fp);
 
-    printf("订单状态：")；
+    printf("订单状态：");
     switch(flag){
         case 1:printf("已下单，待支付\n");break;
         case 2:printf("已支付，等待商家确认\n");break;

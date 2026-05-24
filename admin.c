@@ -17,6 +17,8 @@ void create_order_name(int table_num,char* fstr){
 }
 
 
+
+
 /*
  * 功能：计算订单总金额及各分类金额
  */
@@ -49,3 +51,56 @@ void calculate_value(char* fstr,double* all,
 }
 
 
+
+
+/*
+ * 功能：管理员确认订单
+ * 状态从 2 → 3
+ */
+void orser_check(){
+    system("cls");
+
+    char fstr[50] ="order//";
+    create_order_name(table_np,fstr);
+
+    FILE* fp =fopen(fstr,"r");
+    if(!fp) return;
+
+    int flag;
+    fscanf(fp,"%d",&flag);
+    fclose(fp);
+
+    if(flag ==2){
+        fp =fopen(fstr,"r+");
+        fseek(fp,0,SEEK_SET);
+        fprintf(fp,"3");
+        fclose(fp);
+        printf("订单已确认！！\n");
+    }
+}
+
+
+
+
+/*
+ * 功能：完成订单
+ * 1. 计算收入
+ * 2. 记录收入
+ * 3. 删除订单文件
+ */
+void order_complete(){
+    system("cls");
+
+    char fstr[50] ="order//";
+    create_order_name(table_no,fstr);
+
+
+    double all =0,hot =0,cold =0,staple =0,drink =0;
+    calculate_value(fstr,&all,&hot,&cold,&staple,&drink);
+
+    //记录收入（调用D的函数
+    record_income(all,hot,cold,staple,drink);
+
+    remove(fstr);
+    printf("订单已完成！\n");
+  }
