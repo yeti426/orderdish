@@ -1,4 +1,82 @@
 
+/**
+ *dyn留：error_check()在哪里？干嘛用的
+ */
+
+
+//#include "tools.c"
+//变量声明 
+int table_no;                 //餐台号 
+extern char hot_dish_filename[20];
+extern char cold_dish_filename[20];
+extern char staple_food_filename[20];
+extern char drink_filename[20]; 
+//函数声明 
+int customer_menu();          //菜单界面
+void cold_dish();             //凉菜 
+void hot_dish();              //热菜 
+void staple_food();           //主食 
+void drink();                 //饮品 
+void over_view();             //总览 
+void check_bill();            //支付订单 
+void order_status();          //订单状态
+void page_controller(dish_menu* , int);       //菜单分页 
+int display_menu(dish_menu* , int , int);     //显示菜单信息
+void create_order(dish_menu* , int ,int);     //生成订单 
+void read_menu(char* , dish_menu* , int*);             //从文件中读取菜单 
+
+//外部函数声明 
+extern void error_check(int,int,int*);
+extern void greet(struct tm* p,int);
+extern struct tm* get_time();
+extern void create_order_filename(int,char*); 
+
+void customer_form(){
+    //选桌
+	system("cls");
+	printf("**************************************\n");
+	printf("请输入您的餐台号：");
+	scanf("%d",&table_no);
+
+    //欢迎信息
+	system("cls");
+	int greet_type = 1;
+	struct tm* p = get_time();
+	greet(p,greet_type);
+	
+    //选择服务
+    int choice;
+	printf("餐台：%d 请选择您的操作\n",table_no);
+	printf("1.热菜\n"); 
+	printf("2.凉菜\n"); 
+	printf("3.主食\n");
+	printf("4.饮品\n"); 
+	printf("5.总览\n"); 
+	printf("6.结账\n"); 
+	printf("7.订单状态\n");
+	printf("8.退出\n");
+	printf("请在输入想进行的操作:");
+	scanf("%d",&choice);
+
+	error_check(1,8,&choice);
+
+	//打开菜单界面 
+	do{
+		switch(choice){
+			case 1:hot_dish();break;
+			case 2:cold_dish();break;
+			case 3:staple_food();break;
+			case 4:drink();break;
+			case 5:over_view();break;
+			case 6:check_bill();break;
+			case 7:order_status();break;
+			default:break;		
+		}
+	}while(choice != 8);//输入8退出
+}
+
+
+
 /*
  *函数功能：顾客结账
  *流程：读取订单
