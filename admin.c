@@ -839,6 +839,9 @@ void calculate_value(char* fstr,double* all,
  */
 void order_check(){
     system("cls");
+	int table_no;
+    printf("请输入要确认的桌号：");
+    scanf("%d", &table_no);
 
     char fstr[50] ="order//";
     create_order_name(table_no,fstr);
@@ -870,6 +873,9 @@ void order_check(){
  */
 void order_complete(){
     system("cls");
+	int table_no;
+    printf("请输入要确认的桌号：");
+    scanf("%d", &table_no);
 
     char fstr[50] ="order//";
     create_order_name(table_no,fstr);

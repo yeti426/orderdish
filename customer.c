@@ -2,7 +2,9 @@
 /**
  *dyn留：error_check()在哪里？干嘛用的
  */
-
+/**
+ * *mzy:在mian.c里 用于检查输入是否合法
+ */
 
 //#include "tools.c"
 //变量声明 
