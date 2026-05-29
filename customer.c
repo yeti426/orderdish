@@ -134,7 +134,7 @@ void check_bill(){
     system("cls");
 
     double accout =0;
-    int cut =0;
+    int cnt =0;
     dish_order my_order[MAX_LENGTH];
 
     char fstr[50] ="order//";
