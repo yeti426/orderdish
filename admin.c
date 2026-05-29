@@ -844,7 +844,7 @@ void order_check(){
     scanf("%d", &table_no);
 
     char fstr[50] ="order//";
-    create_order_name(table_no,fstr);
+    create_order_filename(table_no,fstr);
 
     FILE* fp =fopen(fstr,"r");
     if(!fp) return;

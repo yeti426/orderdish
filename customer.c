@@ -138,7 +138,7 @@ void check_bill(){
     dish_order my_order[MAX_LENGTH];
 
     char fstr[50] ="order//";
-    create_order_name(table_no,fstr);
+    create_order_filename(table_no,fstr);
 
     FILE*fp =fopen(fstr,"r");
     if(!fp){
@@ -160,7 +160,7 @@ void check_bill(){
 
     //计算总金额
     while(!feof(fp)){
-        facanf(fp,"%d %s %lf %d %d",
+        fscanf(fp,"%d %s %lf %d %d",
             &my_order[cnt].no,
              my_order[cnt].dish_name,
             &my_order[cnt].dish_price,
