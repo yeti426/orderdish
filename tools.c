@@ -34,4 +34,26 @@ typedef struct b{
 	int nums; //点餐时的数量 
 }dish_order;
 
+// 在 tools.c 的 typedef 部分后面添加
+
+// 购物车项结构
+typedef struct {
+    int no;              // 菜品编号
+    char dish_name[20];  // 菜品名称
+    double dish_price;   // 单价
+    int type;            // 类型
+    int nums;            // 数量
+    double subtotal;     // 小计价格
+    int status;          // 状态：0-未提交, 1-制作中, 2-已上菜
+} cart_item;
+
+// 购物车结构
+typedef struct {
+    cart_item items[MAX_LENGTH];  // 购物车项数组
+    int count;                     // 当前菜品数量
+    double total_amount;           // 总金额
+    int table_no;                  // 桌号
+    int kitchen_received;          // 厨房是否收到：0-未收到, 1-已收到
+} shopping_cart;
+
 #endif
