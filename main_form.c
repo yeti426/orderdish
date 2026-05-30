@@ -61,7 +61,7 @@ void greet(struct tm* p,int user_role){
 	//依据用户身份输出欢迎语 
 	if(user_role == 0){
 		printf("====================================\n");
-        printf("         C语言客栈 ·点膳处         \n");
+        printf("          C语言客栈 ·点膳处          \n");
         printf("====================================\n");
 	}
 	else if(user_role == 1){
