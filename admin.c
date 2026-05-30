@@ -105,28 +105,44 @@ void gotoxy(int x, int y) {
 */ 
 void input_password(char pw_input[],int wrong_time){
 	//清空字符串
-	memset(pw_input,0,20);
+	memset(pw_input,0,20);//memset:逐字节填充内存，常用于清空数组 / 缓冲区、初始化内存。
+
 	int x,y;
 	x = 21;
-	y = 1 + wrong_time;
+	y = 1 + wrong_time;//输错一次密码，输入位置就往下挪一行，让新密码在新行输入，不覆盖、不重叠、界面干净整齐！
 	gotoxy(x,y);
-
-	char ch;
-	char temp_input[20];
-	int cnt = 0;
-	int i = 0;
+	char ch;             // 保存每次按下的键
+	char temp_input[20]; // 临时存密码
+	int cnt = 0;         // 密码长度计数
+	int i = 0;           // 数组下标
 	do{
 		ch = getch();
+		if (i >= 19) {
+			if (ch == 13 || ch == 8) {
+				// 允许回车确认、退格删除
+			} else {
+				// 不允许再输入！给提示！
+				printf("\n");   // 显示在下一行，不破坏当前界面
+				printf("密码最长只能输入19位。");
+				continue;  // 跳过，不处理这个字符
+			}
+		}
 		if(ch == 13){//回车键 
 			;
 		}
 		else if(ch == 8){//退格键 
-			i--;
-			cnt--;
-			x--;
-			gotoxy(x,y);
-			printf(" ");
-			gotoxy(x,y);
+			if(i>0){
+				i--;
+				cnt--;
+				x--;// 光标左移一格
+				gotoxy(x,y);// 移过去
+				printf(" "); // 光标位置 = 要覆盖的字符的正左边,用空格覆盖掉 *
+				gotoxy(x,y);// 再移回来，让光标停在正确位置
+			// 删除后清空提示行
+				gotoxy(10, y + 1);
+				printf("                      ");
+				gotoxy(x, y);
+			}
 		}
 		else{//普通字符 
 			temp_input[i] = ch;
@@ -135,12 +151,16 @@ void input_password(char pw_input[],int wrong_time){
 			i++;
 			cnt++;
 		}
-	}while(ch != 13);
+	}while(ch != 13);//直到按回车，才停止输入。
 	printf("\n");
 	
-	strncpy(pw_input , temp_input , cnt);
+	if (cnt == 0) {
+		pw_input[0] = '\0';  // 空密码，显式设为空字符串
+	} else {
+		strncpy(pw_input, temp_input, cnt);
+		pw_input[cnt] = '\0';  // 手动补上字符串结束符
+	}
 }
-
 
 
 
@@ -176,34 +196,44 @@ void change_password(){
 	char pw_new[20];
 	char pw_check[20];
 	FILE* fp;
-	fp = fopen("password.txt" , "r");
-	fscanf(fp , "%s" , pw_old);
-	fclose(fp); 
+	fp = fopen("password.txt", "r");
+	if (fp == NULL) {
+		printf("密码文件不存在，无法修改密码！\n");
+		return;
+	}
+	fscanf(fp, "%s", pw_old);
+	fclose(fp);
 	
 	system("cls");
 	printf("**************************************\n");
 	printf("请输入旧密码：");
-	scanf("%s", pw_old_input);
+	scanf("%19s", pw_old_input);
 	
-	while(strcmp(pw_old , pw_old_input) != 0){
-		printf("输入错误，请重新输入：");
-		scanf("%s", pw_old_input);
+	int try_count = 0;
+	while (strcmp(pw_old, pw_old_input) != 0) {
+		try_count++;
+		if (try_count >= 3) {
+			printf("错误次数过多，修改取消。\n");
+			return;
+		}
+		printf("输入错误，请重新输入(剩余%d次):", 3 - try_count);
+		scanf("%19s", pw_old_input);
 	}
 	
 	printf("请输入新密码：");
-	scanf("%s", pw_new);
+	scanf("%19s", pw_new);
 	
 	printf("请确认新密码：");
-	scanf("%s" , pw_check);
+	scanf("%19s" , pw_check);
 	
 	while(strcmp(pw_new , pw_check) != 0){
 		printf("输入错误，请重新输入：\n");
 		
 		printf("请输入新密码：");
-		scanf("%s", pw_new);
+		scanf("%19s", pw_new);
 	
 		printf("请确认新密码：");
-		scanf("%s" , pw_check);
+		scanf("%19s" , pw_check);
 	}
 	
 	fp = fopen("password.txt" , "w");
@@ -223,7 +253,6 @@ void change_password(){
 
 
 
-
 /*
 * function_name: admin_menu 
 * return_type  : int
@@ -232,11 +261,11 @@ void change_password(){
 */ 
 int admin_menu(){
 	system("cls");
-	int greet_type = 2;
-	struct tm* p = get_time();
-	greet(p,greet_type);
+	int greet_type = 2;// 问候类型：2=管理员
+	struct tm* p = get_time();// 获取当前系统时间（几点几分）
+	greet(p,greet_type);// 根据时间 + 身份，打印问候语
 	
-	int choice;
+	int choice=0;
 	printf("请选择操作\n");
 	printf("1.确认顾客订单\n");
 	printf("2.完成顾客订单\n");
@@ -246,8 +275,12 @@ int admin_menu(){
 	printf("6.修改价格\n");
 	printf("7.密码修改\n"); 
 	printf("8.退出\n");
+
 	printf("在此输入：");
-	scanf("%d",&choice);
+	while (scanf("%d", &choice) != 1) {
+		while (getchar() != '\n');  // 清空输入缓冲区，一个一个吃掉缓冲区里的字符，直到遇到换行符为止，把 abc\n 全部清空。
+		printf("输入无效，请重新输入(1-8):");
+	}
 	
 	error_check(1,8,&choice);
 	return choice;
@@ -430,7 +463,7 @@ void income_check(){
 	
 	double all_income, staple_food_income, hot_dish_income, cold_dish_income, drink_income;
 
-	char fdate[50] = "";
+	char fdate[50] = "";c's
 	printf("**************************************\n");
 	input_date_filename(fdate);
 	
@@ -764,3 +797,129 @@ void price_adjust(){
 	}while(choice != 2);
 }
 
+
+
+
+
+
+
+
+
+
+
+//C部分：订单与支付管理
+
+/*
+ * 函数功能：根据桌号生成订单文件名
+ * 示例：1.txt → order/1.txt
+ */
+
+void create_order_filename(int table_num,char* fstr){
+    char str[5];
+
+    //讲桌号转为字符串
+    itoa(table_num,str,10);
+
+    //拼接路径和文件名
+    strcpy(fstr,"order//");
+    strcat(fstr,str);
+    strcat(fstr,".txt");
+
+}
+
+
+
+
+
+
+/*
+ * 功能：计算订单总金额及各分类金额
+ */
+void calculate_value(char* fstr,double* all,
+                     double* hot,double* cold,
+                     double* staple,double* drink){
+
+    FILE* fp =fopen(fstr,"r");
+    int temp;
+    fscanf(fp,"%d",&temp);
+
+    int no,type,nums;
+    char name[20];
+    double price;
+
+    while(!feof(fp)){
+        fscanf(fp,"%d %s %lf %d %d",&no,name,&price,&type,&nums);
+
+        *all +=price *nums;
+
+        switch(type){
+            case 1: *hot +=price *nums;break;
+            case 2: *cold +=price *nums;break;
+            case 3: *staple +=price *nums;break;
+            case 4: *drink +=price *nums;break;
+
+        }
+    }
+    fclose(fp);
+}
+
+
+
+
+/*
+ * 功能：管理员确认订单
+ * 状态从 2 → 3
+ */
+void order_check(){
+    system("cls");
+	int table_no;
+    printf("请输入要确认的桌号：");
+    scanf("%d", &table_no);
+
+    char fstr[50] ="order//";
+    create_order_filename(table_no,fstr);
+
+    FILE* fp =fopen(fstr,"r");
+    if(!fp) return;
+
+    int flag;
+    fscanf(fp,"%d",&flag);
+    fclose(fp);
+
+    if(flag ==2){
+        fp =fopen(fstr,"r+");
+        fseek(fp,0,SEEK_SET);
+        fprintf(fp,"3");
+        fclose(fp);
+        printf("订单已确认！！\n");
+    }
+}
+
+
+
+
+/*
+ * 功能：完成订单
+ * 1. 计算收入
+ * 2. 记录收入
+ * 3. 删除订单文件
+ */
+void order_complete(){
+    system("cls");
+	int table_no;
+    printf("请输入要确认的桌号：");
+    scanf("%d", &table_no);
+
+    char fstr[50] ="order//";
+    create_order_name(table_no,fstr);
+
+
+    double all =0,hot =0,cold =0,staple =0,drink =0;
+    calculate_value(fstr,&all,&hot,&cold,&staple,&drink);
+
+    //记录收入（调用D的函数
+    record_income(all,hot,cold,staple,drink);
+
+    remove(fstr);
+    printf("订单已完成！\n");
+  }
