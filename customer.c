@@ -1,5 +1,10 @@
 
+/*
+补个login，区分admin和customer
+*/
+
 #include "tools.c"
+
 //变量声明 
 int table_no;                 //餐台号 
 extern char hot_dish_filename[20];
@@ -20,7 +25,7 @@ int display_menu(dish_menu* , int , int);     //显示菜单信息
 void create_order(dish_menu* , int ,int);     //生成订单 
 void read_menu(char* , dish_menu* , int*);             //从文件中读取菜单 
 
-//外部函数声明 
+//外部函数声明   
 extern void error_check(int,int,int*);
 extern void greet(struct tm* p,int);
 extern struct tm* get_time();
@@ -70,6 +75,9 @@ void customer_form(){
 	}while(choice != 8);//输入8退出
 }
 
+/////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+
 void read_menu(char* filename , dish_menu* dm , int* cnt){
 	FILE* fp;
 	fp = fopen(filename , "r");
@@ -82,6 +90,7 @@ void read_menu(char* filename , dish_menu* dm , int* cnt){
 	}
 	fclose(fp);
 } 
+
 
 void cold_dish(){
 	//采用结构体数组保存读取到的菜单品信息
@@ -119,8 +128,6 @@ void drink(){
 	read_menu(drink_filename , drink_menu , &cnt);
 	page_controller(drink_menu,cnt); 
 }
-
-
 
 
 void page_controller(dish_menu *dm , int cnt){
@@ -282,25 +289,4 @@ void create_order(dish_menu *dm , int mode,int count){
 	} while(choice != 2);	
 	fclose(fp);
 	
-	//根据桌号生成订单文件名
-	char fstr[50] = "order//";
-	create_order_filename(table_no,fstr); 
-	//end test
-	//首先判断该文件是否存在，如不存在则创建一个，并设置标志位为1  
-	fp = fopen(fstr , "r");
-	if(fp == NULL) { 
-		fp = fopen(fstr , "w");
-		fprintf(fp , "%d\n" , 1);
-	}
-	fclose(fp);
-	//而后以追加模式重新打开文件，将订单信息添加进去 
-	fp = fopen(fstr , "a");
-	int i = 0 ;
-	for( i = 0 ; i < cnt ; i++){
-		fprintf(fp , "%d %s %lf %d %d\n" , new_order[i].no , new_order[i].dish_name , new_order[i].dish_price , new_order[i].type ,new_order[i].nums); 
-	}
-	fclose(fp); 
 }
-
-
- 
