@@ -20,11 +20,9 @@ void price_adjust();                      //价格调整
 void change_password();                   //密码修改 
 void create_date_filename(char*);         //生成当日文件名 
 void format_input_income(FILE*,double,double,double,double,double);            //收入格式化输入文件
-void format_output_income(FILE*,double*,double*,double*,double*,double*);      //收入格式化输出到程序 
-void calculate_value(char* , double* , double* , double* , double * , double*);//计算收入 
-void create_order_filename(int,char*);         //依据桌号生成订单文件名  
+int format_output_income(FILE*,double*,double*,double*,double*,double*);       //收入格式化输出到程序，返回1成功0失败 
+void calculate_value(char* , double* , double* , double* , double * , double*);//计算收入   
 void record_income(double,double,double,double,double);                        //用于记录单笔订单收入信息至收入文件中 
-void input_date_filename(char* fstr);          //依据输入的日期生成文件名 
 
 
 //外部函数声明 
@@ -175,6 +173,10 @@ int check_password(char pw_input[]){
 	FILE* fp;
 	char pw[20]="";
 	fp = fopen("password.txt" , "r");
+	if(fp == NULL){
+		printf("密码文件不存在，请联系管理员！\n");
+		return -1;
+	}
 	fscanf(fp , "%s" , pw);
 	fclose(fp); 
 	
@@ -297,27 +299,39 @@ int admin_menu(){
 * description  : 将读取到的订单收入信息记录到 income 文件夹 对应日期的文件中 
 */
 void record_income(double account, double account_hot_dish, double account_cold_dish, double account_staple_food, double account_drink){
-	double all_income, staple_food_income, hot_dish_income,cold_dish_income,drink_income;
-	
+	double all_income = 0.0, staple_food_income = 0.0, hot_dish_income = 0.0, cold_dish_income = 0.0, drink_income = 0.0;
+	//接收本次订单赚的钱，准备存起来。
 	char fdate[50]="";
 	create_date_filename(fdate); 
 					
 	FILE *fp1;
-	fp1 = fopen(fdate , "r");
+	fp1 = fopen(fdate , "r");// 第一步：用 "r" 打开，只想看看文件有没有
 	if(fp1 == NULL){
 		fp1 = fopen(fdate,"w");
+		if(fp1 == NULL){
+			printf("错误: 无法创建收入文件 %s\n", fdate);
+			return;
+		}
 		format_input_income(fp1,account,account_hot_dish,account_cold_dish,account_staple_food,account_drink);
 		fclose(fp1);
 	}
 	else{
-		format_output_income(fp1,&all_income,&hot_dish_income,&cold_dish_income,&staple_food_income,&drink_income) ;
+		if(!format_output_income(fp1,&all_income,&hot_dish_income,&cold_dish_income,&staple_food_income,&drink_income)){
+			printf("错误: 收入文件 %s 格式错误，本次数据可能丢失！\n", fdate);
+			fclose(fp1);
+			return;
+		}
 		fclose(fp1);
-		all_income+=account;
-		hot_dish_income+=account_hot_dish;
-		cold_dish_income+=account_cold_dish;
-		staple_food_income+=account_staple_food;
-		drink_income+=account_drink;
+		all_income += account;                // 今天总钱 + 本次钱
+		hot_dish_income += account_hot_dish;  // 热菜累加
+		cold_dish_income += account_cold_dish;// 凉菜累加
+		staple_food_income += account_staple_food;//主食累加
+		drink_income += account_drink;        // 饮料累加
 		fp1 = fopen(fdate , "w");
+		if(fp1 == NULL){
+			printf("错误: 无法写入收入文件 %s，本次收入数据丢失！\n", fdate);
+			return;
+		}
 		format_input_income(fp1,all_income,hot_dish_income,cold_dish_income,staple_food_income,drink_income);
 		fclose(fp1); 
 	} 
@@ -353,12 +367,13 @@ void format_input_income(FILE* fp,double a,double b,double c,double d,double e){
 * param        : FILE* fp 5 个double数据 
 * description  : 格式化输出数据 ，将5个double数据格式化输出到程序中 
 */
-void format_output_income(FILE* fp,double* a,double* b,double* c,double* d,double* e){
-	fscanf(fp,"%lf\n",a);
-	fscanf(fp,"%lf\n",b);
-	fscanf(fp,"%lf\n",c);
-	fscanf(fp,"%lf\n",d);
-	fscanf(fp,"%lf\n",e);
+int format_output_income(FILE* fp,double* a,double* b,double* c,double* d,double* e){
+	if(fscanf(fp,"%lf\n",a) != 1) return 0;
+	if(fscanf(fp,"%lf\n",b) != 1) return 0;
+	if(fscanf(fp,"%lf\n",c) != 1) return 0;
+	if(fscanf(fp,"%lf\n",d) != 1) return 0;
+	if(fscanf(fp,"%lf\n",e) != 1) return 0;
+	return 1;
 }
 
 
@@ -373,16 +388,18 @@ void format_output_income(FILE* fp,double* a,double* b,double* c,double* d,doubl
 * description  : 自动获取当天日期，并返回文件名 如202161.txt 
 */
 void create_date_filename(char* fdate){
-	char date[20] = "";
+	fdate[0] = '\0';// 防御性清空，防止调用方传入未初始化的字符串
+	char date[20] = "";//strcat 拼接的前提：目标字符串必须是空的！
 	struct tm* p = get_time();
-	if(p->tm_hour + 8 >= 24) p->tm_mday -= 1;
+	if(p->tm_hour + 8 >= 24) p->tm_mday -= 1;//tm_year = 从 1900 年开始，过去了多少年
 	
 	char year[5] = "";
 	char month[5] = "";
 	char day[5] = "";
-	itoa(p->tm_year + 1900 , year , 10);
-	itoa(p->tm_mon + 1 , month , 10);
-	itoa(p->tm_mday + 1, day , 10);
+	//itoa:把 数字 变成 字符串 的工具函数！
+	itoa(p->tm_year + 1900 , year , 10);//因为 tm_year 是从 1900 年开始算的，所以要 +1900。
+	itoa(p->tm_mon + 1 , month , 10);//月份也是从 0 开始算
+	itoa(p->tm_mday, day , 10);// tm_mday 直接表示当月第几天，不需要 +1
 	strcat(date,year);
 	strcat(date,month);
 	strcat(date,day);
@@ -398,85 +415,34 @@ void create_date_filename(char* fdate){
 
 
 /*
-* function_name: input_date_filename
-* return_type  : void
-* param        : char* 用于返回文件名 
-* description  : 根据输入的日期生成日期文件名 
-*/
-void input_date_filename(char* fstr){
-	int year,month,day;
-	printf("请输入要查询的年份：");
-	scanf("%d",&year);
-	error_check(1900,3000,&year);
-	printf("请输入要查询的月份：");
-	scanf("%d",&month);
-	error_check(1,12,&month);
-	printf("请输入要查询的日期：");
-	scanf("%d",&day);
-	
-	//判断是否为闰年
-	int flag = 0;
-	if(year % 400 == 0 || (year % 4 == 0 && year % 100 != 0)) {
-		flag = 1;
-	}
-	
-	int normal[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
-	int special[12] = {31,29,31,30,31,30,31,31,30,31,30,31};
-	
-	//日期输入检查 
-	if(flag){
-		error_check( 1 , special[month - 1] , &day);
-	}
-	else{
-		error_check( 1 , normal[month - 1] , &day);
-	}
-	
-	//生成文件名	 
-	char date[20];
-	char sy[5];
-	char sm[5];
-	char sd[5];
-	itoa(year,sy,10);
-	itoa(month,sm,10);
-	itoa(day,sd,10);
-	strcpy(date,sy);
-	strcat(date,sm);
-	strcat(date,sd);
-	strcat(date,".txt");
-	strcpy(fstr , "income//");
-	strcat(fstr , date);
-}
-
-
-
-
-/*
 * function_name: income_check
 * return_type  : void
 * param        : NULL
 * description  : 查看收入 
 */ 
 void income_check(){
-	//打开所有订单文件，计算所有完结订单的收入
+	//查看当天营业额
 	system("cls"); 
-	int tn = 1;
 	
-	double all_income, staple_food_income, hot_dish_income, cold_dish_income, drink_income;
+	double all_income = 0.0, staple_food_income = 0.0, hot_dish_income = 0.0, cold_dish_income = 0.0, drink_income = 0.0;
 
-	char fdate[50] = "";c's
-	printf("**************************************\n");
-	input_date_filename(fdate);
+	char fdate[50] = "";
+	create_date_filename(fdate);
 	
-	printf("**************************************\n");
 	FILE* fp;
 	fp = fopen(fdate , "r");
 	if(fp == NULL ){
-		printf("这一天好像没有营业哟!\n");
+		printf("今天好像还没有营业哟!\n");
 	} else{
-		format_output_income(fp,&all_income,&hot_dish_income,&cold_dish_income,&staple_food_income,&drink_income);
+		if(!format_output_income(fp,&all_income,&hot_dish_income,&cold_dish_income,&staple_food_income,&drink_income)){
+			printf("错误: 收入文件 %s 格式错误！\n", fdate);
+			fclose(fp);
+			return;
+		}
 		fclose(fp);
 	}
 
+	printf("**************************************\n");
 	printf("总收入:%.2lf\n",all_income);
 	printf("热菜收入:%.2lf\n",hot_dish_income);
 	printf("凉菜收入:%.2lf\n",cold_dish_income);
@@ -526,6 +492,10 @@ void add_dish(){
 		}
 		
 		fp = fopen( filename , "a");
+		if(fp == NULL){
+			printf("错误: 无法打开菜品文件 %s\n", filename);
+			return;
+		}
 		//将菜品信息录入文件 
 		fprintf(fp,"%d\n",new_dish.no);
 		fprintf(fp,"%s\n",new_dish.dish_name);
@@ -588,8 +558,11 @@ void del_dish(){
 		int cnt = 0;
 		
 		fp = fopen(filename , "r");
-		while(!feof(fp)){
-			fscanf(fp,"%d",&dm[cnt].no);
+		if(fp == NULL){
+			printf("错误: 无法打开菜品文件 %s\n", filename);
+			return;
+		}
+		while(cnt < MAX_LENGTH && fscanf(fp,"%d",&dm[cnt].no) == 1){
 			fscanf(fp,"%s",dm[cnt].dish_name);
 			fscanf(fp,"%lf",&dm[cnt].dish_price);
 			fscanf(fp,"%d",&dm[cnt].type);
@@ -597,17 +570,26 @@ void del_dish(){
 		}
 		fclose(fp);
 		
+		if(cnt == 0){
+			printf("该分类下暂无菜品！\n");
+			return;
+		}
+		
 		printf("请输入需要删除的菜品编号：");
 		int del_no;
 		scanf("%d",&del_no);
 		
 		//检索文件 该菜品是否存在 
 		int flag = 0;
+		pos = -1;
 		do{
 			int i;
-			for(i = 0 ; i < cnt-1 ; i++){
-				if(dm[i].no == del_no) flag=1;
-				pos = i;
+			for(i = 0 ; i < cnt ; i++){
+				if(dm[i].no == del_no){
+					flag = 1;
+					pos = i;
+					break;
+				}
 			}
 			if(flag == 0){
 				printf("没有该菜品!\n");
@@ -628,7 +610,9 @@ void del_dish(){
 			}
 		}while(flag == 0);
 		
-		printf("是否确认删除<%s>菜品？1.是 2.否",dm[pos].dish_name);
+		if(quit_handle == 1) break;
+		
+		printf("是否确认删除<%s>菜品?1.是 2.否",dm[pos].dish_name);
 		int del_choice;
 		scanf("%d",&del_choice);
 		
@@ -638,7 +622,7 @@ void del_dish(){
 		if(del_choice == 1){
 			int i;
 			int j = 0;
-			for(i = 0 ; i < cnt - 1 ; i++){
+			for(i = 0 ; i < cnt ; i++){
 				if(i == pos){ // 跳过该菜品 
 					continue; 
 				}
@@ -651,9 +635,9 @@ void del_dish(){
 				}
 			}
 			
-			//将 dm_new 重新覆盖录入到菜单文件中
+			//将 dm_new 重新覆盖录入到菜单文件中（删除后少一条，共 j 条）
 			fp = fopen(filename , "w");
-			for(i = 0 ; i < cnt -2 ; i++){
+			for(i = 0 ; i < j ; i++){
 				fprintf(fp , "%d\n",dm_new[i].no);
 				fprintf(fp , "%s\n",dm_new[i].dish_name);
 				fprintf(fp , "%lf\n",dm_new[i].dish_price);
@@ -714,8 +698,11 @@ void price_adjust(){
 		int cnt = 0;
 		
 		fp = fopen(filename , "r");
-		while(!feof(fp)){
-			fscanf(fp,"%d",&dm[cnt].no);
+		if(fp == NULL){
+			printf("错误: 无法打开菜品文件 %s\n", filename);
+			return;
+		}
+		while(cnt < MAX_LENGTH && fscanf(fp,"%d",&dm[cnt].no) == 1){
 			fscanf(fp,"%s",dm[cnt].dish_name);
 			fscanf(fp,"%lf",&dm[cnt].dish_price);
 			fscanf(fp,"%d",&dm[cnt].type);
@@ -723,17 +710,26 @@ void price_adjust(){
 		}
 		fclose(fp);
 		
+		if(cnt == 0){
+			printf("该分类下暂无菜品！\n");
+			return;
+		}
+		
 		printf("请输入需要修改价格的菜品编号：");
 		int adjust_no;
 		scanf("%d",&adjust_no);
 		
 		//检索文件 该菜品是否存在 
 		int flag = 0;
+		pos = -1;
 		do{
 			int i;
-			for(i = 0 ; i < cnt-1 ; i++){
-				if(dm[i].no == adjust_no) flag=1;
-				pos = i;
+			for(i = 0 ; i < cnt ; i++){
+				if(dm[i].no == adjust_no){
+					flag = 1;
+					pos = i;
+					break;
+				}
 			}
 			if(flag == 0){
 				printf("没有该菜品!\n");
@@ -754,8 +750,10 @@ void price_adjust(){
 			}
 		}while(flag == 0);
 		
+		if(quit_handle == 1) break;
+		
 		//修改菜品 
-		printf("是否确认修改<%s>菜品的价格？1.是 2.否",dm[pos].dish_name);
+		printf("是否确认修改<%s>菜品的价格?1.是 2.否",dm[pos].dish_name);
 		int adjust_choice;
 		scanf("%d",&adjust_choice);
 		
@@ -766,17 +764,12 @@ void price_adjust(){
 			double re_price;
 			scanf("%lf",&re_price); 
 			
-			int i;
-			int j = 0;
-			for(i = 0 ; i < cnt - 1 ; i++){
-				if(i == pos){ //修改价格 
-					dm[i].dish_price = re_price;
-				}
-			}
+			dm[pos].dish_price = re_price;
 			
 			//将 dm重新覆盖录入到菜单文件中
 			fp = fopen(filename , "w");
-			for(i = 0 ; i < cnt -1 ; i++){
+			int i;
+			for(i = 0 ; i < cnt ; i++){
 				fprintf(fp , "%d\n",dm[i].no);
 				fprintf(fp , "%s\n",dm[i].dish_name);
 				fprintf(fp , "%lf\n",dm[i].dish_price);
@@ -797,129 +790,3 @@ void price_adjust(){
 	}while(choice != 2);
 }
 
-
-
-
-
-
-
-
-
-
-
-//C部分：订单与支付管理
-
-/*
- * 函数功能：根据桌号生成订单文件名
- * 示例：1.txt → order/1.txt
- */
-
-void create_order_filename(int table_num,char* fstr){
-    char str[5];
-
-    //讲桌号转为字符串
-    itoa(table_num,str,10);
-
-    //拼接路径和文件名
-    strcpy(fstr,"order//");
-    strcat(fstr,str);
-    strcat(fstr,".txt");
-
-}
-
-
-
-
-
-
-/*
- * 功能：计算订单总金额及各分类金额
- */
-void calculate_value(char* fstr,double* all,
-                     double* hot,double* cold,
-                     double* staple,double* drink){
-
-    FILE* fp =fopen(fstr,"r");
-    int temp;
-    fscanf(fp,"%d",&temp);
-
-    int no,type,nums;
-    char name[20];
-    double price;
-
-    while(!feof(fp)){
-        fscanf(fp,"%d %s %lf %d %d",&no,name,&price,&type,&nums);
-
-        *all +=price *nums;
-
-        switch(type){
-            case 1: *hot +=price *nums;break;
-            case 2: *cold +=price *nums;break;
-            case 3: *staple +=price *nums;break;
-            case 4: *drink +=price *nums;break;
-
-        }
-    }
-    fclose(fp);
-}
-
-
-
-
-/*
- * 功能：管理员确认订单
- * 状态从 2 → 3
- */
-void order_check(){
-    system("cls");
-	int table_no;
-    printf("请输入要确认的桌号：");
-    scanf("%d", &table_no);
-
-    char fstr[50] ="order//";
-    create_order_filename(table_no,fstr);
-
-    FILE* fp =fopen(fstr,"r");
-    if(!fp) return;
-
-    int flag;
-    fscanf(fp,"%d",&flag);
-    fclose(fp);
-
-    if(flag ==2){
-        fp =fopen(fstr,"r+");
-        fseek(fp,0,SEEK_SET);
-        fprintf(fp,"3");
-        fclose(fp);
-        printf("订单已确认！！\n");
-    }
-}
-
-
-
-
-/*
- * 功能：完成订单
- * 1. 计算收入
- * 2. 记录收入
- * 3. 删除订单文件
- */
-void order_complete(){
-    system("cls");
-	int table_no;
-    printf("请输入要确认的桌号：");
-    scanf("%d", &table_no);
-
-    char fstr[50] ="order//";
-    create_order_name(table_no,fstr);
-
-
-    double all =0,hot =0,cold =0,staple =0,drink =0;
-    calculate_value(fstr,&all,&hot,&cold,&staple,&drink);
-
-    //记录收入（调用D的函数
-    record_income(all,hot,cold,staple,drink);
-
-    remove(fstr);
-    printf("订单已完成！\n");
-  }
