@@ -19,7 +19,7 @@ int main(){
 			case 2:admin_form();
 			       break;
 		}
-	}while(choice!=3); //菜单循环 
+	}while(op!=3); //菜单循环 
 	
 	return 0;
 } 

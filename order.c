@@ -3,22 +3,58 @@
 #include <stdio.h>
 #include <windows.h>
 
+
+
 /*
  * 功能：根据桌号生成订单文件名
  */
-void create_order_filename(int table_no, char* fstr) {
-    char str[5];
-    itoa(table_no, str, 10);
-    strcpy(fstr, "order//");
-    strcat(fstr, str);
-    strcat(fstr, ".txt");
+void create_order_filename(int table_no, char* fstr,int size) {
+    snprintf(fstr, size, "order/%d.txt", table_no);
+}
+
+
+
+/*
+ * 功能：检查订单文件完整性
+ */
+int check_order_file(char* fstr) {
+    FILE* fp = fopen(fstr, "r");
+    if (!fp) return 0;
+
+    int flag;
+    if (fscanf(fp, "%d", &flag) != 1) {
+        fclose(fp);
+        return 0;
+    }
+
+    dish_order o;
+    while (!feof(fp)) {
+        int ret = fscanf(fp, "%d %s %lf %d %d",
+                         &o.no,
+                         o.dish_name,
+                         &o.dish_price,
+                         &o.type,
+                         &o.nums);
+
+        if (ret != 5) {
+            fclose(fp);
+            return 0;
+        }
+
+        if (o.dish_price <= 0) return 0;
+        if (o.nums <= 0) return 0;
+        if (o.type < 1 || o.type > 4) return 0;
+    }
+
+    fclose(fp);
+    return 1;
 }
 
 
 
 
 /*
- * 功能：顾客结账
+ * 功能：顾客结账（含优惠）
  */
 void check_bill() {
     system("cls");
@@ -30,13 +66,13 @@ void check_bill() {
     char fstr[50];
     create_order_filename(table_no, fstr);
 
-    FILE* fp = fopen(fstr, "r");
-    if (!fp) {
-        printf("订单不存在！\n");
+    if (!check_order_file(fstr)) {
+        printf("订单文件异常，无法支付！\n");
         getch();
         return;
     }
 
+    FILE* fp = fopen(fstr, "r");
     int flag;
     fscanf(fp, "%d", &flag);
     fclose(fp);
@@ -54,34 +90,55 @@ void check_bill() {
     fp = fopen(fstr, "r");
     fscanf(fp, "%d", &flag);
 
-    while (!feof(fp)) {
-        fscanf(fp, "%d %s %lf %d %d",
+    while (cnt < MAX_LENGTH &&
+           fscanf(fp, "%d %s %lf %d %d",
                &order[cnt].no,
                order[cnt].dish_name,
                &order[cnt].dish_price,
                &order[cnt].type,
-               &order[cnt].nums);
-
+               &order[cnt].nums) == 5) {
         total += order[cnt].dish_price * order[cnt].nums;
         cnt++;
     }
     fclose(fp);
 
-    printf("应付金额：%.2lf\n", total);
+    if(cnt == 0) {
+         printf("订单为空！\n");
+        getch();
+        return;
+    }
+
+    // ================= 优惠计算 =================
+    double discount_rate = 0.88;
+    double discounted_total = total * discount_rate;
+    int final_total = (int)discounted_total;
+    int reduction = (int)(discounted_total - final_total);
+
+    printf("========== 账单明细 ==========\n");
+    printf("原价：%.2lf 元\n", total);
+    printf("折扣：8.8 折\n");
+    printf("折后价：%.2lf 元\n", discounted_total);
+    printf("抹零：-%d 元\n", reduction);
+    printf("实收金额：%d 元\n", final_total);
+    printf("==============================\n");
 
     double pay;
     scanf("%lf", &pay);
 
-    if (pay < total) {
+    if (pay < final_total) {
         printf("金额不足！\n");
         getch();
         return;
     }
 
     fp = fopen(fstr, "w");
+    if (!fp) {
+        printf("无法更新订单状态！\n");
+        getch();
+        return;
+    }
     fprintf(fp, "2\n");
-
-    for (int i = 0; i < cnt - 1; i++) {
+    for (int i = 0; i < cnt; i++) { 
         fprintf(fp, "%d %s %.2lf %d %d\n",
                 order[i].no,
                 order[i].dish_name,
@@ -94,7 +151,6 @@ void check_bill() {
     printf("支付成功！\n");
     getch();
 }
-
 
 
 
@@ -135,7 +191,6 @@ void order_status() {
 
 
 
-
 /*
  * 功能：计算订单金额
  */
@@ -157,7 +212,6 @@ void calculate_value(char* fstr, double* all,
                &o.nums);
 
         *all += o.dish_price * o.nums;
-
         switch (o.type) {
             case 1: *hot += o.dish_price * o.nums; break;
             case 2: *cold += o.dish_price * o.nums; break;
@@ -167,7 +221,6 @@ void calculate_value(char* fstr, double* all,
     }
     fclose(fp);
 }
-
 
 
 
@@ -184,18 +237,25 @@ void order_check() {
     char fstr[50];
     create_order_filename(table_no, fstr);
 
-    FILE* fp = fopen(fstr, "r");
-    if (!fp) {
-        printf("订单不存在！\n");
+    if (!check_order_file(fstr)) {
+        printf("订单文件异常！\n");
         return;
     }
 
+    FILE* fp = fopen(fstr, "r");
+    if (!fp) {
+        printf("订单不存在！\n");
+        getch(); // 防止闪退
+        return;
+    }
+    
     int flag;
     fscanf(fp, "%d", &flag);
     fclose(fp);
 
-    if (flag != 2) {
-        printf("订单未支付！\n");
+    if (flag != 2 && flag != 3) {
+        printf("订单状态不正确，无法完成（当前状态：%d）！\n", flag);
+        getch();
         return;
     }
 
@@ -206,7 +266,6 @@ void order_check() {
 
     printf("订单已确认！\n");
 }
-
 
 
 
@@ -224,12 +283,12 @@ void order_complete() {
     char fstr[50];
     create_order_filename(table_no, fstr);
 
-    FILE* fp = fopen(fstr, "r");
-    if (!fp) {
-        printf("订单不存在！\n");
+    if (!check_order_file(fstr)) {
+        printf("订单文件异常！\n");
         return;
     }
 
+    FILE* fp = fopen(fstr, "r");
     int flag;
     fscanf(fp, "%d", &flag);
     fclose(fp);
