@@ -6,14 +6,14 @@ extern void customer_form();
 extern void admin_form();
 
 /*
-* function_name: main
-* description  : 程序入口，设定基础循环保证程序运行
+* 名称: main
+* 功能: 程序入口，构建循环运行逻辑 
 */
-int main(int argc, char *argv[]){
-	int choice; //定义一个选择变量 
+int main(){
+	int op; //定义一个选择变量
 	do{
-		choice = main_form();
-		switch(choice){
+		op = main_form();
+		switch(op){
 			case 1:customer_form();
 			       break;
 			case 2:admin_form();
