@@ -1,8 +1,4 @@
 
-/*
-补个login，区分admin和customer
-*/
-
 #include "tools.c"
 
 //变量声明 
