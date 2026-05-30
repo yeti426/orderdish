@@ -75,9 +75,6 @@ void customer_form(){
 	}while(choice != 8);//输入8退出
 }
 
-/////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-
 void read_menu(char* filename , dish_menu* dm , int* cnt){
 	FILE* fp;
 	fp = fopen(filename , "r");
@@ -92,6 +89,8 @@ void read_menu(char* filename , dish_menu* dm , int* cnt){
 } 
 
 
+/////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
 void cold_dish(){
 	//采用结构体数组保存读取到的菜单品信息
 	dish_menu cold_dish_menu[MAX_LENGTH]; 
@@ -167,7 +166,11 @@ void page_controller(dish_menu *dm , int cnt){
 	} while(choice != 4);
 } 
 
+/*
 
+dyn:最好是删掉翻页功能，如果我们菜不多的话
+
+*/
 int display_menu(dish_menu *dm, int start , int end){
 	int i;
 	int choice;
