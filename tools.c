@@ -5,10 +5,10 @@
 #include<stdio.h>   //实现菜单显示与用户交互 
 #include<stdlib.h>  //系统命令调用与安全退出 
 #include<math.h>
-#include<windows.h> //进行清屏与控制台操作 
-#include<io.h>
+//#include<windows.h> //进行清屏与控制台操作 
+//#include<io.h>
 #include<string.h>  //菜品名称与用户信息的字符串处理 
-#include<conio.h>
+//#include<conio.h>
 #include<time.h>    //获取系统时间并实现问候 
 
 #define MAX_LENGTH 100
