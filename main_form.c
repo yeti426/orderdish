@@ -60,7 +60,7 @@ void greet(struct tm* p,int user_role){
         printf("====================================\n");
 	}
 	else if(user_role == 1){
-		printf("客观远道而来，小店蓬荜生辉！\n");
+		printf("客官远道而来，小店蓬荜生辉！\n");
 	}
 	else{
 		printf("今日阳光正好，愿君心情愉快！\n");
