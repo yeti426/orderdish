@@ -1,4 +1,4 @@
-#include"tools.c" //引入工具模块
+#include"init.h" //引入初始化模块
 
 //外部函数声明
 extern int main_form();

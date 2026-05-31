@@ -1,5 +1,5 @@
 
-#include "tools.c"
+#include "init.h"
 
 //变量声明 
 int table_no;                 //餐台号 

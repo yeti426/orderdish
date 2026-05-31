@@ -1,4 +1,4 @@
-#include "tools.c"
+#include "init.h"
 //变量声明
 //char pw[20] = "123456";                        //预置密码，方便调试 
 //部分全局变量

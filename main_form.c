@@ -1,12 +1,7 @@
-#include"tools.c" //引入工具模块 
-
-//函数声明
-void error_check(int,int,int*);
-void greet(struct tm* p,int);
-struct tm* get_time();
+#include"init.h" //引入初始化模块
 
 /*
-* 名称: main_form
+* 名称：main_form
 * 功能: 程序主界面的显示界面，获取选择信息并返回至主函数main
 */
 int main_form(){
