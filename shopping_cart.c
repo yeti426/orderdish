@@ -25,6 +25,10 @@ extern void error_check(int,int,int*);
 extern void greet(struct tm* p,int);
 extern struct tm* get_time();
 extern void create_order_filename(int,char*); 
+// 添加以下函数声明
+extern void ordering_menu();          // 点菜子菜单
+extern void view_bill();              // 查看账单
+extern void checkout();               // 结账
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -101,6 +105,7 @@ void add_to_cart(dish_menu* dm, int index, int nums) {
     getch();
 }
 
+
 /*
  * 函数功能：更新购物车总金额
  */
@@ -128,7 +133,6 @@ void display_cart() {
         printf("----------------------------------------------------------\n");
         
         for (int i = 0; i < cart.count; i++) {
-            // 状态文字转换
             char* status_text;
             switch(cart.items[i].status) {
                 case 0: status_text = "未提交"; break;
@@ -153,9 +157,22 @@ void display_cart() {
     }
     
     printf("\n========================================\n");
+    
+    // 如果购物车为空或已提交，只显示返回选项
+    if (cart.count == 0 || cart.kitchen_received) {
+        printf("1. 返回主菜单\n");
+        printf("请选择: ");
+        
+        int choice;
+        scanf("%d", &choice);
+        error_check(1, 1, &choice);
+        return;
+    }
+    
+    // 否则显示完整选项
     printf("1. 删除菜品\n");
     printf("2. 提交订单到厨房\n");
-    printf("3. 返回\n");
+    printf("3. 返回主菜单\n");
     printf("请选择: ");
     
     int choice;
@@ -164,24 +181,12 @@ void display_cart() {
     
     switch(choice) {
         case 1: {
-            if (cart.count == 0) {
-                printf("购物车为空！\n");
-                getch();
-                break;
-            }
             printf("请输入要删除的序号: ");
             int del_index;
             scanf("%d", &del_index);
             
             if (del_index < 1 || del_index > cart.count) {
                 printf("无效的序号！\n");
-                getch();
-                break;
-            }
-            
-            // 检查是否可以删除（已上菜的不能删除）
-            if (cart.items[del_index - 1].status == 2) {
-                printf("该菜品已上菜，无法删除！\n");
                 getch();
                 break;
             }
@@ -200,17 +205,7 @@ void display_cart() {
             break;
         }
         case 2: {
-            if (cart.count == 0) {
-                printf("购物车为空，无法提交！\n");
-                getch();
-                break;
-            }
-            if (cart.kitchen_received) {
-                printf("订单已提交到厨房！\n");
-                getch();
-                break;
-            }
-            submit_order();
+            submit_order();  // 提交后会显示已点菜品
             break;
         }
         case 3:
@@ -219,27 +214,100 @@ void display_cart() {
 }
 
 /*
- * 函数功能：从购物车删除菜品
- * 参数：index - 数组索引（从0开始）
+ * 函数功能：显示已提交的订单菜品（从文件读取）
  */
-void remove_from_cart(int index) {
-    if (index < 0 || index >= cart.count) {
+void display_ordered_dishes(const char* filename) {
+    FILE* fp = fopen(filename, "r");
+    if (!fp) {
+        printf("无法读取订单信息！\n");
+        getch();
         return;
     }
     
-    // 将后面的元素前移
-    for (int i = index; i < cart.count - 1; i++) {
-        cart.items[i] = cart.items[i + 1];
+    int order_status;
+    fscanf(fp, "%d", &order_status);
+    
+    dish_order orders[MAX_LENGTH];
+    int count = 0;
+    double total = 0;
+    
+    // 读取所有订单项
+    while (count < MAX_LENGTH && 
+           fscanf(fp, "%d %s %lf %d %d",
+                  &orders[count].no,
+                  orders[count].dish_name,
+                  &orders[count].dish_price,
+                  &orders[count].type,
+                  &orders[count].nums) == 5) {
+        
+        orders[count].subtotal = orders[count].dish_price * orders[count].nums;
+        total += orders[count].subtotal;
+        count++;
+    }
+    fclose(fp);
+    
+    // 获取订单状态文字
+    char* status_text;
+    switch(order_status) {
+        case 1: status_text = "待支付"; break;
+        case 2: status_text = "已支付，等待确认"; break;
+        case 3: status_text = "商家已确认，制作中"; break;
+        default: status_text = "未知状态"; break;
     }
     
-    cart.count--;
-    update_cart_total();
+    system("cls");
+    printf("========================================\n");
+    printf("         已点菜品列表 (桌号: %d)\n", table_no);
+    printf("========================================\n");
+    printf("订单状态: %s\n", status_text);
+    printf("厨房状态: 已收到订单\n");
+    printf("\n");
+    
+    if (count == 0) {
+        printf("暂无已点菜品\n");
+    } else {
+        printf("%-4s %-6s %-10s %-8s %-6s %-10s\n", 
+               "序号", "编号", "菜品名称", "单价", "数量", "小计");
+        printf("----------------------------------------------------------\n");
+        
+        for (int i = 0; i < count; i++) {
+            printf("%-4d %-6d %-10s %-8.2lf %-6d %-10.2lf\n",
+                   i + 1,
+                   orders[i].no,
+                   orders[i].dish_name,
+                   orders[i].dish_price,
+                   orders[i].nums,
+                   orders[i].subtotal);
+        }
+        
+        printf("----------------------------------------------------------\n");
+        printf("\n总金额: %.2lf 元\n", total);
+    }
+    
+    printf("\n========================================\n");
+    printf("提示：您可以继续点菜，新菜品将加入新的订单\n");
+    printf("按任意键返回主菜单...");
+    getch();
 }
-
 /*
  * 函数功能：提交订单到厨房（写入文件）
  */
+/*
+ * 函数功能：提交订单到厨房（写入文件并清空购物车）
+ */
 void submit_order() {
+    if (cart.count == 0) {
+        printf("购物车为空，无法提交！\n");
+        getch();
+        return;
+    }
+    
+    if (cart.kitchen_received) {
+        printf("订单已提交到厨房，请勿重复提交！\n");
+        getch();
+        return;
+    }
+    
     char filename[50] = "order//";
     create_order_filename(table_no, filename);
     
@@ -261,15 +329,25 @@ void submit_order() {
                 cart.items[i].dish_price,
                 cart.items[i].type,
                 cart.items[i].nums);
-        
-        // 更新状态为制作中
-        cart.items[i].status = 1;
     }
     
     fclose(fp);
     
+    // 标记厨房已收到
     cart.kitchen_received = 1;
-    printf("订单已提交到厨房！\n");
+    
+    system("cls");
+    printf("========================================\n");
+    printf("         订单提交成功！\n");
+    printf("========================================\n");
+    printf("\n订单已提交到厨房！\n");
     printf("总金额: %.2lf 元\n", cart.total_amount);
-    getch();
+    printf("\n正在为您查看已点菜品...\n");
+    Sleep(1500);  // 暂停1.5秒让用户看到提示
+    
+    // 清空购物车
+    init_cart();
+    
+    // 显示已点菜品（从文件读取）
+    display_ordered_dishes(filename);
 }

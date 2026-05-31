@@ -29,58 +29,89 @@ extern void order_status();          //订单状态
 extern void display_cart();          //查看已点菜品
 
 
-void customer_form(){
-    //选桌
-	system("cls");
-	printf("**************************************\n");
-	printf("请输入您的餐台号：");
-	scanf("%d",&table_no);
-
-    //欢迎信息
-	system("cls");
-	int greet_type = 1;
-	struct tm* p = get_time();
-	greet(p,greet_type);
-
-	//询问顾客是否点餐 
-    char start_choice;
-    printf("是否开始点餐？(Y/N): ");
-    scanf(" %c", &start_choice);
-    if(start_choice == 'N' || start_choice == 'n'){
-       display_cart(); //查看已点菜品
-       check_bill(); //查看账单
-       return;
-    }
-	
-    //选择服务
-	while(1){
-		int choice;
-	    printf("餐台：%d 请选择您的操作\n",table_no);
-	    printf("1.热菜\n"); 
-	    printf("2.凉菜\n"); 
-	    printf("3.主食\n");
-	    printf("4.饮品\n"); 
-	    printf("5.结账\n"); 
-	    printf("6.订单状态\n");
-	    printf("7.退出\n");
-	    printf("请在输入想进行的操作:");
-	    scanf("%d",&choice);
-
-	    error_check(1,7,&choice);
-
-        //打开菜单界面 
-		switch(choice){
-			case 1:hot_dish();break;
-			case 2:cold_dish();break;
-			case 3:staple_food();break;
-			case 4:drink();break;
-			case 5:check_bill();break;
-			case 6:order_status();break;
-			case 7:break;		
-		}
-	}
+void customer_form() {
+    // 选桌
+    system("cls");
+    printf("**************************************\n");
+    printf("请输入您的餐台号：");
+    scanf("%d", &table_no);
+    
+    // 初始化购物车
+    init_cart();
+    
+    // 欢迎信息
+    system("cls");
+    int greet_type = 1;
+    struct tm* p = get_time();
+    greet(p, greet_type);
+    
+    // 选择服务 - 简化后的菜单
+    int choice;
+    do {
+        system("cls");
+        printf("========================================\n");
+        printf("         餐台：%d 服务菜单\n", table_no);
+        printf("========================================\n");
+        printf("1. 点菜\n");
+        printf("2. 查看购物车\n");
+        printf("3. 查看账单\n");
+        printf("4. 结账（呼叫服务员）\n");
+        printf("5. 退出\n");
+        printf("========================================\n");
+        printf("请选择: ");
+        scanf("%d", &choice);
+        
+        error_check(1, 5, &choice);
+        
+        switch(choice) {
+            case 1: 
+                ordering_menu();  // 点菜子菜单
+                break;
+            case 2: 
+                display_cart();   // 查看购物车
+                break;
+            case 3: 
+                view_bill();      // 查看账单（已点菜品）
+                break;
+            case 4: 
+                checkout();       // 结账
+                break;
+            case 5: 
+                break;
+        }
+    } while(choice != 5);
 }
-
+////////////////////////////////////////////////////////////////////
+/*
+ * 函数功能：点菜子菜单（整合四类菜品），把点菜功能独立出来
+ */
+void ordering_menu() {
+    int choice;
+    do {
+        system("cls");
+        printf("========================================\n");
+        printf("         点菜菜单\n");
+        printf("========================================\n");
+        printf("1. 热菜\n");
+        printf("2. 凉菜\n");
+        printf("3. 主食\n");
+        printf("4. 饮品\n");
+        printf("5. 返回主菜单\n");
+        printf("========================================\n");
+        printf("请选择: ");
+        scanf("%d", &choice);
+        
+        error_check(1, 5, &choice);
+        
+        switch(choice) {
+            case 1: hot_dish(); break;
+            case 2: cold_dish(); break;
+            case 3: staple_food(); break;
+            case 4: drink(); break;
+            case 5: break;
+        }
+    } while(choice != 5);
+}
 
 void read_menu(char* filename , dish_menu* dm , int* cnt){
 	FILE* fp;
@@ -94,8 +125,6 @@ void read_menu(char* filename , dish_menu* dm , int* cnt){
 	}
 	fclose(fp);
 } 
-
-
 /*
 * 名称：cold_dish、hot_dish、staple_food、drink
 * 功能：定义四个种类的菜品及相关操作
@@ -151,62 +180,193 @@ void display_menu(dish_menu *dm, int cnt){
 
 
 /*
-*名称：menu_controller
-*功能：实现菜单内容相关交互 
-*/ 
-void menu_controller(dish_menu *dm, int cnt){
-	int choice;
-	int index;
-	int nums;
-	
-	while(1){
-		display_menu(dm, cnt);
-		
-		printf("1.加入购物车\n");
-		printf("2.查看购物车\n");
-		printf("3.返回\n");
-		printf("请选择：");
-		scanf("%d",&choice); 
-		error_check(1, 3, &choice);
-		
-		switch(choice){
-			case 1:
-				if(cart.kitchen_received){
-					printf("订单已提交，不能继续修改购物车！\n");
-					getch();
-					break;
-				}
-				
-				printf("请输入菜品序号：");
-				scanf("%d",&index);
-				
-				if(index < 1 || index > cnt){
-					printf("无效的菜品序号!\n");
-					getch();
-					break;
-				}
-				
-				printf("请输入数量：");
-				scanf("%d",&nums);
-				
-				if(nums <= 0){
-					printf("数量必须大于0！\n");
-					getch();
-					break;
-				} 
-				
-				add_to_cart(dm, index-1, nums);
-				break;
-				
-			case 2:
-				display_cart();
-				break;
-			
-			case 3:
-				return;
-		}
-	}
-} 
+ * 函数功能：查看已点菜品（显示所有已点菜品）
+ */
+void view_bill() {
+    char filename[50] = "order//";
+    create_order_filename(table_no, filename);
+    
+    FILE* fp = fopen(filename, "r");
+    if (!fp) {
+        system("cls");
+        printf("========================================\n");
+        printf("         账单 (桌号: %d)\n", table_no);
+        printf("========================================\n");
+        printf("\n您还没有点菜！\n");
+        printf("\n========================================\n");
+        printf("1. 去点菜\n");
+        printf("2. 返回主菜单\n");
+        printf("请选择: ");
+        
+        int choice;
+        scanf("%d", &choice);
+        error_check(1, 2, &choice);
+        
+        if (choice == 1) {
+            ordering_menu();
+        }
+        return;
+    }
+    
+    // 读取订单状态
+    int order_status;
+    fscanf(fp, "%d", &order_status);
+    
+    dish_order orders[MAX_LENGTH];
+    int count = 0;
+    double total = 0;
+    
+    // 读取所有订单项
+    while (count < MAX_LENGTH && 
+           fscanf(fp, "%d %s %lf %d %d",
+                  &orders[count].no,
+                  orders[count].dish_name,
+                  &orders[count].dish_price,
+                  &orders[count].type,
+                  &orders[count].nums) == 5) {
+        
+        orders[count].subtotal = orders[count].dish_price * orders[count].nums;
+        total += orders[count].subtotal;
+        count++;
+    }
+    fclose(fp);
+    
+    // 获取订单状态文字
+    char* status_text;
+    switch(order_status) {
+        case 1: status_text = "待支付"; break;
+        case 2: status_text = "已支付，等待确认"; break;
+        case 3: status_text = "商家已确认，制作中"; break;
+        default: status_text = "未知状态"; break;
+    }
+    
+    system("cls");
+    printf("========================================\n");
+    printf("         账单 (桌号: %d)\n", table_no);
+    printf("========================================\n");
+    printf("订单状态: %s\n", status_text);
+    printf("\n");
+    
+    if (count == 0) {
+        printf("暂无已点菜品\n");
+    } else {
+        printf("%-4s %-6s %-10s %-8s %-6s %-10s\n", 
+               "序号", "编号", "菜品名称", "单价", "数量", "小计");
+        printf("----------------------------------------------------------\n");
+        
+        for (int i = 0; i < count; i++) {
+            printf("%-4d %-6d %-10s %-8.2lf %-6d %-10.2lf\n",
+                   i + 1,
+                   orders[i].no,
+                   orders[i].dish_name,
+                   orders[i].dish_price,
+                   orders[i].nums,
+                   orders[i].subtotal);
+        }
+        
+        printf("----------------------------------------------------------\n");
+        printf("\n总金额: %.2lf 元\n", total);
+    }
+    
+    printf("\n========================================\n");
+    printf("1. 去结账\n");
+    printf("2. 继续点菜\n");
+    printf("3. 返回主菜单\n");
+    printf("请选择: ");
+    
+    int choice;
+    scanf("%d", &choice);
+    error_check(1, 3, &choice);
+    
+    switch(choice) {
+        case 1:
+            checkout();  // 去结账
+            break;
+        case 2:
+            ordering_menu();  // 继续点菜
+            break;
+        case 3:
+            break;
+    }
+}
+
+
+/*
+ * 函数功能：结账（呼叫服务员）
+ */
+void checkout() {
+    char filename[50] = "order//";
+    create_order_filename(table_no, filename);
+    
+    FILE* fp = fopen(filename, "r");
+    if (!fp) {
+        system("cls");
+        printf("========================================\n");
+        printf("         结账 (桌号: %d)\n", table_no);
+        printf("========================================\n");
+        printf("\n您还没有点菜，无法结账！\n");
+        printf("\n按任意键返回...");
+        getch();
+        return;
+    }
+    
+    // 读取订单状态
+    int order_status;
+    fscanf(fp, "%d", &order_status);
+    
+    dish_order orders[MAX_LENGTH];
+    int count = 0;
+    double total = 0;
+    
+    // 读取所有订单项
+    while (count < MAX_LENGTH && 
+           fscanf(fp, "%d %s %lf %d %d",
+                  &orders[count].no,
+                  orders[count].dish_name,
+                  &orders[count].dish_price,
+                  &orders[count].type,
+                  &orders[count].nums) == 5) {
+        
+        orders[count].subtotal = orders[count].dish_price * orders[count].nums;
+        total += orders[count].subtotal;
+        count++;
+    }
+    fclose(fp);
+    
+    system("cls");
+    printf("========================================\n");
+    printf("         结账 (桌号: %d)\n", table_no);
+    printf("========================================\n");
+    printf("\n");
+    
+    if (count == 0) {
+        printf("账单为空！\n");
+    } else {
+        printf("%-4s %-6s %-10s %-8s %-6s %-10s\n", 
+               "序号", "编号", "菜品名称", "单价", "数量", "小计");
+        printf("----------------------------------------------------------\n");
+        
+        for (int i = 0; i < count; i++) {
+            printf("%-4d %-6d %-10s %-8.2lf %-6d %-10.2lf\n",
+                   i + 1,
+                   orders[i].no,
+                   orders[i].dish_name,
+                   orders[i].dish_price,
+                   orders[i].nums,
+                   orders[i].subtotal);
+        }
+        
+        printf("----------------------------------------------------------\n");
+        printf("\n总金额: %.2lf 元\n", total);
+    }
+    
+    printf("\n========================================\n");
+    printf("已呼叫服务员，请稍候...\n");
+    printf("服务员将为您办理结账手续\n");
+    printf("\n按任意键返回主菜单...");
+    getch();
+}
+
 
 
 /*
