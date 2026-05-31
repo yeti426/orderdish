@@ -18,6 +18,10 @@ void add_dish();                          //添加菜品
 void del_dish();                          //删除菜品 
 void price_adjust();                      //价格调整 
 void change_password();                   //密码修改 
+void change_password_by_sms();             //手机验证码修改密码
+void send_sms_code(char*, char*);          //发送短信验证码
+void generate_code(char*);                 //生成验证码
+int input_new_password(char*);             //输入并确认新密码(返回1成功0失败)
 void create_date_filename(char*);         //生成当日文件名 
 void format_input_income(FILE*,double,double,double,double,double);            //收入格式化输入文件
 int format_output_income(FILE*,double*,double*,double*,double*,double*);       //收入格式化输出到程序，返回1成功0失败 
@@ -115,16 +119,6 @@ void input_password(char pw_input[],int wrong_time){
 	int i = 0;           // 数组下标
 	do{
 		ch = getch();
-		if (i >= 19) {
-			if (ch == 13 || ch == 8) {
-				// 允许回车确认、退格删除
-			} else {
-				// 不允许再输入！给提示！
-				printf("\n");   // 显示在下一行，不破坏当前界面
-				printf("密码最长只能输入19位。");
-				continue;  // 跳过，不处理这个字符
-			}
-		}
 		if(ch == 13){//回车键 
 			;
 		}
@@ -134,13 +128,15 @@ void input_password(char pw_input[],int wrong_time){
 				cnt--;
 				x--;// 光标左移一格
 				gotoxy(x,y);// 移过去
-				printf(" "); // 光标位置 = 要覆盖的字符的正左边,用空格覆盖掉 *
+				printf(" "); // 用空格覆盖掉 *
 				gotoxy(x,y);// 再移回来，让光标停在正确位置
-			// 删除后清空提示行
-				gotoxy(10, y + 1);
-				printf("                      ");
-				gotoxy(x, y);
 			}
+		}
+		else if (i >= 19) {
+			// 密码已达最大长度，不允许再输入
+			printf("\n");
+			printf("密码最长只能输入19位。");
+			continue;
 		}
 		else{//普通字符 
 			temp_input[i] = ch;
@@ -196,11 +192,11 @@ void change_password(){
 	char pw_old[20];
 	char pw_old_input[20];
 	char pw_new[20];
-	char pw_check[20];
 	FILE* fp;
 	fp = fopen("password.txt", "r");
 	if (fp == NULL) {
 		printf("密码文件不存在，无法修改密码！\n");
+		getch();
 		return;
 	}
 	fscanf(fp, "%s", pw_old);
@@ -215,27 +211,26 @@ void change_password(){
 	while (strcmp(pw_old, pw_old_input) != 0) {
 		try_count++;
 		if (try_count >= 3) {
-			printf("错误次数过多，修改取消。\n");
+			printf("错误次数过多！\n");
+			printf("是否通过手机验证码修改？(1.是 2.否)：");
+			int sms_choice;
+			scanf("%d", &sms_choice);
+			error_check(1, 2, &sms_choice);
+			if (sms_choice == 1) {
+				change_password_by_sms();
+			} else {
+				printf("修改取消。\n");
+			}
+			getch();
 			return;
 		}
 		printf("输入错误，请重新输入(剩余%d次):", 3 - try_count);
 		scanf("%19s", pw_old_input);
 	}
 	
-	printf("请输入新密码：");
-	scanf("%19s", pw_new);
-	
-	printf("请确认新密码：");
-	scanf("%19s" , pw_check);
-	
-	while(strcmp(pw_new , pw_check) != 0){
-		printf("输入错误，请重新输入：\n");
-		
-		printf("请输入新密码：");
-		scanf("%19s", pw_new);
-	
-		printf("请确认新密码：");
-		scanf("%19s" , pw_check);
+	if (!input_new_password(pw_new)) {
+		getch();
+		return;
 	}
 	
 	fp = fopen("password.txt" , "w");
@@ -253,6 +248,131 @@ void change_password(){
 }
 
 
+
+
+/*
+* function_name: input_new_password
+* return_type  : void
+* param        : char*(新密码)
+* description  : 输入新密码并确认一致
+*/
+int input_new_password(char* pw_new) {
+	char pw_check[20];
+	int retry = 0;
+
+	printf("请输入新密码：");
+	scanf("%19s", pw_new);
+
+	printf("请确认新密码：");
+	scanf("%19s", pw_check);
+
+	while (strcmp(pw_new, pw_check) != 0) {
+		retry++;
+		if (retry >= 3) {
+			printf("两次输入不一致次数过多，操作取消。\n");
+			return 0;
+		}
+		printf("两次输入不一致！(剩余%d次)\n", 3 - retry);
+		printf("请输入新密码：");
+		scanf("%19s", pw_new);
+		printf("请确认新密码：");
+		scanf("%19s", pw_check);
+	}
+	return 1;
+}
+
+/*
+* function_name: generate_code
+* return_type  : void
+* param        : char*(验证码)
+* description  : 生成6位随机数字验证码
+*/
+void generate_code(char* code) {
+	srand((unsigned int)time(NULL));
+	int i;
+	for (i = 0; i < 6; i++) {
+		code[i] = '0' + rand() % 10;
+	}
+	code[6] = '\0';
+}
+
+/*
+* function_name: send_sms_code
+* return_type  : void
+* param        : char*(手机号), char*(验证码)
+* description  : 模拟发送短信验证码(正式部署请接入短信API)
+*/
+void send_sms_code(char* phone, char* code) {
+	printf("【模拟短信】验证码已发送至手机号 %s，验证码为：%s\n", phone, code);
+	printf("（正式部署时请接入短信服务商API）\n");
+}
+
+/*
+* function_name: change_password_by_sms
+* return_type  : void
+* param        : NULL
+* description  : 通过手机短信验证码修改密码
+*/
+void change_password_by_sms() {
+	char phone[12];
+	char sms_code[7];
+	char input_code[7];
+	char pw_new[20];
+
+	system("cls");
+	printf("**************************************\n");
+	printf("         手机验证码修改密码\n");
+	printf("**************************************\n");
+
+	printf("请输入绑定的手机号(11位)：");
+	scanf("%11s", phone);
+
+	if (strlen(phone) != 11) {
+		printf("手机号格式不正确！\n");
+		getch();
+		return;
+	}
+
+	generate_code(sms_code);
+	send_sms_code(phone, sms_code);
+
+	int try_count = 0;
+	while (try_count < 3) {
+		printf("请输入6位短信验证码：");
+		scanf("%6s", input_code);
+
+		if (strcmp(sms_code, input_code) == 0) {
+			printf("验证通过！\n");
+			break;
+		}
+
+		try_count++;
+		if (try_count >= 3) {
+			printf("验证码错误次数过多，操作取消。\n");
+			getch();
+			return;
+		}
+		printf("验证码错误，请重新输入(剩余%d次)：", 3 - try_count);
+	}
+
+	if (!input_new_password(pw_new)) {
+		getch();
+		return;
+	}
+
+	FILE* fp = fopen("password.txt", "w");
+	if (fp == NULL) {
+		printf("密码文件写入失败！\n");
+		getch();
+		return;
+	}
+	fprintf(fp, "%s", pw_new);
+	fclose(fp);
+
+	printf("\n密码修改成功！\n");
+	printf("**************************************\n");
+	getch();
+}
 
 
 /*
@@ -390,8 +510,8 @@ int format_output_income(FILE* fp,double* a,double* b,double* c,double* d,double
 void create_date_filename(char* fdate){
 	fdate[0] = '\0';// 防御性清空，防止调用方传入未初始化的字符串
 	char date[20] = "";//strcat 拼接的前提：目标字符串必须是空的！
-	struct tm* p = get_time();
-	if(p->tm_hour + 8 >= 24) p->tm_mday -= 1;//tm_year = 从 1900 年开始，过去了多少年
+	struct tm* p = get_time();//struct tm 是系统固定结构，localtime 自动把当前时间 年 / 月 / 日 填进去，p 指向这个装满时间的盒子
+	if(p->tm_hour + 8 >= 24) p->tm_mday -= 1;//如果当前时间是23点，则减一天，因为23点是0点，0点是第二天的第一点，所以要减一天。
 	
 	char year[5] = "";
 	char month[5] = "";
@@ -430,24 +550,27 @@ void income_check(){
 	create_date_filename(fdate);
 	
 	FILE* fp;
-	fp = fopen(fdate , "r");
-	if(fp == NULL ){
+	fp = fopen(fdate, "r");
+	if(fp == NULL) {
 		printf("今天好像还没有营业哟!\n");
-	} else{
-		if(!format_output_income(fp,&all_income,&hot_dish_income,&cold_dish_income,&staple_food_income,&drink_income)){
-			printf("错误: 收入文件 %s 格式错误！\n", fdate);
-			fclose(fp);
-			return;
-		}
-		fclose(fp);
+		getch();//显示完收入表格后暂停，等用户看完按任意键再返回。
+		return;
 	}
 
+	if(!format_output_income(fp, &all_income, &hot_dish_income, &cold_dish_income, &staple_food_income, &drink_income)) {
+		printf("错误: 收入文件 %s 格式错误！\n", fdate);
+		fclose(fp);
+		getch();
+		return;
+	}
+	fclose(fp);
+
 	printf("**************************************\n");
-	printf("总收入:%.2lf\n",all_income);
-	printf("热菜收入:%.2lf\n",hot_dish_income);
-	printf("凉菜收入:%.2lf\n",cold_dish_income);
-	printf("主食收入:%.2lf\n",staple_food_income);
-	printf("饮品收入:%.2lf\n",drink_income);
+	printf("总收入:%.2lf\n", all_income);
+	printf("热菜收入:%.2lf\n", hot_dish_income);
+	printf("凉菜收入:%.2lf\n", cold_dish_income);
+	printf("主食收入:%.2lf\n", staple_food_income);
+	printf("饮品收入:%.2lf\n", drink_income);
 	printf("**************************************\n");
 	getch();
 }
@@ -480,7 +603,7 @@ void add_dish(){
 		scanf("%s",new_dish.dish_name); 
 		printf("请输入菜品价格：");
 		scanf("%lf",&new_dish.dish_price);
-		printf("请输入菜品种类：");
+		printf("请选择菜品种类(1.热菜 2.凉菜 3.主食 4.饮品)：");
 		scanf("%d",&new_dish.type);
 		
 		char filename[20];
@@ -491,9 +614,10 @@ void add_dish(){
 			case 4:strcpy( filename , drink_filename );break;
 		}
 		
-		fp = fopen( filename , "a");
+		fp = fopen( filename , "a");// 在文件末尾追加，不覆盖原有数据。
 		if(fp == NULL){
 			printf("错误: 无法打开菜品文件 %s\n", filename);
+			getch();
 			return;
 		}
 		//将菜品信息录入文件 
@@ -529,7 +653,7 @@ void add_dish(){
 */ 
 void del_dish(){
 	int choice;
-	int quit_handle = 0;
+	int quit_handle = 0;//是一个退出标志，用来处理"用户找不到菜品后选退出"的场景。
 	int pos;
 	do{
 		system("cls");
@@ -553,27 +677,39 @@ void del_dish(){
 		}
 		 
 		FILE *fp;
-		dish_menu dm[MAX_LENGTH];
-		dish_menu dm_new[MAX_LENGTH];
+		dish_menu dm[MAX_LENGTH];//创建一个数组 dm，能装下【所有菜品】
+		dish_menu dm_new[MAX_LENGTH];//创建第二个数组 dm_new，装【删除后的新菜单】
 		int cnt = 0;
 		
 		fp = fopen(filename , "r");
 		if(fp == NULL){
 			printf("错误: 无法打开菜品文件 %s\n", filename);
+			getch();
 			return;
 		}
 		while(cnt < MAX_LENGTH && fscanf(fp,"%d",&dm[cnt].no) == 1){
-			fscanf(fp,"%s",dm[cnt].dish_name);
-			fscanf(fp,"%lf",&dm[cnt].dish_price);
-			fscanf(fp,"%d",&dm[cnt].type);
+			if(fscanf(fp,"%s",dm[cnt].dish_name) != 1) break;
+			if(fscanf(fp,"%lf",&dm[cnt].dish_price) != 1) break;
+			if(fscanf(fp,"%d",&dm[cnt].type) != 1) break;
 			cnt++;
 		}
 		fclose(fp);
 		
 		if(cnt == 0){
 			printf("该分类下暂无菜品！\n");
+			getch();
 			return;
 		}
+		
+		// 展示当前菜单
+		printf("当前菜品列表：\n");
+		printf("----------------------------------------------------------\n");
+		printf("编号    名称          价格\n");
+		int i;
+		for(i = 0; i < cnt; i++) {
+			printf("%-8d %-14s %.2lf\n", dm[i].no, dm[i].dish_name, dm[i].dish_price);
+		}
+		printf("----------------------------------------------------------\n");
 		
 		printf("请输入需要删除的菜品编号：");
 		int del_no;
@@ -583,11 +719,11 @@ void del_dish(){
 		int flag = 0;
 		pos = -1;
 		do{
-			int i;
-			for(i = 0 ; i < cnt ; i++){
-				if(dm[i].no == del_no){
+			int j;
+			for(j = 0 ; j < cnt ; j++){
+				if(dm[j].no == del_no){
 					flag = 1;
-					pos = i;
+					pos = j;
 					break;
 				}
 			}
@@ -606,11 +742,12 @@ void del_dish(){
 					break;
 				}
 				
-				if(_choice == 2) scanf("%d",&del_no); 
+				if(_choice == 2) {
+					printf("请重新输入菜品编号：");
+					scanf("%d",&del_no);
+				}
 			}
 		}while(flag == 0);
-		
-		if(quit_handle == 1) break;
 		
 		printf("是否确认删除<%s>菜品?1.是 2.否",dm[pos].dish_name);
 		int del_choice;
@@ -647,10 +784,7 @@ void del_dish(){
 			
 			printf("删除成功！\n");	 
 		} 
-		
-		
-		if(quit_handle == 1) break;
-		
+
 		printf("是否继续删除？1.是，2否？");
 		scanf("%d",&choice);
 		
@@ -700,6 +834,7 @@ void price_adjust(){
 		fp = fopen(filename , "r");
 		if(fp == NULL){
 			printf("错误: 无法打开菜品文件 %s\n", filename);
+			getch();
 			return;
 		}
 		while(cnt < MAX_LENGTH && fscanf(fp,"%d",&dm[cnt].no) == 1){
@@ -712,8 +847,19 @@ void price_adjust(){
 		
 		if(cnt == 0){
 			printf("该分类下暂无菜品！\n");
+			getch();
 			return;
 		}
+		
+		// 展示当前菜单
+		printf("当前菜品列表：\n");
+		printf("----------------------------------------------------------\n");
+		printf("编号    名称          价格\n");
+		int i;
+		for(i = 0; i < cnt; i++) {
+			printf("%-8d %-14s %.2lf\n", dm[i].no, dm[i].dish_name, dm[i].dish_price);
+		}
+		printf("----------------------------------------------------------\n");
 		
 		printf("请输入需要修改价格的菜品编号：");
 		int adjust_no;
@@ -746,7 +892,10 @@ void price_adjust(){
 					break;
 				}
 				
-				if(_choice == 2) scanf("%d",&adjust_no); 
+				if(_choice == 2) {
+				printf("请重新输入菜品编号：");
+				scanf("%d",&adjust_no);
+			}
 			}
 		}while(flag == 0);
 		
