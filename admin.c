@@ -23,6 +23,9 @@ void send_sms_code(char*, char*);          //发送短信验证码
 void generate_code(char*);                 //生成验证码
 int input_new_password(char*);             //输入并确认新密码(返回1成功0失败)
 void create_date_filename(char*);         //生成当日文件名 
+void set_recommend();                      //设置招牌菜
+void cancel_recommend();                   //取消招牌菜
+int is_recommend(int, int);               //检查菜品是否为招牌菜
 void format_input_income(FILE*,double,double,double,double,double);            //收入格式化输入文件
 int format_output_income(FILE*,double*,double*,double*,double*,double*);       //收入格式化输出到程序，返回1成功0失败 
 void calculate_value(char* , double* , double* , double* , double * , double*);//计算收入   
@@ -77,10 +80,12 @@ void admin_form() {
             case 4: add_dish(); break;
             case 5: del_dish(); break;
             case 6: price_adjust(); break;
-            case 7: change_password(); break; 
+            case 7: change_password(); break;
+            case 8: set_recommend(); break;
+            case 9: cancel_recommend(); break;
             default: break;
         }
-    } while(choice != 8);
+    } while(choice != 10);
 }
 
 
@@ -396,15 +401,17 @@ int admin_menu(){
 	printf("5.删除菜品\n");
 	printf("6.修改价格\n");
 	printf("7.密码修改\n"); 
-	printf("8.退出\n");
+	printf("8.设置招牌菜\n");
+	printf("9.取消招牌菜\n");
+	printf("10.退出\n");
 
 	printf("在此输入：");
 	while (scanf("%d", &choice) != 1) {
 		while (getchar() != '\n');  // 清空输入缓冲区，一个一个吃掉缓冲区里的字符，直到遇到换行符为止，把 abc\n 全部清空。
-		printf("输入无效，请重新输入(1-8):");
+		printf("输入无效，请重新输入(1-10):");
 	}
 	
-	error_check(1,8,&choice);
+	error_check(1,10,&choice);
 	return choice;
 }
 
@@ -707,7 +714,10 @@ void del_dish(){
 		printf("编号    名称          价格\n");
 		int i;
 		for(i = 0; i < cnt; i++) {
-			printf("%-8d %-14s %.2lf\n", dm[i].no, dm[i].dish_name, dm[i].dish_price);
+			if(is_recommend(dm[i].type, dm[i].no))
+				printf("%-8d 【招牌】%-10s %.2lf\n", dm[i].no, dm[i].dish_name, dm[i].dish_price);
+			else
+				printf("%-8d %-14s %.2lf\n", dm[i].no, dm[i].dish_name, dm[i].dish_price);
 		}
 		printf("----------------------------------------------------------\n");
 		
@@ -792,6 +802,199 @@ void del_dish(){
 	}while(choice != 2);
 }
 
+/*
+* function_name: is_recommend
+* return_type  : int
+* param        : int(菜品种类), int(菜品编号)
+* description  : 检查菜品是否在招牌菜列表中，是返回1，否返回0
+*/
+int is_recommend(int type, int no) {
+	FILE* fp = fopen("recommend.txt", "r");
+	if(fp == NULL) return 0;
+
+	int t, n;
+	while(fscanf(fp, "%d %d", &t, &n) == 2) {//每次从文件中读取两个整数，分别存到 t 和 n，如果成功读到了 2 个整数就继续循环，否则退出。
+		if(t == type && n == no) {
+			fclose(fp);
+			return 1;
+		}
+	}
+	fclose(fp);
+	return 0;
+}
+
+/*
+* function_name: set_recommend
+* return_type  : void
+* param        : NULL
+* description  : 设置招牌菜
+*/
+void set_recommend() {
+	system("cls");
+	printf("===== 设置招牌菜 =====\n");
+	printf("1.热菜\n");
+	printf("2.凉菜\n");
+	printf("3.主食\n");
+	printf("4.饮品\n");
+	printf("请选择菜品种类：");
+	int type;
+	scanf("%d", &type);
+	error_check(1, 4, &type);
+
+	char filename[20];
+	switch(type) {
+		case 1: strcpy(filename, hot_dish_filename); break;
+		case 2: strcpy(filename, cold_dish_filename); break;
+		case 3: strcpy(filename, staple_food_filename); break;
+		case 4: strcpy(filename, drink_filename); break;
+	}
+
+	dish_menu dm[MAX_LENGTH];
+	int cnt = 0;
+	FILE* fp = fopen(filename, "r");
+	if(fp == NULL) {
+		printf("错误: 无法打开菜品文件 %s\n", filename);
+		getch();
+		return;
+	}
+	while(cnt < MAX_LENGTH && fscanf(fp, "%d", &dm[cnt].no) == 1) {
+		if(fscanf(fp, "%s", dm[cnt].dish_name) != 1) break;
+		if(fscanf(fp, "%lf", &dm[cnt].dish_price) != 1) break;
+		if(fscanf(fp, "%d", &dm[cnt].type) != 1) break;
+		cnt++;
+	}
+	fclose(fp);
+
+	if(cnt == 0) {
+		printf("该分类下暂无菜品！\n");
+		getch();
+		return;
+	}
+
+	// 展示菜单
+	printf("当前菜品列表：\n");
+	printf("----------------------------------------------------------\n");
+	printf("编号    名称          价格\n");
+	int i;
+	for(i = 0; i < cnt; i++) {
+		if(is_recommend(dm[i].type, dm[i].no))
+			printf("%-8d 【招牌】%-10s %.2lf\n", dm[i].no, dm[i].dish_name, dm[i].dish_price);
+		else
+			printf("%-8d %-14s %.2lf\n", dm[i].no, dm[i].dish_name, dm[i].dish_price);
+	}
+	printf("----------------------------------------------------------\n");
+
+	printf("请输入要设为招牌的菜品编号(0取消)：");
+	int rec_no;
+	scanf("%d", &rec_no);
+	if(rec_no == 0) return;
+
+	// 检索是否存在
+	int found = 0;
+	for(i = 0; i < cnt; i++) {
+		if(dm[i].no == rec_no) {
+			found = 1;
+			break;
+		}
+	}
+	if(!found) {
+		printf("没有该菜品！\n");
+		getch();
+		return;
+	}
+
+	// 检查是否已是招牌
+	if(is_recommend(type, rec_no)) {
+		printf("该菜品已是招牌菜！\n");
+		getch();
+		return;
+	}
+
+	// 追加写入
+	fp = fopen("recommend.txt", "a");
+	if(fp == NULL) {
+		printf("错误: 无法写入招牌菜文件！\n");
+		getch();
+		return;
+	}
+	fprintf(fp, "%d %d\n", type, rec_no);
+	fclose(fp);
+
+	printf("设置成功！\n");
+	getch();
+}
+
+/*
+* function_name: cancel_recommend
+* return_type  : void
+* param        : NULL
+* description  : 取消招牌菜
+*/
+void cancel_recommend() {
+	system("cls");
+	printf("===== 取消招牌菜 =====\n");
+
+	FILE* fp = fopen("recommend.txt", "r");
+	if(fp == NULL) {
+		printf("暂无招牌菜记录！\n");
+		getch();
+		return;
+	}
+
+	int types[MAX_LENGTH], nos[MAX_LENGTH];
+	int cnt = 0;
+	int t, n;
+	while(cnt < MAX_LENGTH && fscanf(fp, "%d %d", &t, &n) == 2) {
+		types[cnt] = t;
+		nos[cnt] = n;
+		cnt++;
+	}
+	fclose(fp);
+
+	if(cnt == 0) {
+		printf("暂无招牌菜！\n");
+		getch();
+		return;
+	}
+
+	printf("当前招牌菜：\n");
+	printf("----------------------------------------------------------\n");
+	printf("序号  分类    编号\n");
+	int i;
+	char* type_names[] = {"", "热菜", "凉菜", "主食", "饮品"};
+	for(i = 0; i < cnt; i++) {
+		printf("%-6d %-8s %d\n", i + 1, type_names[types[i]], nos[i]);
+	}
+	printf("----------------------------------------------------------\n");
+
+	printf("请输入要取消的序号(0退出)：");
+	int choice;
+	scanf("%d", &choice);
+	if(choice == 0) return;
+	if(choice < 1 || choice > cnt) {
+		printf("无效选择！\n");
+		getch();
+		return;
+	}
+
+	// 重写文件，跳过选中项
+	fp = fopen("recommend.txt", "w");
+	if(fp == NULL) {
+		printf("错误: 无法写入！\n");
+		getch();
+		return;
+	}
+	for(i = 0; i < cnt; i++) {
+		if(i != choice - 1) {
+			fprintf(fp, "%d %d\n", types[i], nos[i]);
+		}
+	}
+	fclose(fp);
+
+	printf("已取消该招牌菜！\n");
+	getch();
+}
+
 
 
 
@@ -857,7 +1060,10 @@ void price_adjust(){
 		printf("编号    名称          价格\n");
 		int i;
 		for(i = 0; i < cnt; i++) {
-			printf("%-8d %-14s %.2lf\n", dm[i].no, dm[i].dish_name, dm[i].dish_price);
+			if(is_recommend(dm[i].type, dm[i].no))
+				printf("%-8d 【招牌】%-10s %.2lf\n", dm[i].no, dm[i].dish_name, dm[i].dish_price);
+			else
+				printf("%-8d %-14s %.2lf\n", dm[i].no, dm[i].dish_name, dm[i].dish_price);
 		}
 		printf("----------------------------------------------------------\n");
 		
@@ -936,6 +1142,6 @@ void price_adjust(){
 		scanf("%d",&choice);
 		
 		error_check(1,2,&choice);
-	}while(choice != 2);
+    }while(choice != 2);
 }
 

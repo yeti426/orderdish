@@ -24,6 +24,7 @@ extern void error_check(int,int,int*);
 extern void greet(struct tm* p,int);
 extern struct tm* get_time();
 extern void create_order_filename(int,char*); 
+extern int is_recommend(int, int);
 
 void customer_form(){
     //选桌
@@ -170,7 +171,10 @@ int display_menu(dish_menu *dm, int start , int end){
 	printf("----------------------------------------------------------\n");
 	printf("序号  菜品编号    菜品名称      价格\n");
 	for( i = start ; i < end ; i++){
-		printf(" %d\t %d\t  %s\t%.2lf\n",i+1,dm[i].no,dm[i].dish_name,dm[i].dish_price);
+		if(is_recommend(dm[i].type, dm[i].no))
+			printf(" %d\t %d\t  【招牌】%s\t%.2lf\n",i+1,dm[i].no,dm[i].dish_name,dm[i].dish_price);
+		else
+			printf(" %d\t %d\t  %s\t%.2lf\n",i+1,dm[i].no,dm[i].dish_name,dm[i].dish_price);
 	}
 	printf("----------------------------------------------------------\n"); 
 	
