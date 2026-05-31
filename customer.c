@@ -8,12 +8,10 @@ extern char cold_dish_filename[20];
 extern char staple_food_filename[20];
 extern char drink_filename[20]; 
 //函数声明 
-int customer_menu();          //菜单界面
 void cold_dish();             //凉菜 
 void hot_dish();              //热菜 
 void staple_food();           //主食 
 void drink();                 //饮品 
-void over_view();             //总览 
 void check_bill();            //支付订单 
 void order_status();          //订单状态
 void page_controller(dish_menu* , int);       //菜单分页 
@@ -47,14 +45,13 @@ void customer_form(){
 	printf("2.凉菜\n"); 
 	printf("3.主食\n");
 	printf("4.饮品\n"); 
-	printf("5.总览\n"); 
-	printf("6.结账\n"); 
-	printf("7.订单状态\n");
-	printf("8.退出\n");
+	printf("5.结账\n"); 
+	printf("6.订单状态\n");
+	printf("7.退出\n");
 	printf("请在输入想进行的操作:");
 	scanf("%d",&choice);
 
-	error_check(1,8,&choice);
+	error_check(1,7,&choice);
 
 	//打开菜单界面 
 	do{
@@ -63,12 +60,11 @@ void customer_form(){
 			case 2:cold_dish();break;
 			case 3:staple_food();break;
 			case 4:drink();break;
-			case 5:over_view();break;
-			case 6:check_bill();break;
-			case 7:order_status();break;
+			case 5:check_bill();break;
+			case 6:order_status();break;
 			default:break;		
 		}
-	}while(choice != 8);//输入8退出
+	}while(choice != 7);//输入7退出
 }
 
 void read_menu(char* filename , dish_menu* dm , int* cnt){

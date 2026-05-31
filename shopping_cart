@@ -1,4 +1,9 @@
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <conio.h>
+
 // 购物车全局变量
 shopping_cart cart;
 
