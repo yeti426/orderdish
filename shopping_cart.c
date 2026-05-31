@@ -1,3 +1,30 @@
+#include "tools.c"
+
+//变量声明 
+int table_no;                 //餐台号 
+extern char hot_dish_filename[20];
+extern char cold_dish_filename[20];
+extern char staple_food_filename[20];
+extern char drink_filename[20]; 
+//函数声明 
+int customer_menu();          //菜单界面
+void cold_dish();             //凉菜 
+void hot_dish();              //热菜 
+void staple_food();           //主食 
+void drink();                 //饮品 
+void over_view();             //总览 
+void check_bill();            //支付订单 
+void order_status();          //订单状态
+void page_controller(dish_menu* , int);       //菜单分页 
+int display_menu(dish_menu* , int , int);     //显示菜单信息
+void create_order(dish_menu* , int ,int);     //生成订单 
+void read_menu(char* , dish_menu* , int*);             //从文件中读取菜单 
+
+//外部函数声明   
+extern void error_check(int,int,int*);
+extern void greet(struct tm* p,int);
+extern struct tm* get_time();
+extern void create_order_filename(int,char*); 
 
 #include <stdio.h>
 #include <stdlib.h>
