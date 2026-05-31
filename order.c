@@ -68,7 +68,7 @@ void check_bill() {
     scanf("%d", &table_no);
 
     char fstr[50];
-    create_order_filename(table_no, fstr);
+    create_order_filename(table_no, fstr, 50);
 
     if (!check_order_file(fstr)) {
         printf("订单文件异常或不存在，无法支付！\n");
@@ -177,7 +177,7 @@ void order_status() {
     scanf("%d", &table_no);
 
     char fstr[50];
-    create_order_filename(table_no, fstr);
+    create_order_filename(table_no, fstr, 50);
 
     FILE* fp = fopen(fstr, "r");
     if (!fp) {
@@ -254,7 +254,7 @@ void order_check() {
     scanf("%d", &table_no);
 
     char fstr[50];
-    create_order_filename(table_no, fstr);
+    create_order_filename(table_no, fstr, 50);
 
     if (!check_order_file(fstr)) {
         printf("订单文件异常！\n");
@@ -307,7 +307,7 @@ void order_complete() {
     scanf("%d", &table_no);
 
     char fstr[50];
-    create_order_filename(table_no, fstr);
+    create_order_filename(table_no, fstr, 50);
 
     if (!check_order_file(fstr)) {
         printf("订单文件异常！\n");
