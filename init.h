@@ -28,7 +28,8 @@ typedef struct b{
 	char dish_name[20];
 	double dish_price;
 	int type;
-	int nums; //点餐时的数量 
+	int nums; //点餐时的数量
+    double subtotal; //小计价格 
 }dish_order;
 
 // 购物车项结构

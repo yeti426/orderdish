@@ -184,7 +184,7 @@ void display_menu(dish_menu *dm, int cnt){
  */
 void view_bill() {
     char filename[50] = "order//";
-    create_order_filename(table_no, filename);
+    create_order_filename(table_no, filename, sizeof(filename));
     
     FILE* fp = fopen(filename, "r");
     if (!fp) {
@@ -296,7 +296,7 @@ void view_bill() {
  */
 void checkout() {
     char filename[50] = "order//";
-    create_order_filename(table_no, filename);
+    create_order_filename(table_no, filename, sizeof(filename));
     
     FILE* fp = fopen(filename, "r");
     if (!fp) {
