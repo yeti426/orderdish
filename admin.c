@@ -576,11 +576,11 @@ void income_check(){
 	fclose(fp);
 
 	printf("**************************************\n");
-	printf("总收入:%.2lf\n", all_income);
-	printf("热菜收入:%.2lf\n", hot_dish_income);
-	printf("凉菜收入:%.2lf\n", cold_dish_income);
-	printf("主食收入:%.2lf\n", staple_food_income);
-	printf("饮品收入:%.2lf\n", drink_income);
+	printf("%-12s %.2lf\n", "总收入:", all_income);
+    printf("%-12s %.2lf\n", "热菜收入:", hot_dish_income);
+    printf("%-12s %.2lf\n", "凉菜收入:", cold_dish_income);
+    printf("%-12s %.2lf\n", "主食收入:", staple_food_income);
+    printf("%-12s %.2lf\n", "饮品收入:", drink_income);
 	printf("**************************************\n");
 	getch();
 }
@@ -715,13 +715,13 @@ void del_dish(){
 		// 展示当前菜单
 		printf("当前菜品列表：\n");
 		printf("----------------------------------------------------------\n");
-		printf("编号    名称          价格\n");
+		printf("%-8s %-24s %-10s\n", "编号", "名称", "价格");
 		int i;
 		for(i = 0; i < cnt; i++) {
 			if(is_recommend(dm[i].type, dm[i].no))
-				printf("%-8d 【招牌】%-10s %.2lf\n", dm[i].no, dm[i].dish_name, dm[i].dish_price);
+				printf("%-8d 【招牌】%-16s %10.2lf\n", dm[i].no, dm[i].dish_name, dm[i].dish_price);
 			else
-				printf("%-8d %-14s %.2lf\n", dm[i].no, dm[i].dish_name, dm[i].dish_price);
+				printf("%-8d %-24s %10.2lf\n", dm[i].no, dm[i].dish_name, dm[i].dish_price);
 		}
 		printf("----------------------------------------------------------\n");
 		
@@ -878,7 +878,7 @@ void set_recommend() {
 	// 展示菜单
 	printf("当前菜品列表：\n");
 	printf("----------------------------------------------------------\n");
-	printf("编号    名称          价格\n");
+	printf("%-8s %-24s %-10s\n", "编号", "名称", "价格");
 	int i;
 	for(i = 0; i < cnt; i++) {
 		if(is_recommend(dm[i].type, dm[i].no))
