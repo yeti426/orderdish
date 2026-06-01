@@ -58,7 +58,7 @@ void customer_form() {
         printf("1. 点菜\n");
         printf("2. 查看购物车\n");
         printf("3. 查看账单\n");
-        printf("4. 结账（呼叫服务员）\n");
+        printf("4. 结账（为您呼叫店小二）\n");
         printf("5. 退出\n");
         printf("========================================\n");
         printf("请选择: ");
