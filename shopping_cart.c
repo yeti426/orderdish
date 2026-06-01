@@ -37,7 +37,7 @@ extern void checkout();               // 结账
 shopping_cart cart;
 
 // 函数声明
-void init_cart();                              // 初始化购物车
+void init_cart(int);                              // 初始化购物车
 void add_to_cart(dish_menu* dm, int index, int nums);  // 添加到购物车
 void display_cart();                           // 显示购物车
 void remove_from_cart(int index);              // 从购物车删除
