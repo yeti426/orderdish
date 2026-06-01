@@ -16,7 +16,6 @@ void drink();                 //饮品
 
 void menu_controller(dish_menu* , int);       //菜单交互 
 void display_menu(dish_menu* , int);          //显示菜单信息
-void create_order(dish_menu* , int , int);    //生成订单
 void read_menu(char* , dish_menu* , int*);    //从文件中读取菜单 
 void check_bill();            //支付订单 
 void ordering_menu(void);
@@ -248,7 +247,7 @@ void menu_controller(dish_menu* dm, int cnt) {
             getch();
             continue;
         }
-
+     
         /* 重点：这里只负责加入购物车，不再直接写订单文件 */
         add_to_cart(dm, choice - 1, nums);
 
@@ -449,14 +448,4 @@ void checkout() {
     printf("服务员将为您办理结账手续\n");
     printf("\n按任意键返回主菜单...");
     getch();
-}
-
-
-/*
-*名称：create_order 
-*功能：根据顾客选择的菜品生成订单文件
-*/ 
-void create_order(dish_menu* dm, int type, int count) {
-    (void)type;   /* 避免未使用参数警告 */
-    menu_controller(dm, count);
 }

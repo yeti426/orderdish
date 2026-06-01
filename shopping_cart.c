@@ -22,7 +22,6 @@ void check_bill();            //支付订单
 void order_status();          //订单状态
 void menu_controller(dish_menu* , int);       //菜单分页 
 void display_menu(dish_menu* , int );     //显示菜单信息
-void create_order(dish_menu* , int ,int);     //生成订单 
 void read_menu(char* , dish_menu* , int*);             //从文件中读取菜单 
 
 //外部函数声明   
