@@ -202,8 +202,14 @@ void display_menu(dish_menu *dm, int cnt){
     printf("----------------------------------------------------------\n");
     
     for(i = 0; i < cnt; i++){
-    	printf(" %d\t %d\t %s\t %.2lf\n", i+1, dm[i].no, dm[i].dish_name, dm[i].dish_price);
-	}
+        if (is_recommend(dm[i].type, dm[i].no)) {
+            printf(" %d\t %d\t 【招牌】%s\t %.2lf\n",
+                   i + 1, dm[i].no, dm[i].dish_name, dm[i].dish_price);
+        } else {
+            printf(" %d\t %d\t %s\t %.2lf\n",
+                   i + 1, dm[i].no, dm[i].dish_name, dm[i].dish_price);
+        }
+    }
 	
 	printf("----------------------------------------------------------\n");
 }

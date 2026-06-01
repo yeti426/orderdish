@@ -74,4 +74,6 @@ void remove_from_cart(int index);
 void submit_order(void);
 void clear_stdin_buffer(void);
 
+int is_recommend(int type, int no);
+
 #endif
