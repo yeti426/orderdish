@@ -4,8 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//#include <conio.h>
-//#include <windows.h>
+#include <conio.h>
+#include <windows.h>
 #include <time.h>
 
 #define MAX_LENGTH 100
@@ -51,15 +51,24 @@ typedef struct {
     int kitchen_received;          // 厨房是否收到：0-未收到, 1-已收到
 } shopping_cart;
 
+// 评价结构
+typedef struct {
+    char level[20];   // 评价等级:夯, 顶级, 人上人, NPC, 拉完了
+    char comment[200]; // 评价留言
+    char time_str[50]; // 评价时间
+    int table_no;      // 桌号
+} review;
+
 
 // 订单模块（C 同学）
 void create_order_filename(int table_no, char* fstr, int size);
 void check_bill();
 void order_status();
 void calculate_value(char*, double*, double*, double*, double*, double*);
-void order_check();
-void order_complete();
 void record_income(double account, double account_hot_dish, double account_cold_dish, double account_staple_food, double account_drink);
+
+void save_review(int table_no); // 保存评价
+void add_remark_to_order(int table_no); // 在下单前添加备注 
 
 // 公共工具函数
 void error_check(int, int, int*);

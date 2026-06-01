@@ -279,9 +279,36 @@ void submit_order() {
     // 写入订单状态：1-待支付
     fprintf(fp, "1\n");
     
+    // 获取并写入订单备注
+    char remark[200] = "";
+    printf("请输入订单备注 (如: 少辣, 免葱, 直接回车跳过): ");
+
+    // 清空缓冲区防止读取到之前的回车
+    clear_stdin_buffer(); 
+
+    fgets(remark, sizeof(remark), stdin);
+    
+    if (fgets(remark, sizeof(remark), stdin) != NULL) {
+        // 去除末尾换行符
+        size_t len = strlen(remark);
+        if (len > 0 && remark[len - 1] == '\n') {
+            remark[len - 1] = '\0';
+        }
+    }
+    
+    // 如果用户没输入，给个默认值
+    if (strlen(remark) == 0) {
+        strcpy(remark, "无备注");
+    }
+    
+    // 【关键】确保备注独占一行，后面必须跟一个换行符
+    fprintf(fp, "%s\n", remark); // 写入备注作为第二行
+
+
+
     // 写入所有购物车项
     for (int i = 0; i < cart.count; i++) {
-        fprintf(fp, "%d %s %.2lf %d %d\n",
+        fprintf(fp, "%d %s %lf %d %d\n",
                 cart.items[i].no,
                 cart.items[i].dish_name,
                 cart.items[i].dish_price,

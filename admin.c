@@ -10,9 +10,7 @@ char drink_filename[20] = "drink.txt";
 void gotoxy(int,int);
 void input_password(char pw_input[],int wrong_time);     //输入密码 
 int check_password(char pw_input[]);      //密码检测 
-int admin_menu();                         //管理员菜单 
-void order_check();                       //订单确认
-void order_complete();                    //完成订单 
+int admin_menu();                         //管理员菜单  
 void income_check();                      //查看营业额 
 void add_dish();                          //添加菜品 
 void del_dish();                          //删除菜品 
@@ -46,9 +44,8 @@ extern struct tm* get_time();
 */
 void admin_form() {
     system("cls");
-	system("mkdir income 2>nul");//mkdir income —在程序所在目录创建 income 文件夹（存放营业额记录）
-	system("mkdir order 2>nul");//mkdir order — 创建 order 文件夹（存放订单文件）
-	//2>nul — 如果文件夹已经存在，mkdir 会报错，2>nul 把错误信息吞掉，不让用户看到
+	system("mkdir income 2>nul");
+	system("mkdir order 2>nul");
     printf("========欢迎使用后台管理系统！========\n");
     int choice;
     printf("请在这里输入后台密码:");
@@ -72,23 +69,21 @@ void admin_form() {
                 Sleep(1000);
             }
         }
-    } while(flag != 1);
+    } while(flag == 1);
     
     do {
         choice = admin_menu();
         switch(choice) {
-            case 1: order_check(); break;
-            case 2: order_complete(); break;
-            case 3: income_check(); break;
-            case 4: add_dish(); break;
-            case 5: del_dish(); break;
-            case 6: price_adjust(); break;
-            case 7: change_password(); break;
-            case 8: set_recommend(); break;
-            case 9: cancel_recommend(); break;
-            default: break;
+           case 1: income_check(); break;
+            case 2: add_dish(); break; 
+            case 3: del_dish(); break; 
+            case 4: price_adjust(); break;
+            case 5: change_password(); break; 
+            case 6: set_recommend(); break;
+            case 7: cancel_recommend(); break;
+            default: break; 
         }
-    } while(choice != 10);
+    } while(choice != 8);
 }
 
 
@@ -181,7 +176,7 @@ int check_password(char pw_input[]){
 		printf("密码文件不存在，请联系管理员！\n");
 		return -1;
 	}
-	fscanf(fp , "%19s" , pw);
+	fscanf(fp , "%s" , pw);
 	fclose(fp); 
 	
 	return strcmp(pw_input,pw);
@@ -213,7 +208,7 @@ void change_password(){
 	system("cls");
 	printf("**************************************\n");
 	printf("请输入旧密码：");
-	scanf("%s", pw_old_input);
+	scanf("%19s", pw_old_input);
 	
 	int try_count = 0;
 	while (strcmp(pw_old, pw_old_input) != 0) {
@@ -397,24 +392,22 @@ int admin_menu(){
 	
 	int choice=0;
 	printf("请选择操作\n");
-	printf("1.确认顾客订单\n");
-	printf("2.完成顾客订单\n");
-	printf("3.查看营业额\n");
-	printf("4.添加菜品\n");
-	printf("5.删除菜品\n");
-	printf("6.修改价格\n");
-	printf("7.密码修改\n"); 
-	printf("8.设置招牌菜\n");
-	printf("9.取消招牌菜\n");
-	printf("10.退出\n");
+	printf("1.查看营业额\n");
+	printf("2.添加菜品\n");
+	printf("3.删除菜品\n");
+	printf("4.修改价格\n");
+	printf("5.密码修改\n"); 
+	printf("6.设置招牌菜\n");
+	printf("7.取消招牌菜\n");
+	printf("8.退出\n");
 
 	printf("在此输入：");
 	while (scanf("%d", &choice) != 1) {
 		while (getchar() != '\n');  // 清空输入缓冲区，一个一个吃掉缓冲区里的字符，直到遇到换行符为止，把 abc\n 全部清空。
-		printf("输入无效，请重新输入(1-10):");
+		printf("输入无效，请重新输入(1-8):");
 	}
 	
-	error_check(1,10,&choice);
+	error_check(1,8,&choice);
 	return choice;
 }
 
@@ -827,6 +820,10 @@ int is_recommend(int type, int no) {
 	fclose(fp);
 	return 0;
 }
+
+
+//以下也是c部分
+
 
 /*
 * function_name: set_recommend

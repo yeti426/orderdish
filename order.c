@@ -1,9 +1,9 @@
 #include "init.h"
 #include <stdio.h>
 #include <stdlib.h>
-//#include <windows.h>
+#include <windows.h>
 #include <string.h>
-//#include <direct.h>
+#include <direct.h>
 
 
 /*
@@ -33,6 +33,10 @@ int check_order_file(char* fstr) {
         fclose(fp);
         return 0;
     }
+
+    //跳过备注行，否则下面的循环会读错位置
+    char remark[200];
+    fgets(remark, sizeof(remark), fp);
 
     dish_order o;
     // 检查每一行数据是否合法
@@ -101,13 +105,30 @@ void check_bill() {
     fp = fopen(fstr, "r");
     fscanf(fp, "%d", &flag);
 
-    while (cnt < MAX_LENGTH &&
-           fscanf(fp, "%d %s %lf %d %d",
+    // 跳过备注行
+    char remark[200];
+     // 使用 fgets 读取整行直到换行符
+    if (fgets(remark, sizeof(remark), fp) == NULL) {
+        printf("错误：读取备注行失败！\n");
+        fclose(fp);
+        getch();
+        return;
+    }
+
+    while (cnt < MAX_LENGTH) {
+        // 【关键】检查 fscanf 的返回值
+        int ret = fscanf(fp, "%d %s %lf %d %d",
                &order[cnt].no,
                order[cnt].dish_name,
                &order[cnt].dish_price,
                &order[cnt].type,
-               &order[cnt].nums) == 5) {
+               &order[cnt].nums);
+        
+        if (ret != 5) {
+            // 如果读取失败，打印一下当前读到了什么，方便排查
+            // printf("DEBUG: 读取菜品失败，返回值: %d\n", ret);
+            break; 
+        }
         total += order[cnt].dish_price * order[cnt].nums;
         cnt++;
     }
@@ -186,24 +207,39 @@ void check_bill() {
         }
     }
 
-    // 支付成功，更新状态为 2 (已支付)
-    fp = fopen(fstr, "w");
-    if (!fp) {
-        printf("无法更新订单状态！\n");
-        getch();
-        return;
+    double all_income = 0;
+    double hot_income = 0;
+    double cold_income = 0;
+    double staple_income = 0;
+    double drink_income = 0;
+
+    for(int i = 0; i < cnt; i++) {
+        double item_total = order[i].dish_price * order[i].nums;
+        all_income += item_total;
+        switch(order[i].type) {
+            case 1: hot_income += item_total; break;
+            case 2: cold_income += item_total; break;
+            case 3: staple_income += item_total; break;
+            case 4: drink_income += item_total; break;
+        }
     }
 
-    fprintf(fp, "2\n");
-    for (int i = 0; i < cnt; i++) { 
-        fprintf(fp, "%d %s %.2lf %d %d\n",
-                order[i].no,
-                order[i].dish_name,
-                order[i].dish_price,
-                order[i].type,
-                order[i].nums);
+if (all_income > 0) {
+        double scale = (double)final_total / all_income;
+        hot_income *= scale;
+        cold_income *= scale;
+        staple_income *= scale;
+        drink_income *= scale;
+        all_income = (double)final_total; // 确保总收入等于实收
+    } else {
+        all_income = 0;
     }
-    fclose(fp);
+
+    // 3. 记录收入
+    record_income(all_income, hot_income, cold_income, staple_income, drink_income);
+
+    // 4. 删除订单文件 (相当于订单完成并归档)
+    remove(fstr);
 
     // 根据选择显示支付方式名称
     char* method_str = "";
@@ -213,9 +249,12 @@ void check_bill() {
         case 3: method_str = "现金"; break;
     }
 
-
     printf("支付成功！支付方式：%s\n", method_str);
-    printf("请等待商家确认。\n");
+    printf("订单已自动归档，营业额已更新。\n");
+
+    // 调用评价功能
+    save_review(table_no);
+
     getch();
 }
 
@@ -236,23 +275,36 @@ void order_status() {
 
     FILE* fp = fopen(fstr, "r");
     if (!fp) {
-        printf("订单不存在！\n");
+        printf("========================================\n");
+        printf("         订单状态查询\n");
+        printf("========================================\n");
+        printf("桌号 %d 当前没有待支付的订单。\n", table_no);
+        printf("(可能尚未点餐，或订单已支付并归档)\n");
+        printf("========================================\n");
         getch();
         return;
     }
 
     int flag;
-    fscanf(fp, "%d", &flag);
+     fscanf(fp, "%d", &flag);
     fclose(fp);
 
-    printf("订单状态：");
+    printf("========================================\n");
+    printf("         订单状态查询\n");
+    printf("========================================\n");
+    printf("桌号: %d\n", table_no);
+    
     switch (flag) {
-
-        case 1: printf("已下单(点餐中/待支付)\n"); break;
-        case 2: printf("已支付(待商家确认)\n"); break;
-        case 3: printf("已完成(待归档)\n"); break;
-        default: printf("未知状态 (%d)\n", flag);
+        case 1: 
+            printf("状态: 【待支付】\n");
+            printf("说明: 订单已提交厨房，请前往结账。\n");
+            break;
+        default: 
+            printf("状态: 未知 (%d)\n", flag);
+            printf("说明: 订单文件可能存在异常。\n");
+            break;
     }
+    printf("========================================\n");
 
     getch();
 }
@@ -272,6 +324,10 @@ void calculate_value(char* fstr, double* all,
 
     int flag;
     fscanf(fp, "%d", &flag);
+
+    //跳过备注行
+    char remark[200];
+    fgets(remark, sizeof(remark), fp);
 
     dish_order o;
     while (!feof(fp)) {
@@ -298,100 +354,75 @@ void calculate_value(char* fstr, double* all,
 
 
 /*
- * 功能：商家确认订单
- * 逻辑：将状态从 2 (已支付) 改为 3 (已完成/待归档)
+ * 功能：保存顾客评价
  */
-void order_check() {
+void save_review(int table_no) {
     system("cls");
-
-    int table_no;
-    printf("请输入要确认的桌号：");
-    scanf("%d", &table_no);
-
-    char fstr[50];
-    create_order_filename(table_no, fstr, 50);
-
-    if (!check_order_file(fstr)) {
-        printf("订单文件异常！\n");
-        getch();
-        return;
-    }
-
-    FILE* fp = fopen(fstr, "r");
-    if (!fp) {
-        printf("订单不存在！\n");
-        getch(); // 防止闪退
-        return;
+    printf("========================================\n");
+    printf("         感谢您的用餐！请评价\n");
+    printf("========================================\n");
+    printf("请选择您的满意等级：\n");
+    printf("1. 顶级 (非常满意)\n");
+    printf("2. 人上人 (满意)\n");
+    printf("3. NPC (一般)\n");
+    printf("4. 拉完了 (不满意)\n");
+    printf("请选择 (1-4): ");
+    
+    int choice;
+    scanf("%d", &choice);
+    error_check(1, 4, &choice);
+    
+    char level[20];
+    switch(choice) {
+        case 1: strcpy(level, "顶级"); break;
+        case 2: strcpy(level, "人上人"); break;
+        case 3: strcpy(level, "NPC"); break;
+        case 4: strcpy(level, "拉完了"); break;
     }
     
-    int flag;
-    fscanf(fp, "%d", &flag);
-    fclose(fp);
-
-    // 只有已支付的订单才能被确认
-    if (flag != 2) {
-        printf("订单状态不正确，无法完成（当前状态：%d）！\n", flag);
-        getch();
-        return;
+    printf("请输入您的留言 (最多100字): \n");
+    clear_stdin_buffer(); // 清空缓冲区
+    char comment[200];
+    fgets(comment, sizeof(comment), stdin);
+    // 去除换行符
+    size_t len = strlen(comment);
+    if (len > 0 && comment[len - 1] == '\n') {
+        comment[len - 1] = '\0';
     }
-
-     // 修改状态为 3
-    fp = fopen(fstr, "r+");
-    if(fp) {
-        fseek(fp, 0, SEEK_SET);
-        fprintf(fp, "3");
+    
+    // 获取当前时间
+    struct tm* p = get_time();
+    char time_str[50];
+    sprintf(time_str, "%04d-%02d-%02d %02d:%02d:%02d", 
+            p->tm_year + 1900, p->tm_mon + 1, p->tm_mday,
+            p->tm_hour + 8, p->tm_min, p->tm_sec); // 简单处理时区
+            
+    // 确保 reviews 目录存在
+    if (access("reviews", 0) != 0) {
+        system("mkdir reviews");
+    }
+    
+    // 生成评价文件名: reviews/review_桌号_时间戳.txt (简化为追加到总文件或者按桌号存)
+    // 这里选择追加到一个总的评价文件 reviews/all_reviews.txt，
+    // 或者按桌号保存: reviews/review_桌号.txt
+    
+    char filename[100];
+    snprintf(filename, sizeof(filename), "reviews\\review_table_%d.txt", table_no);
+    
+    FILE* fp = fopen(filename, "a"); // 追加模式
+    if (fp) {
+        fprintf(fp, "--------------------------\n");
+        fprintf(fp, "桌号: %d\n", table_no);
+        fprintf(fp, "时间: %s\n", time_str);
+        fprintf(fp, "等级: %s\n", level);
+        fprintf(fp, "留言: %s\n", comment);
+        fprintf(fp, "--------------------------\n");
         fclose(fp);
-        printf("订单已确认！状态变更为：已完成。\n");
+        
+        printf("\n评价提交成功！感谢您的反馈！\n");
     } else {
-        printf("文件打开失败！\n");
+        printf("\n评价保存失败。\n");
     }
     getch();
 }
-
-
-
-
-/*
- * 功能：完成订单
- */
-void order_complete() {
-    system("cls");
-
-    int table_no;
-    printf("请输入要完成的桌号：");
-    scanf("%d", &table_no);
-
-    char fstr[50];
-    create_order_filename(table_no, fstr, 50);
-
-    if (!check_order_file(fstr)) {
-        printf("订单文件异常！\n");
-        getch();
-        return;
-    }
-
-    FILE* fp = fopen(fstr, "r");
-    int flag;
-    fscanf(fp, "%d", &flag);
-    fclose(fp);
-
-    // 只有商家确认过（状态3）的订单才能归档
-     if (flag != 3) {
-        printf("订单尚未被商家确认（当前状态：%d ）！请先执行“确认订单”操作。\n", flag);
-        getch();
-        return;
-    }
-
-    double all = 0, hot = 0, cold = 0, staple = 0, drink = 0;
-    calculate_value(fstr, &all, &hot, &cold, &staple, &drink);
-
-    // 调用 admin.c 中定义的 record_income 函数
-    // 注意：这需要在编译时链接 admin.c 或者在 init.h 中声明
-    record_income(all, hot, cold, staple, drink);
-
-    remove(fstr);
-    printf("订单已完成！营业额已记录，订单文件已删除。\n");
-    getch();
-}
-
 

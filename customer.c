@@ -310,19 +310,25 @@ void view_bill() {
     // 读取订单状态
     int order_status;
     fscanf(fp, "%d", &order_status);
+
+    // 读取并跳过备注行
+    char remark[200];
+    fgets(remark, sizeof(remark), fp); // 读取整行备注
     
     dish_order orders[MAX_LENGTH];
     int count = 0;
     double total = 0;
     
     // 读取所有订单项
-    while (count < MAX_LENGTH && 
-           fscanf(fp, "%d %s %lf %d %d",
+    while (count < MAX_LENGTH) {
+        int ret = fscanf(fp, "%d %s %lf %d %d",
                   &orders[count].no,
                   orders[count].dish_name,
                   &orders[count].dish_price,
                   &orders[count].type,
-                  &orders[count].nums) == 5) {
+                  &orders[count].nums);
+        
+        if (ret != 5) break; // 严格检查返回值
         
         total += orders[count].dish_price * orders[count].nums;
         count++;
@@ -333,8 +339,7 @@ void view_bill() {
     char* status_text;
     switch(order_status) {
         case 1: status_text = "待支付"; break;
-        case 2: status_text = "已支付，等待确认"; break;
-        case 3: status_text = "商家已确认，制作中"; break;
+        case 2: status_text = "已支付"; break; 
         default: status_text = "未知状态"; break;
     }
     
@@ -345,6 +350,11 @@ void view_bill() {
     printf("订单状态: %s\n", status_text);
     printf("\n");
     
+    //显示备注
+    printf("订单备注: %s", remark); // remark里包含换行符，所以不用再加\n
+
+    printf("\n");
+
     if (count == 0) {
         printf("暂无已点菜品\n");
     } else {
@@ -413,6 +423,10 @@ void checkout() {
     int order_status;
     fscanf(fp, "%d", &order_status);
     
+    // 跳过备注行
+    char remark[200];
+    fgets(remark, sizeof(remark), fp);
+
     dish_order orders[MAX_LENGTH];
     int count = 0;
     double total = 0;
