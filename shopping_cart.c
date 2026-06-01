@@ -286,8 +286,6 @@ void submit_order() {
     // 清空缓冲区防止读取到之前的回车
     clear_stdin_buffer(); 
 
-    fgets(remark, sizeof(remark), stdin);
-    
     if (fgets(remark, sizeof(remark), stdin) != NULL) {
         // 去除末尾换行符
         size_t len = strlen(remark);
@@ -301,7 +299,7 @@ void submit_order() {
         strcpy(remark, "无备注");
     }
     
-    // 【关键】确保备注独占一行，后面必须跟一个换行符
+    //确保备注独占一行，后面必须跟一个换行符
     fprintf(fp, "%s\n", remark); // 写入备注作为第二行
 
 

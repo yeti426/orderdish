@@ -115,6 +115,9 @@ void check_bill() {
         return;
     }
 
+// 【调试】打印出来看看读到了什么
+    printf("DEBUG: 读取到的备注是: [%s]\n", remark);
+
     while (cnt < MAX_LENGTH) {
         // 【关键】检查 fscanf 的返回值
         int ret = fscanf(fp, "%d %s %lf %d %d",

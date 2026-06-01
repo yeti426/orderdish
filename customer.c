@@ -313,7 +313,15 @@ void view_bill() {
 
     // 读取并跳过备注行
     char remark[200];
-    fgets(remark, sizeof(remark), fp); // 读取整行备注
+     if (fgets(remark, sizeof(remark), fp) == NULL) {
+        printf("错误：无法读取备注行！\n");
+        fclose(fp);
+        getch();
+        return;
+    }
+    
+    printf("DEBUG ViewBill: 读取到的备注是: [%s]\n", remark);
+
     
     dish_order orders[MAX_LENGTH];
     int count = 0;
