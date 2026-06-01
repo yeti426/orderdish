@@ -49,7 +49,7 @@ void admin_form() {
 	system("mkdir income 2>nul");//mkdir income —在程序所在目录创建 income 文件夹（存放营业额记录）
 	system("mkdir order 2>nul");//mkdir order — 创建 order 文件夹（存放订单文件）
 	//2>nul — 如果文件夹已经存在，mkdir 会报错，2>nul 把错误信息吞掉，不让用户看到
-    printf("========欢迎使用后台管理系统！========\n");
+    printf("========欢迎掌事入主后厨管事堂！========\n");
     int choice;
     printf("请在这里输入后台密码:");
     char pw_input[20];
@@ -65,7 +65,7 @@ void admin_form() {
             printf("输入错误，请重新输入:");
             input_password(pw_input, wrong_time);
         } else {
-            printf("输入正确！欢迎管理员！\n");
+            printf("输入正确！恭迎掌柜！\n");
             int i;
             for(i = 0; i < 3; i++) {
                 printf(".");
@@ -178,7 +178,7 @@ int check_password(char pw_input[]){
 	char pw[20]="";
 	fp = fopen("password.txt" , "r");
 	if(fp == NULL){
-		printf("密码文件不存在，请联系管理员！\n");
+		printf("密码文件不存在，请联系掌柜！\n");
 		return -1;
 	}
 	fscanf(fp , "%19s" , pw);

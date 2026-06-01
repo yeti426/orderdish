@@ -6,11 +6,10 @@ extern void customer_form();
 extern void admin_form();
 
 /*
-* 名称: main
-* 功能: 程序入口，构建循环运行逻辑 
-*/
+ * 函数功能: 主函数，程序入口
+ */
 int main(){
-	int op; //定义一个选择变量
+	int op;       //定义一个选择变量
 	do{
 		op = main_form();
 		switch(op){
