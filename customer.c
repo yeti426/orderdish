@@ -91,6 +91,12 @@ void customer_form() {
  * 函数功能：点菜子菜单（整合四类菜品），把点菜功能独立出来
  */
 void ordering_menu() {
+
+    // 如果上一单已提交且购物车为空，重置状态以允许新点餐
+    if (cart.kitchen_received && cart.count == 0) {
+        cart.kitchen_received = 0;
+    }
+
     int choice;
     do {
         system("cls");

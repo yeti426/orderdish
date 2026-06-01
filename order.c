@@ -3,16 +3,19 @@
 #include <stdlib.h>
 #include <windows.h>
 #include <string.h>
+#include <direct.h>
 
 
 /*
  * 功能：根据桌号生成订单文件名
  */
 void create_order_filename(int table_no, char* fstr,int size) {
-    // 尝试创建 order 文件夹，如果已存在则忽略错误
-    system("mkdir order 2>nul"); 
-    
-    snprintf(fstr, size, "order/%d.txt", table_no);
+// 确保 order 目录存在
+if (access("order", 0) != 0) { // 需要 #include <io.h> 或 <unistd.h>
+        system("mkdir order");
+    }
+// 使用反斜杠适应 Windows
+    snprintf(fstr, size, "order\\%d.txt", table_no);
 }
 
 

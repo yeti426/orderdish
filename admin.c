@@ -46,6 +46,8 @@ extern struct tm* get_time();
 */
 void admin_form() {
     system("cls");
+	system("mkdir income 2>nul");
+	system("mkdir order 2>nul");
     printf("========欢迎使用后台管理系统！========\n");
     int choice;
     printf("请在这里输入后台密码:");
