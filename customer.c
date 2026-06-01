@@ -37,6 +37,7 @@ void customer_form() {
     int greet_type = 1;
 	struct tm* p = get_time();
 	greet(p,greet_type);// 根据时间 + 身份，打印问候语
+    
     printf("**************************************\n");
     printf("请输入您的餐台号：");
     while (scanf("%d", &table_no) != 1) {
@@ -46,12 +47,6 @@ void customer_form() {
     
     // 初始化购物车
     init_cart(table_no);
-    
-    // 欢迎信息
-    system("cls");
-    int greet_type = 1;
-    struct tm* p = get_time();
-    greet(p, greet_type);
     
     // 选择服务 - 简化后的菜单
     int choice;
