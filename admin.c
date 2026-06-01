@@ -46,6 +46,8 @@ extern struct tm* get_time();
 */
 void admin_form() {
     system("cls");
+	system("mkdir income 2>nul");
+	system("mkdir order 2>nul");
     printf("========欢迎使用后台管理系统！========\n");
     int choice;
     printf("请在这里输入后台密码:");
@@ -518,7 +520,8 @@ void create_date_filename(char* fdate){
 	fdate[0] = '\0';// 防御性清空，防止调用方传入未初始化的字符串
 	char date[20] = "";//strcat 拼接的前提：目标字符串必须是空的！
 	struct tm* p = get_time();//struct tm 是系统固定结构，localtime 自动把当前时间 年 / 月 / 日 填进去，p 指向这个装满时间的盒子
-	if(p->tm_hour + 8 >= 24) p->tm_mday -= 1;//如果当前时间是23点，则减一天，因为23点是0点，0点是第二天的第一点，所以要减一天。
+	int mday = p->tm_mday;// 使用局部变量，避免修改gmtime返回的共享内存
+	if(p->tm_hour + 8 >= 24) mday -= 1;//如果当前时间是23点，则减一天，因为23点是0点，0点是第二天的第一点，所以要减一天。
 	
 	char year[5] = "";
 	char month[5] = "";
@@ -526,7 +529,7 @@ void create_date_filename(char* fdate){
 	//itoa:把 数字 变成 字符串 的工具函数！
 	itoa(p->tm_year + 1900 , year , 10);//因为 tm_year 是从 1900 年开始算的，所以要 +1900。
 	itoa(p->tm_mon + 1 , month , 10);//月份也是从 0 开始算
-	itoa(p->tm_mday, day , 10);// tm_mday 直接表示当月第几天，不需要 +1
+	itoa(mday, day , 10);// tm_mday 直接表示当月第几天，不需要 +1
 	strcat(date,year);
 	strcat(date,month);
 	strcat(date,day);
@@ -612,6 +615,7 @@ void add_dish(){
 		scanf("%lf",&new_dish.dish_price);
 		printf("请选择菜品种类(1.热菜 2.凉菜 3.主食 4.饮品)：");
 		scanf("%d",&new_dish.type);
+		error_check(1,4,&new_dish.type);
 		
 		char filename[20];
 		switch(new_dish.type){

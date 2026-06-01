@@ -11,27 +11,9 @@ extern char cold_dish_filename[20];
 extern char staple_food_filename[20];
 extern char drink_filename[20]; 
 
-//函数声明 
-int customer_form();          //菜单界面
-void cold_dish();             //凉菜 
-void hot_dish();              //热菜 
-void staple_food();           //主食 
-void drink();                 //饮品 
-void view_bill();             //总览 
-void check_bill();            //支付订单 
-void order_status();          //订单状态
-void menu_controller(dish_menu* , int);       //菜单分页 
-void display_menu(dish_menu* , int );     //显示菜单信息
-void read_menu(char* , dish_menu* , int*);             //从文件中读取菜单 
-
 //外部函数声明   
 extern void error_check(int,int,int*);
-extern void create_order_filename(int,char*,int); 
-
-// 添加以下函数声明
-extern void ordering_menu();          // 点菜子菜单
-extern void view_bill();              // 查看账单
-extern void checkout();               // 结账
+extern void create_order_filename(int,char*,int);
 
 // 购物车全局变量
 shopping_cart cart;
@@ -323,7 +305,6 @@ void submit_order() {
     Sleep(1500);  // 暂停1.5秒让用户看到提示
     
     // 清空购物车
-    cart.kitchen_received = 1;
     clear_cart_items();
     getch();
 }
