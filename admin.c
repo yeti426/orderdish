@@ -46,8 +46,9 @@ extern struct tm* get_time();
 */
 void admin_form() {
     system("cls");
-	system("mkdir income 2>nul");
-	system("mkdir order 2>nul");
+	system("mkdir income 2>nul");//mkdir income —在程序所在目录创建 income 文件夹（存放营业额记录）
+	system("mkdir order 2>nul");//mkdir order — 创建 order 文件夹（存放订单文件）
+	//2>nul — 如果文件夹已经存在，mkdir 会报错，2>nul 把错误信息吞掉，不让用户看到
     printf("========欢迎使用后台管理系统！========\n");
     int choice;
     printf("请在这里输入后台密码:");
@@ -71,7 +72,7 @@ void admin_form() {
                 Sleep(1000);
             }
         }
-    } while(flag == 1);
+    } while(flag != 1);
     
     do {
         choice = admin_menu();
@@ -180,7 +181,7 @@ int check_password(char pw_input[]){
 		printf("密码文件不存在，请联系管理员！\n");
 		return -1;
 	}
-	fscanf(fp , "%s" , pw);
+	fscanf(fp , "%19s" , pw);
 	fclose(fp); 
 	
 	return strcmp(pw_input,pw);
@@ -212,7 +213,7 @@ void change_password(){
 	system("cls");
 	printf("**************************************\n");
 	printf("请输入旧密码：");
-	scanf("%19s", pw_old_input);
+	scanf("%s", pw_old_input);
 	
 	int try_count = 0;
 	while (strcmp(pw_old, pw_old_input) != 0) {
