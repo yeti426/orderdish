@@ -19,7 +19,7 @@ void display_menu(dish_menu* , int);          //显示菜单信息
 void read_menu(char* , dish_menu* , int*);    //从文件中读取菜单 
 void ordering_menu(void);                     //点菜子菜单
 void view_bill(void);                         //查看账单（已点菜品）
-void checkout(void);                          //结账（呼叫服务员）
+void checkout(void);                          //结账（呼叫店小二）
 
 //外部函数声明   
 extern void error_check(int,int,int*);              //输入错误检查
@@ -60,7 +60,7 @@ void customer_form() {
         printf("1. 点菜\n");
         printf("2. 查看购物车\n");
         printf("3. 查看账单\n");
-        printf("4. 结账（呼叫服务员）\n");
+        printf("4. 结账（呼叫店小二）\n");
         printf("5. 退出\n");
         printf("========================================\n");
         printf("请选择: ");
@@ -396,7 +396,7 @@ void view_bill() {
 
 
 /*
- * 函数功能：结账（呼叫服务员）
+ * 函数功能：结账（呼叫店小二）
  */
 void checkout() {
     char filename[50] = "order//";
