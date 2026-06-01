@@ -18,13 +18,13 @@ void menu_controller(dish_menu* , int);       //菜单交互
 void display_menu(dish_menu* , int);          //显示菜单信息
 void create_order(dish_menu* , int , int);    //生成订单
 void read_menu(char* , dish_menu* , int*);    //从文件中读取菜单 
+void check_bill();            //支付订单 
 
 //外部函数声明   
 extern void error_check(int,int,int*);
 extern void greet(struct tm* p,int);
 extern struct tm* get_time();
 extern void create_order_filename(int,char*,int); 
-extern void check_bill();            //支付订单 
 extern void order_status();          //订单状态
 extern void display_cart();          //查看已点菜品
 
@@ -176,6 +176,65 @@ void display_menu(dish_menu *dm, int cnt){
 	}
 	
 	printf("----------------------------------------------------------\n");
+}
+
+
+/* =========================
+   菜单交互：选择菜品 + 数量 -> 加入购物车
+   ========================= */
+void menu_controller(dish_menu* dm, int cnt) {
+    int choice;
+    int nums;
+    int continue_choice;
+
+    if (dm == NULL || cnt <= 0) {
+        printf("当前分类没有可用菜单。\n");
+        getch();
+        return;
+    }
+
+    do {
+        display_menu(dm, cnt);
+
+        printf("请输入要点的菜品序号(0返回)：");
+        while (scanf("%d", &choice) != 1) {
+            clear_stdin_buffer();
+            printf("输入无效，请重新输入：");
+        }
+
+        if (choice == 0) {
+            return;
+        }
+
+        if (choice < 1 || choice > cnt) {
+            printf("无效的菜品序号！\n");
+            getch();
+            continue;
+        }
+
+        printf("请输入点菜数量：");
+        while (scanf("%d", &nums) != 1) {
+            clear_stdin_buffer();
+            printf("输入无效，请重新输入数量：");
+        }
+
+        if (nums <= 0) {
+            printf("数量必须大于0！\n");
+            getch();
+            continue;
+        }
+
+        /* 重点：这里只负责加入购物车，不再直接写订单文件 */
+        add_to_cart(dm, choice - 1, nums);
+
+        printf("是否继续点菜？ 1.是 2.否：");
+        while (scanf("%d", &continue_choice) != 1) {
+            clear_stdin_buffer();
+            printf("输入无效，请重新输入：");
+        }
+        error_check(1, 2, &continue_choice);
+
+    } while (continue_choice == 1);
 }
 
 
