@@ -51,6 +51,7 @@ typedef struct {
     int kitchen_received;          // 厨房是否收到：0-未收到, 1-已收到
 } shopping_cart;
 
+
 // 订单模块（C 同学）
 void create_order_filename(int table_no, char* fstr, int size);
 void check_bill();
@@ -59,5 +60,6 @@ void calculate_value(char*, double*, double*, double*, double*, double*);
 void order_check();
 void order_complete();
 void record_income(double account, double account_hot_dish, double account_cold_dish, double account_staple_food, double account_drink);
+
 
 #endif

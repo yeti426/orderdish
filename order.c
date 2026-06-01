@@ -92,6 +92,9 @@ void check_bill() {
     int cnt = 0;
 
     // 读取所有菜品
+    // 注意：这里重新打开文件以确保从头读取，虽然上面已经打开过一次，但为了逻辑清晰通常重新打开或seek
+
+    fclose(fp);
     fp = fopen(fstr, "r");
     fscanf(fp, "%d", &flag);
 
@@ -129,6 +132,31 @@ void check_bill() {
     printf("实收金额：%d 元\n", final_total);
     printf("==============================\n");
 
+
+    // ================= 选择支付方式 =================
+    int pay_method = 0;
+    printf("\n请选择支付方式：\n");
+    printf("1. 微信\n");
+    printf("2. 支付宝\n");
+    printf("3. 现金\n");
+    printf("请输入选项 (1-3)：");
+    
+    // 简单的输入验证循环
+    while (1) {
+        if (scanf("%d", &pay_method) != 1) {
+            // 如果输入非数字，清空缓冲区
+            while(getchar() != '\n'); 
+            printf("输入无效，请重新输入 (1-3)：");
+            continue;
+        }
+        if (pay_method >= 1 && pay_method <= 3) {
+            break;
+        } else {
+            printf("选项不存在，请重新输入 (1-3)：");
+        }
+    }
+
+
     double pay;
     printf("请输入支付金额：");
     scanf("%lf", &pay);
@@ -159,13 +187,22 @@ void check_bill() {
     }
     fclose(fp);
 
-    printf("支付成功！请等待商家确认。\n");
+    // 根据选择显示支付方式名称
+    char* method_str = "";
+    switch(pay_method) {
+        case 1: method_str = "微信"; break;
+        case 2: method_str = "支付宝"; break;
+        case 3: method_str = "现金"; break;
+    }
+
+
+    printf("支付成功！支付方式：%s\n", method_str);
+    printf("请等待商家确认。\n");
     getch();
 }
 
 
 
-//要不要转到long那里admin来查看每个桌的订单状态
 /*
  * 功能：查询订单状态
  */
@@ -338,3 +375,5 @@ void order_complete() {
     printf("订单已完成！营业额已记录，订单文件已删除。\n");
     getch();
 }
+
+
