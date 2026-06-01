@@ -61,5 +61,17 @@ void order_check();
 void order_complete();
 void record_income(double account, double account_hot_dish, double account_cold_dish, double account_staple_food, double account_drink);
 
+// 公共工具函数
+void error_check(int, int, int*);
+void greet(struct tm* p, int user_role);
+struct tm* get_time(void);
+
+// 购物车相关
+void init_cart(int table_no);
+void add_to_cart(dish_menu* dm, int index, int nums);
+void display_cart(void);
+void remove_from_cart(int index);
+void submit_order(void);
+void clear_stdin_buffer(void);
 
 #endif

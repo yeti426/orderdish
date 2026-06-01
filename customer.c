@@ -203,6 +203,12 @@ void display_menu(dish_menu *dm, int cnt){
 }
 
 
+void clear_stdin_buffer(void) {
+    int ch;
+    while ((ch = getchar()) != '\n' && ch != EOF);
+}
+
+
 /* =========================
    菜单交互：选择菜品 + 数量 -> 加入购物车
    ========================= */
