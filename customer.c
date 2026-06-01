@@ -19,6 +19,9 @@ void display_menu(dish_menu* , int);          //显示菜单信息
 void create_order(dish_menu* , int , int);    //生成订单
 void read_menu(char* , dish_menu* , int*);    //从文件中读取菜单 
 void check_bill();            //支付订单 
+void ordering_menu(void);
+void view_bill(void);
+void checkout(void);
 
 //外部函数声明   
 extern void error_check(int,int,int*);
@@ -34,10 +37,13 @@ void customer_form() {
     system("cls");
     printf("**************************************\n");
     printf("请输入您的餐台号：");
-    scanf("%d", &table_no);
+    while (scanf("%d", &table_no) != 1) {
+        while (getchar() != '\n');
+        printf("输入无效，请重新输入餐台号：");
+    }
     
     // 初始化购物车
-    init_cart();
+    init_cart(table_no);
     
     // 欢迎信息
     system("cls");
@@ -113,18 +119,37 @@ void ordering_menu() {
     } while(choice != 5);
 }
 
-void read_menu(char* filename , dish_menu* dm , int* cnt){
-	FILE* fp;
-	fp = fopen(filename , "r");
-	while(!feof(fp)){
-		fscanf(fp,"%d",&dm[*cnt].no);
-		fscanf(fp,"%s",dm[*cnt].dish_name);
-		fscanf(fp,"%lf",&dm[*cnt].dish_price);
-		fscanf(fp,"%d",&dm[*cnt].type);
-		(*cnt)++;
-	}
-	fclose(fp);
-} 
+void read_menu(char* filename, dish_menu* dm, int* cnt) {
+    FILE* fp = fopen(filename, "r");
+    int ret;
+
+    *cnt = 0;
+    if (fp == NULL) {
+        printf("错误: 无法打开菜单文件 %s\n", filename);
+        getch();
+        return;
+    }
+
+    while (*cnt < MAX_LENGTH) {
+        ret = fscanf(fp, "%d", &dm[*cnt].no);
+        if (ret != 1) break;
+
+        ret = fscanf(fp, "%s", dm[*cnt].dish_name);
+        if (ret != 1) break;
+
+        ret = fscanf(fp, "%lf", &dm[*cnt].dish_price);
+        if (ret != 1) break;
+
+        ret = fscanf(fp, "%d", &dm[*cnt].type);
+        if (ret != 1) break;
+
+        (*cnt)++;
+    }
+
+    fclose(fp);
+}
+
+
 /*
 * 名称：cold_dish、hot_dish、staple_food、drink
 * 功能：定义四个种类的菜品及相关操作
@@ -284,8 +309,7 @@ void view_bill() {
                   &orders[count].type,
                   &orders[count].nums) == 5) {
         
-        orders[count].subtotal = orders[count].dish_price * orders[count].nums;
-        total += orders[count].subtotal;
+        total += orders[count].dish_price * orders[count].nums;
         count++;
     }
     fclose(fp);
@@ -314,13 +338,14 @@ void view_bill() {
         printf("----------------------------------------------------------\n");
         
         for (int i = 0; i < count; i++) {
+            double subtotal = orders[i].dish_price * orders[i].nums;
             printf("%-4d %-6d %-10s %-8.2lf %-6d %-10.2lf\n",
                    i + 1,
                    orders[i].no,
                    orders[i].dish_name,
                    orders[i].dish_price,
                    orders[i].nums,
-                   orders[i].subtotal);
+                   subtotal);
         }
         
         printf("----------------------------------------------------------\n");
@@ -386,8 +411,7 @@ void checkout() {
                   &orders[count].type,
                   &orders[count].nums) == 5) {
         
-        orders[count].subtotal = orders[count].dish_price * orders[count].nums;
-        total += orders[count].subtotal;
+        total += orders[count].dish_price * orders[count].nums;
         count++;
     }
     fclose(fp);
@@ -406,13 +430,14 @@ void checkout() {
         printf("----------------------------------------------------------\n");
         
         for (int i = 0; i < count; i++) {
+            double subtotal = orders[i].dish_price * orders[i].nums;
             printf("%-4d %-6d %-10s %-8.2lf %-6d %-10.2lf\n",
                    i + 1,
                    orders[i].no,
                    orders[i].dish_name,
                    orders[i].dish_price,
                    orders[i].nums,
-                   orders[i].subtotal);
+                   subtotal);
         }
         
         printf("----------------------------------------------------------\n");
@@ -427,107 +452,11 @@ void checkout() {
 }
 
 
-
 /*
 *名称：create_order 
 *功能：根据顾客选择的菜品生成订单文件
 */ 
-void create_order(dish_menu *dm, int type, int count){
-	//采用点菜订单的数据结构保存点菜信息 
-	int cnt = 0;
-	dish_order new_order[MAX_LENGTH];  
-	
-	int choice = 0;
-	int temp_no = 0;
-	int temp_num = 0;
-	
-	if(dm == NULL || count <= 0){
-		printf("菜单数据无效！\n");
-		return;
-	}
-	
-	do{
-		int flag = 0;
-		int i;
-		
-		//检测菜品编号是否存在
-		printf("请输入菜品编号：");
-		scanf("%d", &temp_no);
-		
-		for(i = 0; i < count; i++){
-			if(dm[i].no == temp_no){
-				flag = 1;
-				new_order[cnt].no = dm[i].no;
-				strcpy(new_order[cnt].dish_name, dm[i].dish_name);
-				new_order[cnt].dish_price = dm[i].dish_price;
-				new_order[cnt].type = dm[i].type;
-				break;
-			}
-		}
-			
-		if(flag == 0){
-			printf("输入的菜品编号不存在，请重新输入。\n");
-			continue;
-		}
-		
-		//菜品编号存在时输入点菜数量
-		printf("请输入点菜数量：");
-		scanf("%d", &temp_num);
-		
-		if(temp_num <= 0){
-			printf("数量必须大于0，请重新输入。\n");
-			continue;
-		}
-		
-		new_order[cnt].nums = temp_num;
-		cnt++;
-		
-		//判断是否继续点菜
-		printf("是否继续点菜？ 1.是 2.否 ：");
-		scanf("%d",&choice);
-
-		error_check(1, 2, &choice);
-		
-	}while(choice != 2 && cnt < MAX_LENGTH);	
-	
-	//end test
-	char fstr[50] = "order//";
-	create_order_filename(table_no, fstr, 50);
-	//首先判断该文件是否存在，如不存在则创建一个，并设置标志位为1
-	FILE *fp = fopen(fstr, "r");
-	if(fp == NULL){ 
-		fp = fopen(fstr, "w");
-		if(fp == NULL){
-			printf("订单文件创建失败！\n");
-			return;
-		}
-		fprintf(fp, "1\n");
-		fclose(fp);
-	}else{
-		int flag;
-		if(fscanf(fp,"%d",&flag) != 1){
-			fclose(fp);
-			printf("订单文件格式错误!\n");
-			return;
-		}
-		fclose(fp);
-		
-		if(flag != 1){
-			printf("订单已提交或已完成，不能继续修改！\n");
-			return; 
-		}
-	}
-	
-	//而后以追加模式重新打开文件，将订单信息添加进去 
-	fp = fopen(fstr, "a");
-	if(fp == NULL){
-		printf("订单文件打开失败！\n");
-		return; 
-	}
-	
-	int i = 0 ;
-	for(i = 0; i < cnt; i++){
-		fprintf(fp, "%d %s %.2lf %d %d\n", new_order[i].no, new_order[i].dish_name, new_order[i].dish_price, new_order[i].type,new_order[i].nums); 
-	}
-	fclose(fp); 
+void create_order(dish_menu* dm, int type, int count) {
+    (void)type;   /* 避免未使用参数警告 */
+    menu_controller(dm, count);
 }

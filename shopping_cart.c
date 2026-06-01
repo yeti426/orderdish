@@ -12,16 +12,16 @@ extern char staple_food_filename[20];
 extern char drink_filename[20]; 
 
 //函数声明 
-int customer_menu();          //菜单界面
+int customer_form();          //菜单界面
 void cold_dish();             //凉菜 
 void hot_dish();              //热菜 
 void staple_food();           //主食 
 void drink();                 //饮品 
-void over_view();             //总览 
+void view_bill();             //总览 
 void check_bill();            //支付订单 
 void order_status();          //订单状态
-void page_controller(dish_menu* , int);       //菜单分页 
-int display_menu(dish_menu* , int , int);     //显示菜单信息
+void menu_controller(dish_menu* , int);       //菜单分页 
+void display_menu(dish_menu* , int );     //显示菜单信息
 void create_order(dish_menu* , int ,int);     //生成订单 
 void read_menu(char* , dish_menu* , int*);             //从文件中读取菜单 
 
@@ -42,7 +42,7 @@ void init_cart();                              // 初始化购物车
 void add_to_cart(dish_menu* dm, int index, int nums);  // 添加到购物车
 void display_cart();                           // 显示购物车
 void remove_from_cart(int index);              // 从购物车删除
-void update_cart_total();                      // 更新总金额
+void update_total();                      // 更新总金额
 void submit_order();                           // 提交订单到厨房
 
 
@@ -163,7 +163,7 @@ void remove_from_cart(int index) {
     memset(cart.items[cart.count - 1].dish_name, 0, sizeof(cart.items[cart.count - 1].dish_name));
 
     cart.count--;
-    update_cart_total();
+    update_total();
 }
 
    
@@ -255,6 +255,19 @@ void display_cart() {
     }
 }
 
+//函数功能：清空菜品 不重置kitchen_received和table_no
+void clear_cart_items() {
+    cart.count = 0;
+    cart.total_amount = 0;
+    for (int i = 0; i < MAX_LENGTH; i++) {
+        cart.items[i].no = 0;
+        cart.items[i].nums = 0;
+        cart.items[i].subtotal = 0;
+        cart.items[i].status = 0;
+        memset(cart.items[i].dish_name, 0, sizeof(cart.items[i].dish_name));
+    }
+}
+
 
 /*
  * 函数功能：提交订单到厨房（写入文件并清空购物车）
@@ -311,6 +324,7 @@ void submit_order() {
     Sleep(1500);  // 暂停1.5秒让用户看到提示
     
     // 清空购物车
-    init_cart(table_no);
+    cart.kitchen_received = 1;
+    clear_cart_items();
     getch();
 }
