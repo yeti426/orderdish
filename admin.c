@@ -576,11 +576,11 @@ void income_check(){
 	fclose(fp);
 
 	printf("**************************************\n");
-	printf("%-12s %.2lf\n", "总收入:", all_income);
-    printf("%-12s %.2lf\n", "热菜收入:", hot_dish_income);
-    printf("%-12s %.2lf\n", "凉菜收入:", cold_dish_income);
-    printf("%-12s %.2lf\n", "主食收入:", staple_food_income);
-    printf("%-12s %.2lf\n", "饮品收入:", drink_income);
+	printf("总收入:%.2lf\n", all_income);
+	printf("热菜收入:%.2lf\n", hot_dish_income);
+	printf("凉菜收入:%.2lf\n", cold_dish_income);
+	printf("主食收入:%.2lf\n", staple_food_income);
+	printf("饮品收入:%.2lf\n", drink_income);
 	printf("**************************************\n");
 	getch();
 }

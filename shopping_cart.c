@@ -167,7 +167,7 @@ void display_cart() {
         for (int i = 0; i < cart.count; i++) {
             const char* status = (cart.items[i].status == 0) ? "未提交" :
                                  (cart.items[i].status == 1) ? "制作中" : "已上菜"; 
-            printf("%-6d %-8d %-24s %10.2lf %-6d %10.2lf %-8s\n",
+            printf("%-4d %-6d %-10s %-8.2lf %-6d %-10.2lf %-8s\n",
                    i + 1,
                    cart.items[i].no,
                    cart.items[i].dish_name,

@@ -196,15 +196,15 @@ void display_menu(dish_menu *dm, int cnt){
 	
 	system("cls");
 	printf("----------------------------------------------------------\n");
-    printf("%-6s %-8s %-24s %10s\n", "序号", "编号", "菜品名称", "价格");
+    printf("序号      菜品编号      菜品名称      价格\n");
     printf("----------------------------------------------------------\n");
     
     for(i = 0; i < cnt; i++){
         if (is_recommend(dm[i].type, dm[i].no)) {
-            printf("%-6d %-8d 【招牌】%-18s %10.2lf\n",
+            printf(" %d\t %d\t 【招牌】%s\t %.2lf\n",
                    i + 1, dm[i].no, dm[i].dish_name, dm[i].dish_price);
         } else {
-            printf("%-6d %-8d %-24s %10.2lf\n",
+            printf(" %d\t %d\t %s\t %.2lf\n",
                    i + 1, dm[i].no, dm[i].dish_name, dm[i].dish_price);
         }
     }
@@ -348,13 +348,13 @@ void view_bill() {
     if (count == 0) {
         printf("暂无已点菜品\n");
     } else {
-        printf("%-6s %-8s %-24s %-10s %-6s %-10s\n",
+        printf("%-4s %-6s %-10s %-8s %-6s %-10s\n",
                "序号", "编号", "菜品名称", "单价", "数量", "小计");
         printf("----------------------------------------------------------\n");
         
         for (int i = 0; i < count; i++) {
             double subtotal = orders[i].dish_price * orders[i].nums;
-            printf("%-6d %-8d %-24s %10.2lf %-6d %10.2lf\n",
+            printf("%-4d %-6d %-10s %-8.2lf %-6d %-10.2lf\n",
                    i + 1,
                    orders[i].no,
                    orders[i].dish_name,
@@ -440,13 +440,13 @@ void checkout() {
     if (count == 0) {
         printf("账单为空！\n");
     } else {
-        printf("%-6s %-8s %-24s %-10s %-6s %-10s\n", 
+        printf("%-4s %-6s %-10s %-8s %-6s %-10s\n", 
                "序号", "编号", "菜品名称", "单价", "数量", "小计");
         printf("----------------------------------------------------------\n");
         
         for (int i = 0; i < count; i++) {
             double subtotal = orders[i].dish_price * orders[i].nums;
-            printf("%-6d %-8d %-24s %10.2lf %-6d %10.2lf\n",
+            printf("%-4d %-6d %-10s %-8.2lf %-6d %-10.2lf\n",
                    i + 1,
                    orders[i].no,
                    orders[i].dish_name,
