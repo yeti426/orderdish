@@ -34,6 +34,9 @@ extern void display_cart();          //查看已点菜品
 void customer_form() {
     // 选桌
     system("cls");
+    int greet_type = 1;
+	struct tm* p = get_time();
+	greet(p,greet_type);// 根据时间 + 身份，打印问候语
     printf("**************************************\n");
     printf("请输入您的餐台号：");
     while (scanf("%d", &table_no) != 1) {
