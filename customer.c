@@ -454,4 +454,5 @@ void checkout() {
     printf("服务员将为您办理结账手续\n");
     printf("\n按任意键返回主菜单...");
     getch();
+    check_bill();  // 更新订单状态为已支付
 }
