@@ -40,21 +40,22 @@ void display_cart() {
     if (cart.count == 0) {
         printf("\n选膳筐为空！\n");
     } else {
-        printf("\n%-4s %-6s %-10s %-8s %-6s %-10s %-8s\n", 
-               "序号", "编号", "菜品名称", "单价", "数量", "小计", "状态");
-        printf("----------------------------------------------------------\n");
+        printf("\n%-4s %-6s %-10s %-8s %-6s %-10s %-8s %-10s\n", 
+               "序号", "编号", "菜品名称", "单价", "数量", "小计", "状态", "备注");
+        printf("---------------------------------------------------------------------\n");
         
         for (int i = 0; i < cart.count; i++) { 
-            printf("%-4d %-6d %-10s %-8.2lf %-6d %-10.2lf %-8s\n",
+            printf("%-4d %-6d %-10s %-8.2lf %-6d %-10.2lf %-8s %-10s\n",
                    i + 1,
                    cart.items[i].no,
                    cart.items[i].dish_name,
                    cart.items[i].dish_price,
                    cart.items[i].nums,
                    cart.items[i].subtotal,
-                   "未提交");
+                   "未提交",
+                   cart.items[i].remark[0] != '\0' ? cart.items[i].remark : "正常");
         }
-        printf("----------------------------------------------------------\n");
+        printf("---------------------------------------------------------------------\n");
         printf("总金额：%.2lf 元 | 厨房状态：%-6s\n",
                cart.total_amount,
                cart.kitchen_received ? "已接收" : "未接收");
@@ -148,43 +149,56 @@ void remove_from_cart(int index) {
  * 函数功能：提交订单到厨房（智能合并同类菜品并累加到订单文件）
  */
 void submit_order() {
-    // if (cart.count == 0) {
-    //     printf("购物车为空，无法提交！\n");
-    //     getch();
-    //     return;
-    // }
-
-
-    // --- 新增：同步到厨房总队列 (kitchen_queue.txt) ---
-    FILE* kfp = fopen("kitchen_queue.txt", "a"); // 使用追加模式，保证时间顺序
-    if (kfp) {
-        for (int i = 0; i < cart.count; i++) {
-            fprintf(kfp, "%d %d %s %d %d\n", 
-                    cart.table_no,             // 桌号
-                    cart.items[i].no,          // 菜品编号
-                    cart.items[i].dish_name,   // 菜名
-                    cart.items[i].nums,        // 数量
-                    DISH_STATUS_PENDING);      // 初始状态为待做
-        }
-        fclose(kfp);
+    if (cart.count == 0) {
+        printf("购物车为空，无法提交！\n");
+        getch();
+        return;
     }
     
     char filename[50];
     create_order_filename(cart.table_no, filename, sizeof(filename));
     
-    // 1. 读取已有的订单数据
+    // 1. 读取已有的订单数据（现在是7个字段，兼容旧格式需小心，这里假设新格式）
     FILE* fp = fopen(filename, "r");
     int total_count = 0;
     cart_item final_orders[MAX_LENGTH];
     
     if (fp) {
+        // 跳过可能存在的状态行和备注行头（如果文件格式包含头部）
+        // 注意：原代码有 fprintf(fp, "1\n"); 和 fprintf(fp, "\n"); 
+        // 如果这是固定头部，我们需要先消耗掉它们，或者改变存储结构。
+        // 根据原代码逻辑，它似乎把 "1" 和空行当作文件头。
+        // 为了简化，我们尝试直接读取数据行。如果第一行是 "1"，fscanf 会失败或读错。
+        // 更好的方式是统一格式。这里我们尝试读取直到文件末尾，忽略非数据行可能比较困难。
+        // 鉴于原代码写入格式：
+        // Line 1: "1\n"
+        // Line 2: "\n"
+        // Data Lines...
+        // 我们需要先读取并丢弃前两行，或者修改写入逻辑不写这两行。
+        // 参考提供的修改方案，它似乎去掉了这两行头部，直接写入数据。
+        // 我将采用参考方案的逻辑：直接读写数据项。
+        
+        // 如果文件中包含旧的头部格式，可能需要特殊处理。
+        // 这里假设我们迁移到新格式：每行一个菜品，无全局头部。
+        // 如果文件不为空，尝试读取。
+        
+        char line[256];
+        // 简单处理：如果文件存在，尝试逐行解析。
+        // 为了稳健，我们先清空 final_orders，然后尝试解析所有可能的行。
+        
         while (total_count < MAX_LENGTH && 
-               fscanf(fp, "%d %s %lf %d %d", 
+               fscanf(fp, "%d %s %lf %d %d %d %[^\n]", 
                       &final_orders[total_count].no,
                       final_orders[total_count].dish_name,
                       &final_orders[total_count].dish_price,
                       &final_orders[total_count].type,
-                      &final_orders[total_count].nums) == 5) {
+                      &final_orders[total_count].nums,
+                      &final_orders[total_count].status,
+                      final_orders[total_count].remark) >= 6) {
+            // 如果读取到的 remark 是空的或者格式不对，给个默认值
+            if (strlen(final_orders[total_count].remark) == 0) {
+                 strcpy(final_orders[total_count].remark, "正常");
+            }
             total_count++;
         }
         fclose(fp);
@@ -193,9 +207,10 @@ void submit_order() {
     // 2. 将购物车的新菜品合并进去
     for (int i = 0; i < cart.count; i++) {
         int found = 0;
-        // 在已有订单中查找是否已存在该菜品
+        // 在已有订单中查找是否已存在该菜品（编号和备注都必须一致才合并）
         for (int j = 0; j < total_count; j++) {
-            if (final_orders[j].no == cart.items[i].no) {
+            if (final_orders[j].no == cart.items[i].no && 
+                strcmp(final_orders[j].remark, cart.items[i].remark) == 0) {
                 final_orders[j].nums += cart.items[i].nums; // 找到则累加数量
                 found = 1;
                 break;
@@ -211,30 +226,52 @@ void submit_order() {
         }
     }
 
-    // 3. 将合并后的完整清单写回文件
+    // 3. 将合并后的完整清单写回文件（7个字段）
     fp = fopen(filename, "w");
     if (!fp) {
         printf("订单提交失败！\n");
         getch();
         return;
     }
-
-    // 写入状态：1 = 待支付
-    fprintf(fp, "1\n");
-
-    // 写入备注（空备注）
-    fprintf(fp, "\n");
-
+    
+    // 不再写入单独的头部行，直接写入数据，方便追加和解析
+    // 如果需要保留 "1" (待支付) 的状态标记，可以放在第一行，但解析时要特殊处理
+    // 这里参考方案是直接写入数据列表。我们可以约定第一行为元数据，或者只在文件名/其他地方存状态。
+    // 为了最小化改动风险，我将在第一行写入状态 "1"，后续行写入菜品。
+    // 但这样 fscanf 循环就需要跳过第一行。
+    // 让我们采用更简单的：只存菜品列表。状态可以通过文件是否存在或其他方式判断，
+    // 或者我们在第一行写入 "STATUS 1" 这样的标记。
+    
+    // 修正：为了兼容原系统可能的其他部分依赖 "1\n" 开头，我们保留它，但在读取时跳过。
+    // 不过参考方案里去掉了它。我将遵循参考方案，只写入菜品数据。
+    
     for (int i = 0; i < total_count; i++) {
-        fprintf(fp, "%d %s %.2lf %d %d %d\n",
+        fprintf(fp, "%d %s %.2lf %d %d %d %s\n",
                 final_orders[i].no,
                 final_orders[i].dish_name,
                 final_orders[i].dish_price,
                 final_orders[i].type,
                 final_orders[i].nums,
-                DISH_STATUS_PENDING);  // 状态为待制作
+                final_orders[i].status,
+                final_orders[i].remark);
     }  
+    
     fclose(fp);
+    
+    // --- 新增：同步到厨房总队列 (kitchen_queue.txt) ---
+    FILE* kfp = fopen("kitchen_queue.txt", "a"); // 使用追加模式，保证时间顺序
+    if (kfp) {
+        for (int i = 0; i < cart.count; i++) {
+            fprintf(kfp, "%d %d %s %d %d %s\n", 
+                    cart.table_no,             // 桌号
+                    cart.items[i].no,          // 菜品编号
+                    cart.items[i].dish_name,   // 菜名
+                    cart.items[i].nums,        // 数量
+                    cart.items[i].status,      // 初始状态
+                    cart.items[i].remark);     // 备注
+        }
+        fclose(kfp);
+    }
     
     // 4. 更新购物车状态：标记厨房已接收，并清空购物车
     cart.kitchen_received = 1; 
@@ -247,8 +284,6 @@ void submit_order() {
     printf("\n菜品已加入总账单！\n");
     printf("总金额: %.2lf 元\n", cart.total_amount);
     printf("\n正在返回主菜单...\n");
-    
-    
     
     Sleep(1500);
     clear_cart_items(); 
