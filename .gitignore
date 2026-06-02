@@ -1,0 +1,13 @@
+# 编译产物
+orderdish
+*.exe
+*.o
+*.obj
+
+# 运行时生成的文件
+nul
+kitchen_queue.txt
+order/
+income/
+reviews/
+*.txt.bak

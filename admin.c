@@ -51,9 +51,13 @@ extern struct tm* get_time();
 */
 void admin_form() {
     CLEAR_SCREEN();
-	system("mkdir income 2>nul");//mkdir income —在程序所在目录创建 income 文件夹（存放营业额记录）
-	system("mkdir order 2>nul");//mkdir order — 创建 order 文件夹（存放订单文件）
-	//2>nul — 如果文件夹已经存在，mkdir 会报错，2>nul 把错误信息吞掉，不让用户看到
+#ifdef _WIN32
+	system("mkdir income 2>nul");
+	system("mkdir order 2>nul");
+#else
+	system("mkdir -p income");
+	system("mkdir -p order");
+#endif
     printf("========欢迎掌事入主后厨管事堂！========\n");
     int choice;
     printf("请在这里输入后台密码:");

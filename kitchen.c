@@ -8,27 +8,31 @@ int load_kitchen_queue(kitchen_item* queue) {
     if (!fp) return 0;
 
     int count = 0;
-    while (count < MAX_LENGTH) {
-        // 先读取前5个固定字段
-        int ret = fscanf(fp, "%d %d %s %d %d", 
+    char line[256];
+    while (count < MAX_LENGTH && fgets(line, sizeof(line), fp) != NULL) {
+        int consumed = 0;
+        int ret = sscanf(line, "%d %d %s %d %d %n",
                   &queue[count].table_no,
                   &queue[count].dish_no,
                   queue[count].dish_name,
                   &queue[count].nums,
-                  &queue[count].status);
-        
-        if (ret != 5) break;
+                  &queue[count].status,
+                  &consumed);
 
-        // 读取剩余的备注部分（可能包含空格）
-        fscanf(fp, " "); // 吃掉中间的空格
-        if (fgets(queue[count].remark, sizeof(queue[count].remark), fp) != NULL) {
-            // 去掉末尾的换行符
-            size_t len = strlen(queue[count].remark);
-            if (len > 0 && queue[count].remark[len - 1] == '\n') {
-                queue[count].remark[len - 1] = '\0';
-            }
+        if (ret < 5) continue;
+
+        char* remark_ptr = line + consumed;
+        while (*remark_ptr == ' ') remark_ptr++;
+        size_t len = strlen(remark_ptr);
+        if (len > 0 && remark_ptr[len - 1] == '\n') {
+            remark_ptr[len - 1] = '\0';
+            len--;
+        }
+        if (len == 0) {
+            strcpy(queue[count].remark, "-");
         } else {
-            strcpy(queue[count].remark, "");
+            strncpy(queue[count].remark, remark_ptr, sizeof(queue[count].remark) - 1);
+            queue[count].remark[sizeof(queue[count].remark) - 1] = '\0';
         }
 
         count++;
@@ -52,15 +56,85 @@ void complete_dish_in_queue(int index) {
 
     queue[index].status = STATUS_DONE;
 
+    // --- 同步更新订单文件中对应菜品的状态 ---
+    {
+        int tno = queue[index].table_no;
+        int dno = queue[index].dish_no;
+        char remark_target[50];
+        strncpy(remark_target, queue[index].remark, sizeof(remark_target) - 1);
+        remark_target[sizeof(remark_target) - 1] = '\0';
+
+        char filename[50];
+        create_order_filename(tno, filename, sizeof(filename));
+
+        FILE* ofp = fopen(filename, "r");
+        if (ofp) {
+            cart_item orders[MAX_LENGTH];
+            int ocount = 0;
+            char line[256];
+            while (ocount < MAX_LENGTH && fgets(line, sizeof(line), ofp) != NULL) {
+                int consumed = 0;
+                int ret = sscanf(line, "%d %s %lf %d %d %d %n",
+                          &orders[ocount].no,
+                          orders[ocount].dish_name,
+                          &orders[ocount].dish_price,
+                          &orders[ocount].type,
+                          &orders[ocount].nums,
+                          &orders[ocount].status,
+                          &consumed);
+                if (ret < 6) continue;
+
+                char* rem_ptr = line + consumed;
+                while (*rem_ptr == ' ') rem_ptr++;
+                size_t rlen = strlen(rem_ptr);
+                if (rlen > 0 && rem_ptr[rlen - 1] == '\n') {
+                    rem_ptr[rlen - 1] = '\0';
+                    rlen--;
+                }
+                if (rlen == 0) {
+                    strcpy(orders[ocount].remark, "-");
+                } else {
+                    strncpy(orders[ocount].remark, rem_ptr, sizeof(orders[ocount].remark) - 1);
+                    orders[ocount].remark[sizeof(orders[ocount].remark) - 1] = '\0';
+                }
+
+                // 匹配：菜品编号和备注都一致才更新状态
+                if (orders[ocount].no == dno &&
+                    strcmp(orders[ocount].remark, remark_target) == 0 &&
+                    orders[ocount].status == STATUS_PENDING) {
+                    orders[ocount].status = STATUS_DONE;
+                }
+                ocount++;
+            }
+            fclose(ofp);
+
+            // 写回订单文件
+            ofp = fopen(filename, "w");
+            if (ofp) {
+                for (int j = 0; j < ocount; j++) {
+                    fprintf(ofp, "%d %s %.2lf %d %d %d %s\n",
+                            orders[j].no,
+                            orders[j].dish_name,
+                            orders[j].dish_price,
+                            orders[j].type,
+                            orders[j].nums,
+                            orders[j].status,
+                            orders[j].remark);
+                }
+                fclose(ofp);
+            }
+        }
+    }
+
     FILE* fp = fopen("kitchen_queue.txt", "w");
     for (int i = 0; i < count; i++) {
         // 只写入未完成的菜品，已完成的直接从队列中移除
         if (queue[i].status == STATUS_PENDING) {
             fprintf(fp, "%d %d %s %d %d %s\n",
-                    queue[i].table_no, 
-                    queue[i].dish_no, 
-                    queue[i].dish_name, 
-                    queue[i].nums, 
+                    queue[i].table_no,
+                    queue[i].dish_no,
+                    queue[i].dish_name,
+                    queue[i].nums,
                     queue[i].status,
                     queue[i].remark);
         }

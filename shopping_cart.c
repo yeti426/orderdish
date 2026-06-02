@@ -208,7 +208,7 @@ void submit_order() {
     // 2. 将购物车的新菜品合并进去
     for (int i = 0; i < cart.count; i++) {
         int found = 0;
-        // 在已有订单中查找是否已存在该菜品（编号和备注都必须一致才合并）
+        // 在已有订单中查找是否已存在该菜品（菜名和口味备注都一致才合并数量）
         for (int j = 0; j < total_count; j++) {
             if (strcmp(final_orders[j].dish_name, cart.items[i].dish_name) == 0 && 
                 strcmp(final_orders[j].remark, cart.items[i].remark) == 0) {
