@@ -8,14 +8,29 @@ int load_kitchen_queue(kitchen_item* queue) {
     if (!fp) return 0;
 
     int count = 0;
-    while (count < MAX_LENGTH && 
-           fscanf(fp, "%d %d %s %d %d %[^\n]", 
+    while (count < MAX_LENGTH) {
+        // 先读取前5个固定字段
+        int ret = fscanf(fp, "%d %d %s %d %d", 
                   &queue[count].table_no,
                   &queue[count].dish_no,
                   queue[count].dish_name,
                   &queue[count].nums,
-                  &queue[count].status,
-                  queue[count].remark) >= 5) {
+                  &queue[count].status);
+        
+        if (ret != 5) break;
+
+        // 读取剩余的备注部分（可能包含空格）
+        fscanf(fp, " "); // 吃掉中间的空格
+        if (fgets(queue[count].remark, sizeof(queue[count].remark), fp) != NULL) {
+            // 去掉末尾的换行符
+            size_t len = strlen(queue[count].remark);
+            if (len > 0 && queue[count].remark[len - 1] == '\n') {
+                queue[count].remark[len - 1] = '\0';
+            }
+        } else {
+            strcpy(queue[count].remark, "");
+        }
+
         count++;
     }
     fclose(fp);
@@ -106,18 +121,25 @@ int load_pending_orders(int table_no, cart_item* orders) {
     if (!fp) return 0;
     
     int count = 0;
-    // 直接循环读取，不跳过状态行（因为我们现在的文件格式就是纯菜品列表）
-    while (count < MAX_LENGTH && 
-           fscanf(fp, "%d %s %lf %d %d %d", 
+    while (count < MAX_LENGTH) {
+        // 尝试读取7个字段（兼容新格式）
+        int ret = fscanf(fp, "%d %s %lf %d %d %d %[^\n]", 
                   &orders[count].no,
                   orders[count].dish_name,
                   &orders[count].dish_price,
                   &orders[count].type,
                   &orders[count].nums,
-                  &orders[count].status) == 6) {
+                  &orders[count].status,
+                  orders[count].remark);
         
-        if (orders[count].status == DISH_STATUS_PENDING) {
-            count++; // 只统计待制作的
+        // 如果读不到6个基本字段则退出
+        if (ret < 6) break;
+
+        // 如果没读到备注，给个默认值
+        if (ret == 6) strcpy(orders[count].remark, "正常");
+        
+        if (orders[count].status == STATUS_PENDING) {
+            count++;
         }
     }
     fclose(fp);
@@ -141,14 +163,19 @@ void mark_dish_done(int table_no, int dish_no) {
     cart_item all_orders[MAX_LENGTH];
     int total_count = 0;
     
-    while (total_count < MAX_LENGTH && 
-           fscanf(fp, "%d %s %lf %d %d %d", 
+    while (total_count < MAX_LENGTH) {
+        int ret = fscanf(fp, "%d %s %lf %d %d %d %[^\n]", 
                   &all_orders[total_count].no,
                   all_orders[total_count].dish_name,
                   &all_orders[total_count].dish_price,
                   &all_orders[total_count].type,
                   &all_orders[total_count].nums,
-                  &all_orders[total_count].status) == 6) {
+                  &all_orders[total_count].status,
+                  all_orders[total_count].remark);
+        
+        if (ret < 6) break;
+        if (ret == 6) strcpy(all_orders[total_count].remark, "正常");
+        
         total_count++;
     }
     fclose(fp);
@@ -156,8 +183,8 @@ void mark_dish_done(int table_no, int dish_no) {
     // 查找并修改状态
     int found = 0;
     for (int i = 0; i < total_count; i++) {
-        if (all_orders[i].no == dish_no && all_orders[i].status == DISH_STATUS_PENDING) {
-            all_orders[i].status = DISH_STATUS_DONE;
+        if (all_orders[i].no == dish_no && all_orders[i].status == STATUS_PENDING) {
+            all_orders[i].status = STATUS_DONE;
             found = 1;
             break;
         }
@@ -169,16 +196,17 @@ void mark_dish_done(int table_no, int dish_no) {
         return;
     }
     
-    // 写回文件
+    // 写回文件（保持7字段格式）
     fp = fopen(filename, "w");
     for (int i = 0; i < total_count; i++) {
-        fprintf(fp, "%d %s %.2lf %d %d %d\n",
+        fprintf(fp, "%d %s %.2lf %d %d %d %s\n",
                 all_orders[i].no,
                 all_orders[i].dish_name,
                 all_orders[i].dish_price,
                 all_orders[i].type,
                 all_orders[i].nums,
-                all_orders[i].status);
+                all_orders[i].status,
+                all_orders[i].remark);
     }
     fclose(fp);
 }

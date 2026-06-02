@@ -1,9 +1,15 @@
 #include "init.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <windows.h>
+#ifdef _WIN32
+    #include <windows.h>
+#else
+    #include <unistd.h>   // macOS/Linux: access() 函数
+#endif
 #include <string.h>
-#include <io.h> 
+#ifdef _WIN32
+    #include <io.h>       // Windows: access() 函数
+#endif
 
 
 /*
@@ -12,10 +18,18 @@
 void create_order_filename(int table_no, char* fstr,int size) {
 // 确保 order 目录存在
 if (access("order", 0) != 0) { // 需要 #include <io.h> 或 <unistd.h>
-        system("mkdir order");
+#ifdef _WIN32
+        system("mkdir order 2>nul");
+#else
+        system("mkdir -p order");
+#endif
     }
-// 使用反斜杠适应 Windows
+// 使用跨平台路径分隔符
+#ifdef _WIN32
     snprintf(fstr, size, "order\\%d.txt", table_no);
+#else
+    snprintf(fstr, size, "order/%d.txt", table_no);
+#endif
 }
 
 
@@ -39,18 +53,19 @@ int check_order_file(char* fstr) {
     fgets(remark, sizeof(remark), fp);
 
     cart_item o; // 改用 cart_item
-    // 检查每一行数据是否合法
+    // 检查每一行数据是否合法（现在是7个字段：编号、名称、价格、类型、数量、状态、备注）
     while (!feof(fp)) {
-        int ret = fscanf(fp, "%d %s %lf %d %d",
+        int ret = fscanf(fp, "%d %s %lf %d %d %d %[^\n]",
                          &o.no,
                          o.dish_name,
                          &o.dish_price,
                          &o.type,
                          &o.nums,
-                         &o.status);
+                         &o.status,
+                         o.remark);
 
         // 如果读到末尾或格式不对，跳出循环
-        if (ret != 5) break; 
+        if (ret < 6) break; 
 
         if (o.dish_price <= 0) { fclose(fp); return 0; }
         if (o.nums <= 0) { fclose(fp); return 0; }
@@ -436,14 +451,15 @@ void calculate_value(char* fstr, double* all,
 
     cart_item o; // 改用 cart_item 结构体
     while (!feof(fp)) {
-    // 必须检查返回值，防止最后一行重复读取
-         if (fscanf(fp, "%d %s %lf %d %d",
+    // 必须检查返回值，防止最后一行重复读取（现在是7个字段）
+         if (fscanf(fp, "%d %s %lf %d %d %d %[^\n]",
                &o.no,
                o.dish_name,
                &o.dish_price,
                &o.type,
                &o.nums,
-               &o.status) != 6) break;
+               &o.status,
+               o.remark) < 6) break;
 
         double sum = o.dish_price * o.nums;
         *all += sum;
@@ -507,13 +523,21 @@ void save_review(int table_no) {
             
     // 确保 reviews 目录存在
     if (access("reviews", 0) != 0) {
-        system("mkdir reviews");
+#ifdef _WIN32
+        system("mkdir reviews 2>nul");
+#else
+        system("mkdir -p reviews");
+#endif
     }
     
     // 生成评价文件名: reviews/review_雅座_时间戳.txt (简化为追加到总文件或者按雅座存)
     
     char filename[100];
+#ifdef _WIN32
     snprintf(filename, sizeof(filename), "reviews\\review_table_%d.txt", table_no);
+#else
+    snprintf(filename, sizeof(filename), "reviews/review_table_%d.txt", table_no);
+#endif
     
     FILE* fp = fopen(filename, "a"); // 追加模式
     if (fp) {

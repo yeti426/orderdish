@@ -4,30 +4,51 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <conio.h>
-#include <windows.h>
 #include <time.h>
+#include <math.h>
+
+// --- macOS/Linux 兼容性处理 ---
+#ifdef _WIN32
+    #include <conio.h>   // Windows: getch()
+    #include <windows.h> // Windows: Sleep(), system("cls")
+#else
+    #include <termios.h> // macOS/Linux: 模拟 getch()
+    #include <unistd.h>  // macOS/Linux: sleep()
+
+    // 模拟 Windows 的 getch()
+    static inline int getch() {
+        struct termios oldt, newt;
+        int ch;
+        tcgetattr(STDIN_FILENO, &oldt);
+        newt = oldt;
+        newt.c_lflag &= ~(ICANON | ECHO); // 禁用缓冲和回显
+        tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+        ch = getchar();
+        tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+        return ch;
+    }
+
+    // 模拟 Windows 的 Sleep() (毫秒)
+    static inline void Sleep(unsigned int milliseconds) {
+        usleep(milliseconds * 1000);
+    }
+#endif
 
 #define MAX_LENGTH 100
 #define MAX_TABLES 20 
 
+// 定义菜品制作状态
+#define STATUS_PENDING 0   // 待制作
+#define STATUS_DONE 1      // 已制作
+
 //菜单数据结构
-typedef struct a{
+typedef struct {
 	int no; //编号
 	char dish_name[20]; //菜名
 	double dish_price; //价格
 	int type; //种类：1-热菜、2-凉菜、3-主食、4-饮品 
-}dish_menu;
-
-//顾客点菜订单文件中的两部分内容：
-//1.订单状态：1-订单生成、2-支付成功、3-商家已确认
-//2.数据结构中的内容
-
-//顾客点菜订单的数据结构 
-
-// 定义菜品制作状态
-#define DISH_STATUS_PENDING 0   // 待制作
-#define DISH_STATUS_DONE 1      // 已制作
+    int has_options; // 是否有口味选项 (0.否 1.是)
+} dish_menu;
 
 // 购物车项结构（也是订单项结构）
 typedef struct {
@@ -38,6 +59,7 @@ typedef struct {
     int nums;            // 数量
     double subtotal;     // 小计价格
     int status;          // 制作状态：0-待制作, 1-已制作
+    char remark[50];     // 备注信息
 } cart_item;
 
 // 厨房队列项结构（用于全局排序）
@@ -47,6 +69,7 @@ typedef struct {
     char dish_name[20];  // 菜名
     int nums;            // 数量
     int status;          // 状态：0-待做, 1-已做
+    char remark[50];     // 备注信息
 } kitchen_item;
 
 // 购物车结构

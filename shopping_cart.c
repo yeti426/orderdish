@@ -27,7 +27,6 @@ void submit_order();                           // 提交订单到厨房
 
 
 
- 
 /*
  * 函数功能：显示购物车内容
  */
@@ -262,7 +261,8 @@ void submit_order() {
     FILE* kfp = fopen("kitchen_queue.txt", "a"); // 使用追加模式，保证时间顺序
     if (kfp) {
         for (int i = 0; i < cart.count; i++) {
-            fprintf(kfp, "%d %d %s %d %d %s\n", 
+            // 使用 | 作为分隔符，避免空格问题
+            fprintf(kfp, "%d|%d|%s|%d|%d|%s\n", 
                     cart.table_no,             // 桌号
                     cart.items[i].no,          // 菜品编号
                     cart.items[i].dish_name,   // 菜名

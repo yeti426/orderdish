@@ -1,5 +1,10 @@
 #include "init.h"
-#include <io.h>    // 用于 _findfirst / _findnext 遍历文件
+#ifdef _WIN32
+    #include <io.h>    // Windows: 用于 _findfirst / _findnext 遍历文件
+#else
+    #include <dirent.h> // macOS/Linux: 目录遍历
+#endif
+
 //变量声明
 //char pw[20] = "123456";                        //预置密码，方便调试 
 //部分全局变量
@@ -99,9 +104,14 @@ void admin_form() {
 * description  : 定位屏幕光标至 （x , y） 
 */ 
 void gotoxy(int x, int y) {
+#ifdef _WIN32
     COORD pos = {x,y};
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);// 获取标准输出设备句柄
     SetConsoleCursorPosition(hOut, pos);//两个参数分别是指定哪个窗体，具体位置
+#else
+    // macOS/Linux: 使用 ANSI 转义序列移动光标
+    printf("\033[%d;%dH", y + 1, x + 1);
+#endif
 }
 
 
@@ -525,10 +535,10 @@ void create_date_filename(char* fdate){
 	char year[5] = "";
 	char month[5] = "";
 	char day[5] = "";
-	//itoa:把 数字 变成 字符串 的工具函数！
-	itoa(p->tm_year + 1900 , year , 10);//因为 tm_year 是从 1900 年开始算的，所以要 +1900。
-	itoa(p->tm_mon + 1 , month , 10);//月份也是从 0 开始算
-	itoa(mday, day , 10);// tm_mday 直接表示当月第几天，不需要 +1
+	//使用 sprintf 替代非标准的 itoa 函数（跨平台兼容）
+	sprintf(year, "%d", p->tm_year + 1900);//因为 tm_year 是从 1900 年开始算的，所以要 +1900。
+	sprintf(month, "%d", p->tm_mon + 1);//月份也是从 0 开始算
+	sprintf(day, "%d", mday);// tm_mday 直接表示当月第几天，不需要 +1
 	strcat(date,year);
 	strcat(date,month);
 	strcat(date,day);
@@ -835,6 +845,8 @@ void view_reviews() {
     }
 
     // 列出所有评价文件（review_table_雅座.txt）
+#ifdef _WIN32
+    // Windows 版本
     struct _finddata_t fileinfo;
     intptr_t handle;
     char pattern[100] = "reviews\\review_table_*.txt";
@@ -859,6 +871,44 @@ void view_reviews() {
         printf("  雅座: %d\n", table_no);
     } while (_findnext(handle, &fileinfo) == 0);
     _findclose(handle);
+#else
+    // macOS/Linux 版本
+    DIR* dir;
+    struct dirent* entry;
+    int tables[100];
+    int table_cnt = 0;
+
+    dir = opendir("reviews");
+    if (dir == NULL) {
+        printf("无法打开评价目录！\n");
+        getch();
+        return;
+    }
+
+    printf("已有评价的雅座：\n");
+    printf("--------------------------\n");
+    
+    while ((entry = readdir(dir)) != NULL) {
+        if (entry->d_type == DT_REG || entry->d_type == DT_UNKNOWN) {
+            // 检查文件名是否匹配 review_table_*.txt 格式
+            if (strncmp(entry->d_name, "review_table_", 13) == 0 && 
+                strstr(entry->d_name, ".txt") != NULL) {
+                int table_no;
+                if (sscanf(entry->d_name, "review_table_%d.txt", &table_no) == 1) {
+                    tables[table_cnt++] = table_no;
+                    printf("  雅座: %d\n", table_no);
+                }
+            }
+        }
+    }
+    closedir(dir);
+
+    if (table_cnt == 0) {
+        printf("暂无顾客评价文件！\n");
+        getch();
+        return;
+    }
+#endif
 
     printf("--------------------------\n");
     printf("请输入要查看的雅座(0退出)：");
@@ -879,7 +929,11 @@ void view_reviews() {
 
     // 读取并显示评价内容
     char filename[100];
+#ifdef _WIN32
     snprintf(filename, sizeof(filename), "reviews\\review_table_%d.txt", choice);
+#else
+    snprintf(filename, sizeof(filename), "reviews/review_table_%d.txt", choice);
+#endif
     FILE* fp = fopen(filename, "r");
     if (fp == NULL) {
         printf("无法打开评价文件！\n");

@@ -334,7 +334,7 @@ void menu_controller(dish_menu* dm, int cnt) {
             cart.items[cart.count].dish_price = selected.dish_price;
             cart.items[cart.count].type = selected.type;
             cart.items[cart.count].nums = nums;
-            cart.items[cart.count].status = DISH_STATUS_PENDING;
+            cart.items[cart.count].status = STATUS_PENDING; // 使用 init.h 中定义的宏
             cart.count++;
         }
 
@@ -439,7 +439,7 @@ void view_bill() {
         
         for (int i = 0; i < count; i++) {
             double subtotal = orders[i].dish_price * orders[i].nums;
-            const char* status_str = (orders[i].status == DISH_STATUS_DONE) ? "已完成" : "制作中";
+            const char* status_str = (orders[i].status == STATUS_DONE) ? "已完成" : "制作中"; // 使用 init.h 中定义的宏
             printf("%-4d %-6d %-10s %-8.2lf %-6d %-10.2lf %-8s [%s]\n",
                    i + 1,
                    orders[i].no,
@@ -558,7 +558,7 @@ void checkout() {
         
         for (int i = 0; i < count; i++) {
             double subtotal = orders[i].dish_price * orders[i].nums;
-            const char* status_str = (orders[i].status == DISH_STATUS_DONE) ? "已完成" : "制作中";
+            const char* status_str = (orders[i].status == STATUS_DONE) ? "已完成" : "制作中"; // 使用 init.h 中定义的宏
             printf("%-4d %-6d %-10s %-8.2lf %-6d %-10.2lf %-8s [%s]\n",
                    i + 1,
                    orders[i].no,
