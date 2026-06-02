@@ -87,12 +87,12 @@ void check_bill() {
     int flag;
     fscanf(fp, "%d", &flag);
 
-    // 只有状态为 1 (已下单/点餐中) 才能结账
-    if (flag != 1) {
-        printf("订单状态不可支付（当前状态：%d）！\n", flag);
-        getch();
-        return;
-    }
+    // // 只有状态为 1 (已下单/点餐中) 才能结账
+    // if (flag != 1) {
+    //     printf("订单状态不可支付（当前状态：%d）！\n", flag);
+    //     getch();
+    //     return;
+    // }
 
     double total = 0;
     cart_item order[MAX_LENGTH]; // 改用 cart_item

@@ -41,7 +41,6 @@ typedef struct {
     int count;                     // 当前菜品数量
     double total_amount;           // 总金额
     int table_no;                  // 雅座
-    int kitchen_received;          // 厨房是否收到：0-未收到, 1-已收到
 } shopping_cart;
 
 // 评价结构

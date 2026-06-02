@@ -234,7 +234,7 @@ void display_cart() {
     }
 }
 
-//函数功能：清空菜品 不重置kitchen_received和table_no
+//函数功能：清空菜品
 void clear_cart_items() {
     cart.count = 0;
     cart.total_amount = 0;
@@ -242,7 +242,6 @@ void clear_cart_items() {
         cart.items[i].no = 0;
         cart.items[i].nums = 0;
         cart.items[i].subtotal = 0;
-        cart.items[i].status = 0;
         memset(cart.items[i].dish_name, 0, sizeof(cart.items[i].dish_name));
     }
 }
@@ -257,12 +256,7 @@ void submit_order() {
         getch();
         return;
     }
-    
-    if (cart.kitchen_received) {
-        printf("订单已提交到厨房，请勿重复提交！\n");
-        getch();
-        return;
-    }
+
     
     char filename[50];
     create_order_filename(cart.table_no, filename, sizeof(filename));

@@ -131,9 +131,9 @@ void read_menu(char* filename, dish_menu* dm, int* cnt) {
  */
 void ordering_menu() {
     // 如果上一单已提交且购物车为空，重置状态以允许新点餐
-    if (cart.kitchen_received && cart.count == 0) {
-        cart.kitchen_received = 0;
-    }
+    // if (cart.kitchen_received && cart.count == 0) {
+    //     cart.kitchen_received = 0;
+    // }
 
     int choice;
     do {
@@ -261,7 +261,7 @@ void menu_controller(dish_menu* dm, int cnt) {
         }
 
         if (nums <= 0) {
-            printf(" 份数需至少一份\n");
+            printf("份数需至少一份\n");
             getch();
             continue;
         }
@@ -309,13 +309,13 @@ void view_bill() {
     }
     
     // 读取订单状态
-    int order_status;
-    if (fscanf(fp, "%d", &order_status) != 1) {
-        printf("订单文件格式错误！\n");
-        fclose(fp);
-        getch();
-        return;
-    }
+    // int order_status;
+    // if (fscanf(fp, "%d", &order_status) != 1) {
+    //     printf("订单文件格式错误！\n");
+    //     fclose(fp);
+    //     getch();
+    //     return;
+    // }
 
     // 读取并跳过备注行
     char remark[200];
@@ -354,19 +354,19 @@ void view_bill() {
     }
     fclose(fp);
     
-    // // 获取订单状态文字
-    // char* status_text;
-    // switch(order_status) {
-    //     case 1: status_text = "待支付"; break;
-    //     case 2: status_text = "已支付"; break; 
-    //     default: status_text = "未知状态"; break;
-    // }
+    // 获取订单状态文字
+    char* status_text;
+    switch(order_status) {
+        case 1: status_text = "待支付"; break;
+        case 2: status_text = "已支付"; break; 
+        default: status_text = "未知状态"; break;
+    }
     
     system("cls");
     printf("========================================\n");
     printf("         账单 (雅座: %d)\n", table_no);
     printf("========================================\n");
-    printf("订单状态: %s\n", order_status == 1 ? "待支付" : (order_status == 2 ? "已支付" : "未知状态"));
+    printf("订单状态:待支付");
     printf("\n");
     
     //显示备注
