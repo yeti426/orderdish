@@ -148,14 +148,14 @@ void complete_dish_in_queue(int index) {
 void kitchen_form() {
     CLEAR_SCREEN();
     printf("========================================\n");
-    printf("         👨‍🍳 后厨 · 实时备餐队列\n");
+    printf("          后厨 · 实时备餐队列\n");
     printf("========================================\n");
 
     kitchen_item queue[MAX_LENGTH];
     int count = load_kitchen_queue(queue);
     
     if (count == 0) {
-        printf("\n当前所有菜品已制作完毕！☕\n");
+        printf("\n当前所有菜品已制作完毕！\n");
     } else {
         printf("\n%-6s %-8s %-12s %-8s %-10s\n", "序号", "桌号", "菜品名称", "数量", "备注");
         printf("----------------------------------------\n");
