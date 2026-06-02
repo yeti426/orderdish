@@ -1,24 +1,24 @@
-#include"init.h" //引入初始化模块
+#include"init.h" // 引入初始化模块
 
 /*
  * 函数功能: 主界面函数，显示主界面并获取用户选择信息
  */
 int main_form(){
-	CLEAR_SCREEN();             //清屏
-	int greet_type = 0;        //初始化问候类型
-	struct tm* p = get_time(); //获取时间
-	greet(p,greet_type);       //根据时间打印问候语 
+	CLEAR_SCREEN();            // 清屏
+	int greet_type = 0;        // 初始化问候类型
+	struct tm* p = get_time(); // 获取时间
+	greet(p,greet_type);       // 根据时间打印问候语 
 	
 	int op; //定义一个选择变量 
 	printf("请择一身份入内：\n");
-	printf("1.往来客商\n");     //顾客界面
-	printf("2.掌柜内务\n");     //管理员界面
-	printf("3.后厨掌勺\n");     //厨房界面 ← 新增
-	printf("4.打烊离去\n");     //退出程序
+	printf("1.往来客商\n");     // 顾客界面
+	printf("2.掌柜内务\n");     // 管理员界面
+	printf("3.后厨掌勺\n");     // 厨师界面
+	printf("4.打烊离去\n");     // 退出程序
 	printf("请在此输入：");
 	scanf("%d",&op);
 	
-	error_check(1,4,&op);	   //差错检测，防止输入错误选择导致程序崩溃 ← 范围改为4
+	error_check(1,4,&op);	   // 差错检测，防止输入错误选择导致程序崩溃
 	return op; 
 }
 
@@ -48,7 +48,7 @@ void clear_stdin_buffer(void) {
  */
 void greet(struct tm* p,int user_role){
 	//转换时区
-	int china_time = (p->tm_hour + 8) % 24;   //伦敦时间->北京时间 
+	int china_time = (p->tm_hour + 8) % 24;   //伦敦时间->北京时间（UTC+8）
 	//依据时间首先问好
 	printf("+++++++++++++++++++++++++++++++++++++++++++\n");
 	if(china_time >= 6 && china_time < 8) printf("晨光熹微，客官安好！");
@@ -69,8 +69,8 @@ void greet(struct tm* p,int user_role){
 	else if(user_role == 1){
 		printf("客官远道而来，小店蓬荜生辉！\n");
 	}
-	else if(user_role == 3){ // ← 新增：厨师的欢迎语
-		printf("恭迎大厨入主后厨，灶火已旺！\n");
+	else if(user_role == 3){
+		printf("恭迎大厨到岗，后厨灶火已旺！\n");
 	}
 	else{
 		printf("今日阳光正好，愿君心情愉快！\n");

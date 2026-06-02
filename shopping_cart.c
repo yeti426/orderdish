@@ -14,6 +14,7 @@ extern char drink_filename[20];
 //外部函数声明   
 extern void error_check(int,int,int*);
 extern void create_order_filename(int,char*,int);
+extern void menu_controller(dish_menu* dm, int cnt);
 
 // 购物车全局变量
 shopping_cart cart;
