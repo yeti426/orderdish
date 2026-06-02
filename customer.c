@@ -121,6 +121,13 @@ void read_menu(char* filename, dish_menu* dm, int* cnt) {
         ret = fscanf(fp, "%d", &dm[*cnt].type);
         if (ret != 1) break;
 
+        // --- 新增：读取口味选项标记 ---
+        ret = fscanf(fp, "%d", &dm[*cnt].has_options);
+        if (ret != 1) {
+            // 兼容旧格式，如果没有这个字段，默认为 0
+            dm[*cnt].has_options = 0;
+        }
+
         (*cnt)++;
     }
 
@@ -397,15 +404,20 @@ void view_bill() {
     int count = 0;
     double total = 0;
     
-    // 读取所有订单项（现在是6个字段）
+    // 读取所有订单项（现在是7个字段，包含菜品备注）
     while (count < MAX_LENGTH &&
-           fscanf(fp, "%d %s %lf %d %d %d",
+           fscanf(fp, "%d %s %lf %d %d %d %[^\n]",
                   &orders[count].no,
                   orders[count].dish_name,
                   &orders[count].dish_price,
                   &orders[count].type,
                   &orders[count].nums,
-                  &orders[count].status) == 6) {   
+                  &orders[count].status,
+                  orders[count].remark) >= 6) {   
+        // 兼容旧格式：如果没读到备注，给个默认值
+        if (strlen(orders[count].remark) == 0) {
+            strcpy(orders[count].remark, "正常");
+        }
         total += orders[count].dish_price * orders[count].nums;
         count++;
     }
@@ -421,24 +433,25 @@ void view_bill() {
     if (count == 0) {
         printf("暂无已点菜品\n");
     } else {
-        printf("%-4s %-6s %-10s %-8s %-6s %-10s %-8s\n",
-               "序号", "编号", "菜品名称", "单价", "数量", "小计", "状态");
-        printf("-------------------------------------------------------------------\n");
+        printf("%-4s %-6s %-10s %-8s %-6s %-10s %-8s %-10s\n",
+               "序号", "编号", "菜品名称", "单价", "数量", "小计", "状态", "口味");
+        printf("-----------------------------------------------------------------------\n");
         
         for (int i = 0; i < count; i++) {
             double subtotal = orders[i].dish_price * orders[i].nums;
             const char* status_str = (orders[i].status == DISH_STATUS_DONE) ? "已完成" : "制作中";
-            printf("%-4d %-6d %-10s %-8.2lf %-6d %-10.2lf %-8s\n",
+            printf("%-4d %-6d %-10s %-8.2lf %-6d %-10.2lf %-8s [%s]\n",
                    i + 1,
                    orders[i].no,
                    orders[i].dish_name,
                    orders[i].dish_price,
                    orders[i].nums,
                    subtotal,
-                   status_str);
+                   status_str,
+                   orders[i].remark);
         }
         
-        printf("-------------------------------------------------------------------\n");
+        printf("-----------------------------------------------------------------------\n");
         printf("\n总金额: %.2lf 元\n", total);
     }
     
@@ -508,21 +521,28 @@ void checkout() {
     int count = 0;
     double total = 0;
     
-    // 读取所有订单项（6个字段）
-     while (count < MAX_LENGTH &&
-            fscanf(fp, "%d %s %lf %d %d %d",
-                   &orders[count].no,
-                   orders[count].dish_name,
-                   &orders[count].dish_price,
-                   &orders[count].type,
-                   &orders[count].nums,
-                   &orders[count].status) == 6){           
+    // 读取所有订单项（7个字段）
+     while (count < MAX_LENGTH) {
+        int ret = fscanf(fp, "%d %s %lf %d %d %d %[^\n]",
+                  &orders[count].no,
+                  orders[count].dish_name,
+                  &orders[count].dish_price,
+                  &orders[count].type,
+                  &orders[count].nums,
+                  &orders[count].status,
+                  orders[count].remark); // ← 新增：读取状态
+        if (ret < 6) break;             
+
+        // 兼容旧格式
+        if (strlen(orders[count].remark) == 0) {
+            strcpy(orders[count].remark, "正常");
+        }
+
         total += orders[count].dish_price * orders[count].nums;
         count++;
     }
-
     fclose(fp);
-
+    
     system("cls");
     printf("========================================\n");
     printf("         结账 (雅座: %d)\n", table_no);
@@ -532,22 +552,25 @@ void checkout() {
     if (count == 0) {
         printf("账单为空！\n");
     } else {
-        printf("%-4s %-6s %-10s %-8s %-6s %-10s\n", 
-               "序号", "编号", "菜品名称", "单价", "数量", "小计");
-        printf("-------------------------------------------------------------------\n");
+        printf("%-4s %-6s %-10s %-8s %-6s %-10s %-8s %-10s\n", 
+               "序号", "编号", "菜品名称", "单价", "数量", "小计", "状态", "口味");
+        printf("-----------------------------------------------------------------------\n");
         
         for (int i = 0; i < count; i++) {
             double subtotal = orders[i].dish_price * orders[i].nums;
-            printf("%-4d %-6d %-10s %-8.2lf %-6d %-10.2lf\n",
+            const char* status_str = (orders[i].status == DISH_STATUS_DONE) ? "已完成" : "制作中";
+            printf("%-4d %-6d %-10s %-8.2lf %-6d %-10.2lf %-8s [%s]\n",
                    i + 1,
                    orders[i].no,
                    orders[i].dish_name,
                    orders[i].dish_price,
                    orders[i].nums,
-                   subtotal);
+                   subtotal,
+                   status_str,
+                   orders[i].remark);
         }
         
-        printf("-------------------------------------------------------------------\n");
+        printf("-----------------------------------------------------------------------\n");
         printf("\n总金额: %.2lf 元\n", total);
     }
     
@@ -556,5 +579,5 @@ void checkout() {
     printf("店小二将为您办理结账手续\n");
     printf("\n按任意键返回主菜单...");
     getch();
-    check_bill(); // 处理支付逻辑（更新订单状态等）
+    check_bill();  // 更新订单状态为已支付
 }

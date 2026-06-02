@@ -1,55 +1,5 @@
 #include "init.h"
 
-// --- 新增：函数声明 ---
-int load_kitchen_queue(kitchen_item* queue);
-void complete_dish_in_queue(int index);
-int load_pending_orders(int table_no, cart_item* orders);
-void mark_dish_done(int table_no, int dish_no);
-// ---------------------
-
-
-/*
- * 函数功能：厨房主界面 - 按提交顺序展示
- */
-void kitchen_form() {
-    int seq;
-    do {
-        system("cls");
-        printf("========================================\n");
-        printf("         👨‍🍳 后厨 · 实时备餐队列\n");
-        printf("========================================\n");
-
-        kitchen_item queue[MAX_LENGTH];
-        int count = load_kitchen_queue(queue);
-        
-        if (count == 0) {
-            printf("\n当前所有菜品已制作完毕！☕\n");
-        } else {
-            printf("\n%-6s %-8s %-12s %-8s\n", "序号", "桌号", "菜品名称", "数量");
-            printf("----------------------------------------\n");
-            for (int i = 0; i < count; i++) {
-                if (queue[i].status ==  DISH_STATUS_PENDING) {
-                    printf("[%d]    %-8d %-12s x%d\n", 
-                           i + 1, 
-                           queue[i].table_no, 
-                           queue[i].dish_name, 
-                           queue[i].nums);
-                }
-            }
-        }
-
-        printf("\n----------------------------------------\n");
-        printf("请输入已完成菜品【序号】（按0返回）: ");
-        scanf("%d", &seq);
-        
-        if (seq > 0) {
-            complete_dish_in_queue(seq - 1); // 数组下标从0开始
-        }
-    } while(seq != 0);
-}
-
-
-
 /*
  * 函数功能：加载厨房总队列
  */
@@ -59,12 +9,13 @@ int load_kitchen_queue(kitchen_item* queue) {
 
     int count = 0;
     while (count < MAX_LENGTH && 
-           fscanf(fp, "%d %d %s %d %d", 
+           fscanf(fp, "%d %d %s %d %d %[^\n]", 
                   &queue[count].table_no,
                   &queue[count].dish_no,
                   queue[count].dish_name,
                   &queue[count].nums,
-                  &queue[count].status) == 5) {
+                  &queue[count].status,
+                  queue[count].remark) >= 5) {
         count++;
     }
     fclose(fp);
@@ -84,21 +35,64 @@ void complete_dish_in_queue(int index) {
         return;
     }
 
-    queue[index].status = DISH_STATUS_DONE;
+    queue[index].status = STATUS_DONE;
 
     FILE* fp = fopen("kitchen_queue.txt", "w");
     for (int i = 0; i < count; i++) {
         // 只写入未完成的菜品，已完成的直接从队列中移除
-        if (queue[i].status == DISH_STATUS_PENDING) {
-            fprintf(fp, "%d %d %s %d %d\n",
+        if (queue[i].status == STATUS_PENDING) {
+            fprintf(fp, "%d %d %s %d %d %s\n",
                     queue[i].table_no, 
                     queue[i].dish_no, 
                     queue[i].dish_name, 
                     queue[i].nums, 
-                    queue[i].status);
+                    queue[i].status,
+                    queue[i].remark);
         }
     }
     fclose(fp);
+}
+
+/*
+ * 函数功能：厨房主界面 - 按提交顺序展示
+ */
+void kitchen_form() {
+    system("cls");
+    printf("========================================\n");
+    printf("         👨‍🍳 后厨 · 实时备餐队列\n");
+    printf("========================================\n");
+
+    kitchen_item queue[MAX_LENGTH];
+    int count = load_kitchen_queue(queue);
+    
+    if (count == 0) {
+        printf("\n当前所有菜品已制作完毕！☕\n");
+    } else {
+        printf("\n%-6s %-8s %-12s %-8s %-10s\n", "序号", "桌号", "菜品名称", "数量", "备注");
+        printf("----------------------------------------\n");
+        for (int i = 0; i < count; i++) {
+            if (queue[i].status == STATUS_PENDING) {
+                printf("[%d]    %-8d %-12s x%d   [%s]\n", 
+                       i + 1, 
+                       queue[i].table_no, 
+                       queue[i].dish_name, 
+                       queue[i].nums,
+                       queue[i].remark);
+            }
+        }
+    }
+
+    printf("\n----------------------------------------\n");
+    printf("请输入【序号】标记完成 (输入0返回): ");
+    int seq;
+    scanf("%d", &seq);
+    
+    if (seq > 0) {
+        complete_dish_in_queue(seq - 1); // 数组下标从0开始
+    }
+    
+    // 递归刷新
+    if (seq != 0) kitchen_form();
 }
 
 /*

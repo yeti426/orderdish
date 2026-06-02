@@ -616,6 +616,10 @@ void add_dish(){
 		scanf("%d",&new_dish.type);
 		error_check(1,4,&new_dish.type);
 		
+		// --- 新增：询问是否需要口味选项 ---
+		printf("该菜品是否需要调整辣度/口味？(1.是 0.否): ");
+		scanf("%d", &new_dish.has_options);
+		
 		char filename[20];
 		switch(new_dish.type){
 			case 1:strcpy( filename , hot_dish_filename );break;
@@ -630,11 +634,12 @@ void add_dish(){
 			getch();
 			return;
 		}
-		//将菜品信息录入文件 
+		//将菜品信息录入文件（现在是5个字段）
 		fprintf(fp,"%d\n",new_dish.no);
 		fprintf(fp,"%s\n",new_dish.dish_name);
 		fprintf(fp,"%lf\n",new_dish.dish_price);
 		fprintf(fp,"%d\n",new_dish.type); 
+		fprintf(fp,"%d\n",new_dish.has_options); // ← 新增：写入选项标记
 		
 		fclose(fp);
 		
@@ -701,6 +706,8 @@ void del_dish(){
 			if(fscanf(fp,"%s",dm[cnt].dish_name) != 1) break;
 			if(fscanf(fp,"%lf",&dm[cnt].dish_price) != 1) break;
 			if(fscanf(fp,"%d",&dm[cnt].type) != 1) break;
+			// --- 新增：读取口味选项标记（兼容旧文件）---
+			if(fscanf(fp,"%d",&dm[cnt].has_options) != 1) dm[cnt].has_options = 0;
 			cnt++;
 		}
 		fclose(fp);
@@ -714,13 +721,14 @@ void del_dish(){
 		// 展示当前菜单
 		printf("当前菜品列表：\n");
 		printf("----------------------------------------------------------\n");
-		printf("%-8s %-24s %-10s\n", "编号", "名称", "价格");
+		printf("%-8s %-24s %-10s %-8s\n", "编号", "名称", "价格", "选项");
 		int i;
 		for(i = 0; i < cnt; i++) {
+			const char* opt_str = dm[i].has_options ? "[选]" : "";
 			if(is_recommend(dm[i].type, dm[i].no))
-				printf("%-8d 【招牌】%-16s %10.2lf\n", dm[i].no, dm[i].dish_name, dm[i].dish_price);
+				printf("%-8d 【招牌】%-16s %10.2lf %-8s\n", dm[i].no, dm[i].dish_name, dm[i].dish_price, opt_str);
 			else
-				printf("%-8d %-24s %10.2lf\n", dm[i].no, dm[i].dish_name, dm[i].dish_price);
+				printf("%-8d %-24s %10.2lf %-8s\n", dm[i].no, dm[i].dish_name, dm[i].dish_price, opt_str);
 		}
 		printf("----------------------------------------------------------\n");
 		
@@ -781,6 +789,7 @@ void del_dish(){
 					strcpy(dm_new[j].dish_name , dm[i].dish_name);
 					dm_new[j].dish_price = dm[i].dish_price;
 					dm_new[j].type = dm[i].type;
+					dm_new[j].has_options = dm[i].has_options; // ← 新增：保留选项标记
 					j++;
 				}
 			}
@@ -792,6 +801,7 @@ void del_dish(){
 				fprintf(fp , "%s\n",dm_new[i].dish_name);
 				fprintf(fp , "%lf\n",dm_new[i].dish_price);
 				fprintf(fp , "%d\n",dm_new[i].type);
+				fprintf(fp , "%d\n",dm_new[i].has_options); // ← 新增：写入选项标记
 			}
 			fclose(fp);
 			
@@ -1134,6 +1144,8 @@ void price_adjust(){
 			fscanf(fp,"%s",dm[cnt].dish_name);
 			fscanf(fp,"%lf",&dm[cnt].dish_price);
 			fscanf(fp,"%d",&dm[cnt].type);
+			// --- 新增：读取口味选项标记（兼容旧文件）---
+			if(fscanf(fp,"%d",&dm[cnt].has_options) != 1) dm[cnt].has_options = 0;
 			cnt++;
 		}
 		fclose(fp);
@@ -1147,13 +1159,14 @@ void price_adjust(){
 		// 展示当前菜单
 		printf("当前菜品列表：\n");
 		printf("----------------------------------------------------------\n");
-		printf("编号    名称          价格\n");
+		printf("编号    名称          价格      选项\n");
 		int i;
 		for(i = 0; i < cnt; i++) {
+			const char* opt_str = dm[i].has_options ? "[选]" : "";
 			if(is_recommend(dm[i].type, dm[i].no))
-				printf("%-8d 【招牌】%-10s %.2lf\n", dm[i].no, dm[i].dish_name, dm[i].dish_price);
+				printf("%-8d 【招牌】%-10s %.2lf   %-8s\n", dm[i].no, dm[i].dish_name, dm[i].dish_price, opt_str);
 			else
-				printf("%-8d %-14s %.2lf\n", dm[i].no, dm[i].dish_name, dm[i].dish_price);
+				printf("%-8d %-14s %.2lf   %-8s\n", dm[i].no, dm[i].dish_name, dm[i].dish_price, opt_str);
 		}
 		printf("----------------------------------------------------------\n");
 		
@@ -1219,6 +1232,7 @@ void price_adjust(){
 				fprintf(fp , "%s\n",dm[i].dish_name);
 				fprintf(fp , "%lf\n",dm[i].dish_price);
 				fprintf(fp , "%d\n",dm[i].type);
+				fprintf(fp , "%d\n",dm[i].has_options); // ← 新增：写入选项标记
 			}
 			fclose(fp);
 			
