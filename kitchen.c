@@ -72,7 +72,7 @@ void complete_dish_in_queue(int index) {
  * 函数功能：厨房主界面 - 按提交顺序展示
  */
 void kitchen_form() {
-    system("cls");
+    CLEAR_SCREEN();
     printf("========================================\n");
     printf("         👨‍🍳 后厨 · 实时备餐队列\n");
     printf("========================================\n");

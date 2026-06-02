@@ -38,7 +38,7 @@ extern void check_bill(void);                           //支付订单
  * 函数功能：顾客主界面
  */
 void customer_form() {
-    system("cls");
+    CLEAR_SCREEN();
     int greet_type = 1;
 	struct tm* p = get_time();
 	greet(p,greet_type);           // 根据时间和身份，打印问候语
@@ -58,7 +58,7 @@ void customer_form() {
     // 选择服务
     int choice;
     do {
-        system("cls");
+        CLEAR_SCREEN();
         printf("========================================\n");
         printf("         雅座：%d 客官膳务堂\n", table_no);
         printf("========================================\n");
@@ -147,7 +147,7 @@ void ordering_menu() {
 
     int choice;
     do {
-        system("cls");
+        CLEAR_SCREEN();
         printf("========================================\n");
         printf("         点菜菜单\n");
         printf("========================================\n");
@@ -238,7 +238,7 @@ void display_menu(dish_menu *dm, int cnt, int sort_type) {
     }
 
 	
-	system("cls");
+	CLEAR_SCREEN();
 	printf("----------------------------------------------------------\n");
     printf("序号      菜品编号      菜品名称      价格\n");
     printf("----------------------------------------------------------\n");
@@ -283,7 +283,7 @@ void menu_controller(dish_menu* dm, int cnt) {
     error_check(1, 2, &change_order);
 
     if (change_order == 1) {
-        system("cls");
+        CLEAR_SCREEN();
         printf("========================================\n");
         printf("       选择排序方式（仅影响显示）\n");
         printf("========================================\n");
@@ -359,7 +359,7 @@ void view_bill() {
     
     FILE* fp = fopen(filename, "r");
     if (!fp) {
-        system("cls");
+        CLEAR_SCREEN();
         printf("========================================\n");
         printf("         账单 (雅座: %d)\n", table_no);
         printf("========================================\n");
@@ -388,17 +388,17 @@ void view_bill() {
         return;
     }
 
-    // 读备注行（整行）
-    char remark[200];
-    if (fgets(remark, sizeof(remark), fp) == NULL) {
-        strcpy(remark, "无备注");
-    } else {
-        // 去掉末尾换行（如果存在）
-        size_t len = strlen(remark);
-        if (len > 0 && remark[len - 1] == '\n') {
-            remark[len - 1] = '\0';
-        }
-    }
+    // [已禁用-备注] 读备注行（整行）
+    // char remark[200];
+    // if (fgets(remark, sizeof(remark), fp) == NULL) {
+    //     strcpy(remark, "无备注");
+    // } else {
+    //     // 去掉末尾换行（如果存在）
+    //     size_t len = strlen(remark);
+    //     if (len > 0 && remark[len - 1] == '\n') {
+    //         remark[len - 1] = '\0';
+    //     }
+    // }
     
     cart_item orders[MAX_LENGTH]; // 改用 cart_item
     int count = 0;
@@ -423,10 +423,10 @@ void view_bill() {
     }
     fclose(fp);
     
-    system("cls");
+    CLEAR_SCREEN();
     printf("========================================\n");
     printf("         膳单 (雅座: %d)\n", table_no);
-    printf("订单备注: %s", remark); // remark里包含换行符，所以不用再加\n
+    //printf("订单备注: %s", remark); // remark里包含换行符，所以不用再加\n
     printf("========================================\n");
     printf("\n");
 
@@ -487,7 +487,7 @@ void checkout() {
     
     FILE* fp = fopen(filename, "r");
     if (!fp) {
-        system("cls");
+        CLEAR_SCREEN();
         printf("========================================\n");
         printf("         结账 (雅座: %d)\n", table_no);
         printf("========================================\n");
@@ -543,7 +543,7 @@ void checkout() {
     }
     fclose(fp);
     
-    system("cls");
+    CLEAR_SCREEN();
     printf("========================================\n");
     printf("         结账 (雅座: %d)\n", table_no);
     printf("========================================\n");

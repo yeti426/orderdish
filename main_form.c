@@ -4,7 +4,7 @@
  * 函数功能: 主界面函数，显示主界面并获取用户选择信息
  */
 int main_form(){
-	system("cls");             //清屏
+	CLEAR_SCREEN();             //清屏
 	int greet_type = 0;        //初始化问候类型
 	struct tm* p = get_time(); //获取时间
 	greet(p,greet_type);       //根据时间打印问候语 

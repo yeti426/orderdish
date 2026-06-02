@@ -34,6 +34,13 @@
     }
 #endif
 
+// 跨平台清屏宏
+#ifdef _WIN32
+    #define CLEAR_SCREEN() system("cls")
+#else
+    #define CLEAR_SCREEN() system("clear")
+#endif
+
 #define MAX_LENGTH 100
 #define MAX_TABLES 20 
 
@@ -98,7 +105,7 @@ void calculate_value(char*, double*, double*, double*, double*, double*);
 void record_income(double account, double account_hot_dish, double account_cold_dish, double account_staple_food, double account_drink);
 
 void save_review(int table_no); // 保存评价
-void add_remark_to_order(int table_no); // 在下单前添加备注 
+// void add_remark_to_order(int table_no); // 在下单前添加备注 [已禁用] 
 
 // 公共工具函数
 void error_check(int, int, int*);

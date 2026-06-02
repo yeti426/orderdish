@@ -31,7 +31,7 @@ void submit_order();                           // 提交订单到厨房
  * 函数功能：显示购物车内容
  */
 void display_cart() {
-    system("cls");
+    CLEAR_SCREEN();
     printf("========================================\n");
     printf("         选膳筐 (雅座: %d)\n", cart.table_no);
     printf("========================================\n");
@@ -277,7 +277,7 @@ void submit_order() {
     cart.kitchen_received = 1; 
 
     // 5. 提示用户并清空内存购物车
-    system("cls");
+    CLEAR_SCREEN();
     printf("========================================\n");
     printf("         订单提交成功！\n");
     printf("========================================\n");

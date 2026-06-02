@@ -50,7 +50,7 @@ extern struct tm* get_time();
 * description  : 管理员系统的主循环 
 */
 void admin_form() {
-    system("cls");
+    CLEAR_SCREEN();
 	system("mkdir income 2>nul");//mkdir income —在程序所在目录创建 income 文件夹（存放营业额记录）
 	system("mkdir order 2>nul");//mkdir order — 创建 order 文件夹（存放订单文件）
 	//2>nul — 如果文件夹已经存在，mkdir 会报错，2>nul 把错误信息吞掉，不让用户看到
@@ -219,7 +219,7 @@ void change_password(){
 	fscanf(fp, "%s", pw_old);
 	fclose(fp);
 	
-	system("cls");
+	CLEAR_SCREEN();
 	printf("**************************************\n");
 	printf("请输入旧密码：");
 	scanf("%19s", pw_old_input);
@@ -336,7 +336,7 @@ void change_password_by_sms() {
 	char input_code[7];
 	char pw_new[20];
 
-	system("cls");
+	CLEAR_SCREEN();
 	printf("**************************************\n");
 	printf("         手机验证码修改密码\n");
 	printf("**************************************\n");
@@ -399,7 +399,7 @@ void change_password_by_sms() {
 * description  : 管理员主界面显示，并返回选择 
 */ 
 int admin_menu(){
-	system("cls");
+	CLEAR_SCREEN();
 	int greet_type = 2;// 问候类型：2=管理员
 	struct tm* p = get_time();// 获取当前系统时间（几点几分）
 	greet(p,greet_type);// 根据时间 + 身份，打印问候语
@@ -561,7 +561,7 @@ void create_date_filename(char* fdate){
 */ 
 void income_check(){
 	//查看当天营业额
-	system("cls"); 
+	CLEAR_SCREEN(); 
 	
 	double all_income = 0.0, staple_food_income = 0.0, hot_dish_income = 0.0, cold_dish_income = 0.0, drink_income = 0.0;
 
@@ -615,7 +615,7 @@ void add_dish(){
 		dish_menu new_dish; 
 		
 		//功能界面 
-		system("cls");
+		CLEAR_SCREEN();
 		printf("请输入菜品编号：");
 		scanf("%d",&new_dish.no); 
 		printf("请输入菜品名称：");
@@ -681,7 +681,7 @@ void del_dish(){
 	int quit_handle = 0;//是一个退出标志，用来处理"用户找不到菜品后选退出"的场景。
 	int pos;
 	do{
-		system("cls");
+		CLEAR_SCREEN();
 		printf("1.热菜\n");
 		printf("2.凉菜\n");
 		printf("3.主食\n");
@@ -834,7 +834,7 @@ void del_dish(){
 * description  : 查看顾客评价
 */
 void view_reviews() {
-    system("cls");
+    CLEAR_SCREEN();
     printf("===== 查看顾客评价 =====\n\n");
 
     // 检查 reviews 目录是否存在
@@ -941,7 +941,7 @@ void view_reviews() {
         return;
     }
 
-    system("cls");
+    CLEAR_SCREEN();
     printf("===== %d号桌顾客评价 =====\n\n", choice);
     char line[300];
     while (fgets(line, sizeof(line), fp) != NULL) {
@@ -984,7 +984,7 @@ int is_recommend(int type, int no) {
 * description  : 设置招牌菜
 */
 void set_recommend() {
-	system("cls");
+	CLEAR_SCREEN();
 	printf("===== 设置招牌菜 =====\n");
 	printf("1.热菜\n");
 	printf("2.凉菜\n");
@@ -1085,7 +1085,7 @@ void set_recommend() {
 * description  : 取消招牌菜
 */
 void cancel_recommend() {
-	system("cls");
+	CLEAR_SCREEN();
 	printf("===== 取消招牌菜 =====\n");
 
 	FILE* fp = fopen("recommend.txt", "r");
@@ -1164,7 +1164,7 @@ void price_adjust(){
 	int quit_handle = 0;
 	int pos;
 	do{
-		system("cls");
+		CLEAR_SCREEN();
 		printf("1.热菜\n");
 		printf("2.凉菜\n");
 		printf("3.主食\n");

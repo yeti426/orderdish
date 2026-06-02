@@ -48,21 +48,20 @@ int check_order_file(char* fstr) {
         return 0;
     }
 
-    //跳过备注行，否则下面的循环会读错位置
-    char remark[200];
-    fgets(remark, sizeof(remark), fp);
+    // [已禁用-备注] 跳过备注行，否则下面的循环会读错位置
+    // char remark[200];
+    // fgets(remark, sizeof(remark), fp);
 
     cart_item o; // 改用 cart_item
-    // 检查每一行数据是否合法（现在是7个字段：编号、名称、价格、类型、数量、状态、备注）
+    // 检查每一行数据是否合法（6个字段：编号、名称、价格、类型、数量、状态）[备注已禁用]
     while (!feof(fp)) {
-        int ret = fscanf(fp, "%d %s %lf %d %d %d %[^\n]",
+        int ret = fscanf(fp, "%d %s %lf %d %d %d",
                          &o.no,
                          o.dish_name,
                          &o.dish_price,
                          &o.type,
                          &o.nums,
-                         &o.status,
-                         o.remark);
+                         &o.status);
 
         // 如果读到末尾或格式不对，跳出循环
         if (ret < 6) break; 
@@ -84,7 +83,7 @@ int check_order_file(char* fstr) {
  * 功能：顾客结账（含优惠）
  */
 void check_bill() {
-    system("cls");
+    CLEAR_SCREEN();
 
     int table_no;
     printf("请输入雅座：");
@@ -129,18 +128,18 @@ void check_bill() {
     int ch;
     while ((ch = fgetc(fp)) != '\n' && ch != EOF);
 
-    // 跳过备注行
-    char remark[200];
-     // 使用 fgets 读取整行直到换行符
-    if (fgets(remark, sizeof(remark), fp) == NULL) {
-        printf("错误：读取备注行失败！\n");
-        fclose(fp);
-        getch();
-        return;
-    }
+    // [已禁用-备注] 跳过备注行
+    // char remark[200];
+    //  // 使用 fgets 读取整行直到换行符
+    // if (fgets(remark, sizeof(remark), fp) == NULL) {
+    //     printf("错误：读取备注行失败！\n");
+    //     fclose(fp);
+    //     getch();
+    //     return;
+    // }
 
-    // 打印出来看看读到了什么
-    printf("备注: [%s]\n", remark);
+    // [已禁用-备注] 打印出来看看读到了什么
+    // printf("备注: [%s]\n", remark);
 
     while (cnt < MAX_LENGTH) {
         // 检查 fscanf 的返回值
@@ -216,7 +215,7 @@ void check_bill() {
 
     // ================= 逃单彩蛋 =================
     if (pay_method == 4) {
-        system("cls");
+        CLEAR_SCREEN();
         printf("========================================\n");
         printf("⚠ 警报！警报！检测到逃单行为！\n");
         printf("========================================\n\n");
@@ -257,7 +256,7 @@ void check_bill() {
             printf("并无此路！请重新选择 (1-3)：");
         }
 
-        system("cls");
+        CLEAR_SCREEN();
         switch (escape_choice) {
             case 1:
                 printf("========================================\n");
@@ -384,7 +383,7 @@ if (all_income > 0) {
  * 功能：查询订单状态
  */
 void order_status() {
-    system("cls");
+    CLEAR_SCREEN();
 
     int table_no;
     printf("请输入雅座：");
@@ -445,21 +444,20 @@ void calculate_value(char* fstr, double* all,
     int flag;
     fscanf(fp, "%d", &flag);
 
-    //跳过备注行（如果有的话，或者读取第一行状态后的换行）
-    char remark[200];
-    fgets(remark, sizeof(remark), fp);
+    // [已禁用-备注] 跳过备注行（如果有的话，或者读取第一行状态后的换行）
+    // char remark[200];
+    // fgets(remark, sizeof(remark), fp);
 
     cart_item o; // 改用 cart_item 结构体
     while (!feof(fp)) {
-    // 必须检查返回值，防止最后一行重复读取（现在是7个字段）
-         if (fscanf(fp, "%d %s %lf %d %d %d %[^\n]",
+    // 必须检查返回值，防止最后一行重复读取（6个字段）[备注已禁用]
+         if (fscanf(fp, "%d %s %lf %d %d %d",
                &o.no,
                o.dish_name,
                &o.dish_price,
                &o.type,
                &o.nums,
-               &o.status,
-               o.remark) < 6) break;
+               &o.status) < 6) break;
 
         double sum = o.dish_price * o.nums;
         *all += sum;
@@ -479,7 +477,7 @@ void calculate_value(char* fstr, double* all,
  * 功能：保存顾客评价
  */
 void save_review(int table_no) {
-    system("cls");
+    CLEAR_SCREEN();
     printf("========================================\n");
     printf("         感谢您的用餐！请评价\n");
     printf("========================================\n");
