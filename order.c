@@ -46,7 +46,8 @@ int check_order_file(char* fstr) {
                          o.dish_name,
                          &o.dish_price,
                          &o.type,
-                         &o.nums);
+                         &o.nums,
+                         &o.status);
 
         // 如果读到末尾或格式不对，跳出循环
         if (ret != 5) break; 
@@ -133,7 +134,8 @@ void check_bill() {
                order[cnt].dish_name,
                &order[cnt].dish_price,
                &order[cnt].type,
-               &order[cnt].nums);
+               &order[cnt].nums,
+               &order[cnt].status );
         
         if (ret != 5) {
             // 如果读取失败，打印一下当前读到了什么，方便排查
@@ -337,7 +339,8 @@ void calculate_value(char* fstr, double* all,
                o.dish_name,
                &o.dish_price,
                &o.type,
-               &o.nums) != 5) break;
+               &o.nums,
+               &o.status) != 6) break;
 
         double sum = o.dish_price * o.nums;
         *all += sum;

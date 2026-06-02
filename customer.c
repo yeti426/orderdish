@@ -316,6 +316,13 @@ void view_bill() {
     //     getch();
     //     return;
     // }
+    // // 获取订单状态文字
+    // char* status_text;
+    // switch(order_status) {
+    //     case 1: status_text = "待支付"; break;
+    //     case 2: status_text = "已支付"; break; 
+    //     default: status_text = "未知状态"; break;
+    // }
 
     // 读取并跳过备注行
     char remark[200];
@@ -338,35 +345,27 @@ void view_bill() {
     int count = 0;
     double total = 0;
     
-    // 读取所有订单项
+    // 读取所有订单项（现在是6个字段）
     while (count < MAX_LENGTH) {
-        int ret = fscanf(fp, "%d %s %lf %d %d",
+        int ret = fscanf(fp, "%d %s %lf %d %d %d",
                   &orders[count].no,
                   orders[count].dish_name,
                   &orders[count].dish_price,
                   &orders[count].type,
-                  &orders[count].nums);
+                  &orders[count].nums,
+                  &orders[count].status); // ← 新增：读取状态
         
-        if (ret != 5) break; // 严格检查返回值
+        if (ret != 6) break; // 严格检查返回值
         
         total += orders[count].dish_price * orders[count].nums;
         count++;
     }
     fclose(fp);
     
-    // 获取订单状态文字
-    char* status_text;
-    switch(order_status) {
-        case 1: status_text = "待支付"; break;
-        case 2: status_text = "已支付"; break; 
-        default: status_text = "未知状态"; break;
-    }
-    
     system("cls");
     printf("========================================\n");
     printf("         账单 (雅座: %d)\n", table_no);
     printf("========================================\n");
-    printf("订单状态:待支付");
     printf("\n");
     
     //显示备注
@@ -377,22 +376,24 @@ void view_bill() {
     if (count == 0) {
         printf("暂无已点菜品\n");
     } else {
-        printf("%-4s %-6s %-10s %-8s %-6s %-10s\n",
-               "序号", "编号", "菜品名称", "单价", "数量", "小计");
-        printf("----------------------------------------------------------\n");
+        printf("%-4s %-6s %-10s %-8s %-6s %-10s %-8s\n",
+               "序号", "编号", "菜品名称", "单价", "数量", "小计", "状态");
+        printf("-------------------------------------------------------------------\n");
         
         for (int i = 0; i < count; i++) {
             double subtotal = orders[i].dish_price * orders[i].nums;
-            printf("%-4d %-6d %-10s %-8.2lf %-6d %-10.2lf\n",
+            const char* status_str = (orders[i].status == STATUS_DONE) ? "✅已完成" : "⏳制作中";
+            printf("%-4d %-6d %-10s %-8.2lf %-6d %-10.2lf %-8s\n",
                    i + 1,
                    orders[i].no,
                    orders[i].dish_name,
                    orders[i].dish_price,
                    orders[i].nums,
-                   subtotal);
+                   subtotal,
+                   status_str);
         }
         
-        printf("----------------------------------------------------------\n");
+        printf("-------------------------------------------------------------------\n");
         printf("\n总金额: %.2lf 元\n", total);
     }
     
@@ -458,15 +459,16 @@ void checkout() {
     int count = 0;
     double total = 0;
     
-    // 读取所有订单项
+    // 读取所有订单项（6个字段）
      while (count < MAX_LENGTH) {
-        int ret = fscanf(fp, "%d %s %lf %d %d",
+        int ret = fscanf(fp, "%d %s %lf %d %d %d",
                   &orders[count].no,
                   orders[count].dish_name,
                   &orders[count].dish_price,
                   &orders[count].type,
-                  &orders[count].nums);
-        if (ret != 5) break;             
+                  &orders[count].nums,
+                  &orders[count].status); // ← 新增：读取状态
+        if (ret != 6) break;             
 
         total += orders[count].dish_price * orders[count].nums;
         count++;
@@ -482,22 +484,24 @@ void checkout() {
     if (count == 0) {
         printf("账单为空！\n");
     } else {
-        printf("%-4s %-6s %-10s %-8s %-6s %-10s\n", 
-               "序号", "编号", "菜品名称", "单价", "数量", "小计");
-        printf("----------------------------------------------------------\n");
+        printf("%-4s %-6s %-10s %-8s %-6s %-10s %-8s\n", 
+               "序号", "编号", "菜品名称", "单价", "数量", "小计", "状态");
+        printf("-------------------------------------------------------------------\n");
         
         for (int i = 0; i < count; i++) {
             double subtotal = orders[i].dish_price * orders[i].nums;
-            printf("%-4d %-6d %-10s %-8.2lf %-6d %-10.2lf\n",
+            const char* status_str = (orders[i].status == STATUS_DONE) ? "✅已完成" : "⏳制作中";
+            printf("%-4d %-6d %-10s %-8.2lf %-6d %-10.2lf %-8s\n",
                    i + 1,
                    orders[i].no,
                    orders[i].dish_name,
                    orders[i].dish_price,
                    orders[i].nums,
-                   subtotal);
+                   subtotal,
+                   status_str);
         }
         
-        printf("----------------------------------------------------------\n");
+        printf("-------------------------------------------------------------------\n");
         printf("\n总金额: %.2lf 元\n", total);
     }
     

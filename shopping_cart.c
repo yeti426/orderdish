@@ -27,122 +27,8 @@ void update_total();                      // 更新总金额
 void submit_order();                           // 提交订单到厨房
 
 
-/*
- *函数功能：在购物车查找菜品，用于累计数量
- */
-int find_item_in_cart(int dish_no) {
-    for (int i = 0; i < cart.count; i++) {
-        if (cart.items[i].no == dish_no) return i;
-    }
-    return -1;
-}
 
-
-/*
- *函数功能：更新购物车总金额 
- */ 
-void update_total() {
-    cart.total_amount = 0;
-    for (int i = 0; i < cart.count; i++) {
-        cart.items[i].subtotal = cart.items[i].dish_price * cart.items[i].nums;
-        cart.total_amount += cart.items[i].subtotal;
-    }
-}
-
-
-/*
- * 函数功能：初始化购物车
- */
-void init_cart(int table_no) {
-    cart.count = 0;
-    cart.total_amount = 0;
-    cart.kitchen_received = 0;
-    cart.table_no = table_no;
-    
-    // 清空购物车数组
-    for (int i = 0; i < MAX_LENGTH; i++) {
-        cart.items[i].no = 0;
-        cart.items[i].nums = 0;
-        cart.items[i].subtotal = 0;
-        cart.items[i].status = 0;
-        memset(cart.items[i].dish_name, 0, sizeof(cart.items[i].dish_name));
-    }
-}
-
-
-// /*
-//  * 函数功能：添加菜品到购物车
-//  * 参数：dm - 菜单数组, index - 菜品索引, nums - 数量
-//  */
-// void add_to_cart(dish_menu* dm, int index, int nums) {
-// 	if (nums <= 0) {
-// 		printf("数量必须 > 0!\n");
-// 		getch();
-// 		return;
-// 	}
-// 	if(index < 0 || index >= MAX_LENGTH || dm[index].no == 0) {
-// 		printf("无效菜品序号！\n");
-// 		getch();
-// 		return;
-// 	}
-	
-// 	int i = find_item_in_cart(dm[index].no);
-// 	if (i != -1) {
-// 		// 已存在，增加数量
-// 		cart.items[i].nums += nums;
-// 		printf("已增加 %s ×%d！\n", dm[index].dish_name, nums);
-// 		cart.items[i].subtotal = cart.items[i].dish_price * cart.items[i].nums;
-// 		update_total();
-// 		getch();
-// 		return;
-// 	} else {
-// 		// 不存在，添加新项
-// 		if (cart.count >= MAX_LENGTH) {
-//             printf("购物车已满！\n");
-//             getch();
-//             return;
-//         }
-//         cart.items[cart.count].no = dm[index].no;
-//         strcpy(cart.items[cart.count].dish_name, dm[index].dish_name);
-//         cart.items[cart.count].dish_price = dm[index].dish_price;
-//         cart.items[cart.count].type = dm[index].type;
-//         cart.items[cart.count].nums = nums;
-//         cart.items[cart.count].subtotal = dm[index].dish_price * nums;
-//         cart.items[cart.count].status = 0; 
-        
-//         cart.count++;
-//         update_total();
-//         printf("已将 %s 加入选膳筐！\n", dm[index].dish_name);
-//     }
-//     update_total();
-//     getch();
-// }
-    
-
-/*
- *函数功能：从购物车删除菜品 
- */
-void remove_from_cart(int index) {
-    if (index < 0 || index >= cart.count) {
-        return;
-    }
-
-    for (int i = index; i < cart.count - 1; i++) {
-        cart.items[i] = cart.items[i + 1];
-    }
-
-    // 清空最后一个位置
-    cart.items[cart.count - 1].no = 0;
-    cart.items[cart.count - 1].nums = 0;
-    cart.items[cart.count - 1].subtotal = 0;
-    cart.items[cart.count - 1].status = 0;
-    memset(cart.items[cart.count - 1].dish_name, 0, sizeof(cart.items[cart.count - 1].dish_name));
-
-    cart.count--;
-    update_total();
-}
-
-   
+ 
 /*
  * 函数功能：显示购物车内容
  */
@@ -234,6 +120,174 @@ void display_cart() {
     }
 }
 
+
+/*
+ *函数功能：从购物车删除菜品 
+ */
+void remove_from_cart(int index) {
+    if (index < 0 || index >= cart.count) {
+        return;
+    }
+
+    for (int i = index; i < cart.count - 1; i++) {
+        cart.items[i] = cart.items[i + 1];
+    }
+
+    // 清空最后一个位置
+    cart.items[cart.count - 1].no = 0;
+    cart.items[cart.count - 1].nums = 0;
+    cart.items[cart.count - 1].subtotal = 0;
+    cart.items[cart.count - 1].status = 0;
+    memset(cart.items[cart.count - 1].dish_name, 0, sizeof(cart.items[cart.count - 1].dish_name));
+
+    cart.count--;
+    update_total();
+}
+
+/*
+ * 函数功能：提交订单到厨房（智能合并同类菜品并累加到订单文件）
+ */
+void submit_order() {
+    if (cart.count == 0) {
+        printf("购物车为空，无法提交！\n");
+        getch();
+        return;
+    }
+    
+    char filename[50];
+    create_order_filename(cart.table_no, filename, sizeof(filename));
+    
+    // 1. 读取已有的订单数据
+    FILE* fp = fopen(filename, "r");
+    int total_count = 0;
+    cart_item final_orders[MAX_LENGTH];
+    
+    if (fp) {
+        while (total_count < MAX_LENGTH && 
+               fscanf(fp, "%d %s %lf %d %d", 
+                      &final_orders[total_count].no,
+                      final_orders[total_count].dish_name,
+                      &final_orders[total_count].dish_price,
+                      &final_orders[total_count].type,
+                      &final_orders[total_count].nums) == 5) {
+            total_count++;
+        }
+        fclose(fp);
+    }
+
+    // 2. 将购物车的新菜品合并进去
+    for (int i = 0; i < cart.count; i++) {
+        int found = 0;
+        // 在已有订单中查找是否已存在该菜品
+        for (int j = 0; j < total_count; j++) {
+            if (final_orders[j].no == cart.items[i].no) {
+                final_orders[j].nums += cart.items[i].nums; // 找到则累加数量
+                found = 1;
+                break;
+            }
+        }
+        
+        // 如果没找到，则作为新菜品添加
+        if (!found) {
+            if (total_count < MAX_LENGTH) {
+                final_orders[total_count] = cart.items[i];
+                total_count++;
+            }
+        }
+    }
+
+    // 3. 将合并后的完整清单写回文件
+    fp = fopen(filename, "w");
+    if (!fp) {
+        printf("订单提交失败！\n");
+        getch();
+        return;
+    }
+    
+    for (int i = 0; i < total_count; i++) {
+        fprintf(fp, "%d %s %.2lf %d %d\n",
+                final_orders[i].no,
+                final_orders[i].dish_name,
+                final_orders[i].dish_price,
+                final_orders[i].type,
+                final_orders[i].nums);
+    }  
+    
+    fclose(fp);
+    
+    // 4. 提示用户并清空内存购物车
+    system("cls");
+    printf("========================================\n");
+    printf("         订单提交成功！\n");
+    printf("========================================\n");
+    printf("\n菜品已加入总账单！\n");
+    printf("总金额: %.2lf 元\n", cart.total_amount);
+    printf("\n正在返回主菜单...\n");
+    
+    // --- 新增：同步到厨房总队列 (kitchen_queue.txt) ---
+    FILE* kfp = fopen("kitchen_queue.txt", "a"); // 使用追加模式，保证时间顺序
+    if (kfp) {
+        for (int i = 0; i < cart.count; i++) {
+            fprintf(kfp, "%d %d %s %d %d\n", 
+                    cart.table_no,             // 桌号
+                    cart.items[i].no,          // 菜品编号
+                    cart.items[i].dish_name,   // 菜名
+                    cart.items[i].nums,        // 数量
+                    STATUS_PENDING);           // 初始状态为待做
+        }
+        fclose(kfp);
+    }
+    
+    Sleep(1500);
+    clear_cart_items(); 
+    getch();
+}
+
+
+/*
+ *函数功能：在购物车查找菜品，用于累计数量
+ */
+int find_item_in_cart(int dish_no) {
+    for (int i = 0; i < cart.count; i++) {
+        if (cart.items[i].no == dish_no) return i;
+    }
+    return -1;
+}
+
+
+/*
+ *函数功能：更新购物车总金额 
+ */ 
+void update_total() {
+    cart.total_amount = 0;
+    for (int i = 0; i < cart.count; i++) {
+        cart.items[i].subtotal = cart.items[i].dish_price * cart.items[i].nums;
+        cart.total_amount += cart.items[i].subtotal;
+    }
+}
+
+
+/*
+ * 函数功能：初始化购物车
+ */
+void init_cart(int table_no) {
+    cart.count = 0;
+    cart.total_amount = 0;
+    cart.kitchen_received = 0;
+    cart.table_no = table_no;
+    
+    // 清空购物车数组
+    for (int i = 0; i < MAX_LENGTH; i++) {
+        cart.items[i].no = 0;
+        cart.items[i].nums = 0;
+        cart.items[i].subtotal = 0;
+        cart.items[i].status = 0;
+        memset(cart.items[i].dish_name, 0, sizeof(cart.items[i].dish_name));
+    }
+} 
+
+
+
 //函数功能：清空菜品
 void clear_cart_items() {
     cart.count = 0;
@@ -244,82 +298,4 @@ void clear_cart_items() {
         cart.items[i].subtotal = 0;
         memset(cart.items[i].dish_name, 0, sizeof(cart.items[i].dish_name));
     }
-}
-
-
-/*
- * 函数功能：提交订单到厨房（写入文件并清空购物车）
- */
-void submit_order() {
-    if (cart.count == 0) {
-        printf("选膳筐为空，无法提交！\n");
-        getch();
-        return;
-    }
-
-    
-    char filename[50];
-    create_order_filename(cart.table_no, filename, sizeof(filename));
-    
-    FILE* fp = fopen(filename, "w");
-    if (!fp) {
-        printf("订单提交失败！请联系工作人员操作\n");
-        getch();
-        return;
-    }
-    
-    
-    // 获取并写入订单备注
-    char remark[200] = "";
-    printf("请输入订单备注 (如: 少辣, 免葱, 直接回车跳过): ");
-
-    // 清空缓冲区防止读取到之前的回车
-    clear_stdin_buffer(); 
-
-    if (fgets(remark, sizeof(remark), stdin) != NULL) {
-        // 去除末尾换行符
-        size_t len = strlen(remark);
-        if (len > 0 && remark[len - 1] == '\n') {
-            remark[len - 1] = '\0';
-        }
-    }
-    
-    // 如果用户没输入，给个默认值
-    if (strlen(remark) == 0) {
-        strcpy(remark, "无备注");
-    }
-    
-    //确保备注独占一行，后面必须跟一个换行符
-    fprintf(fp, "%s\n", remark); // 写入备注作为第二行
-
-
-
-    // 写入所有购物车项
-    for (int i = 0; i < cart.count; i++) {
-        fprintf(fp, "%d %s %lf %d %d\n",
-                cart.items[i].no,
-                cart.items[i].dish_name,
-                cart.items[i].dish_price,
-                cart.items[i].type,
-                cart.items[i].nums);
-    }  
-    fclose(fp);
-    
-    // 标记厨房已收到
-    cart.kitchen_received = 1;
-    
-    system("cls");
-    printf("========================================\n");
-    printf("         膳单报送成功！\n");
-    printf("========================================\n");
-    printf("\n厨灶备餐中！\n");
-    printf("总金额: %.2lf 元\n", cart.total_amount);
-    printf("\n提示：您可在【查看账单】中查看已提交膳单。\n");
-    printf("\n正在返回主菜单...\n");
-    
-    Sleep(1500);  // 暂停1.5秒让用户看到提示
-    
-    // 清空购物车
-    clear_cart_items();
-    getch();
 }

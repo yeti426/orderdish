@@ -25,7 +25,11 @@ typedef struct a{
 
 //顾客点菜订单的数据结构 
 
-// 购物车项结构
+// 定义菜品制作状态
+#define STATUS_PENDING 0   // 待制作
+#define STATUS_DONE 1      // 已制作
+
+// 购物车项结构（也是订单项结构）
 typedef struct {
     int no;              // 菜品编号
     char dish_name[20];  // 菜品名称
@@ -33,7 +37,17 @@ typedef struct {
     int type;            // 类型
     int nums;            // 数量
     double subtotal;     // 小计价格
+    int status;          // 制作状态：0-待制作, 1-已制作
 } cart_item;
+
+// 厨房队列项结构（用于全局排序）
+typedef struct {
+    int table_no;        // 桌号
+    int dish_no;         // 菜品编号
+    char dish_name[20];  // 菜名
+    int nums;            // 数量
+    int status;          // 状态：0-待做, 1-已做
+} kitchen_item;
 
 // 购物车结构
 typedef struct {

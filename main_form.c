@@ -13,11 +13,12 @@ int main_form(){
 	printf("请择一身份入内：\n");
 	printf("1.往来客商\n");     //顾客界面
 	printf("2.掌柜内务\n");     //管理员界面
-	printf("3.打烊离去\n");     //退出程序
+	printf("3.后厨掌勺\n");     //厨房界面 ← 新增
+	printf("4.打烊离去\n");     //退出程序
 	printf("请在此输入：");
 	scanf("%d",&op);
 	
-	error_check(1,3,&op);	   //差错检测，防止输入错误选择导致程序崩溃
+	error_check(1,4,&op);	   //差错检测，防止输入错误选择导致程序崩溃 ← 范围改为4
 	return op; 
 }
 
@@ -68,6 +69,9 @@ void greet(struct tm* p,int user_role){
 	}
 	else if(user_role == 1){
 		printf("客官远道而来，小店蓬荜生辉！\n");
+	}
+	else if(user_role == 2){ // ← 新增：厨师的欢迎语
+		printf("恭迎大厨入主后厨，灶火已旺！\n");
 	}
 	else{
 		printf("今日阳光正好，愿君心情愉快！\n");
