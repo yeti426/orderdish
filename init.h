@@ -19,18 +19,11 @@ typedef struct a{
 	int type; //种类：1-热菜、2-凉菜、3-主食、4-饮品 
 }dish_menu;
 
-//顾客点餐订单文件中的两部分内容：
+//顾客点菜订单文件中的两部分内容：
 //1.订单状态：1-订单生成、2-支付成功、3-商家已确认
 //2.数据结构中的内容
 
 //顾客点菜订单的数据结构 
-typedef struct b{
-	int no;
-	char dish_name[20];
-	double dish_price;
-	int type;
-	int nums; //点餐时的数量
-}dish_order;
 
 // 购物车项结构
 typedef struct {
@@ -40,7 +33,6 @@ typedef struct {
     int type;            // 类型
     int nums;            // 数量
     double subtotal;     // 小计价格
-    int status;          // 状态：0-未提交, 1-制作中, 2-已上菜
 } cart_item;
 
 // 购物车结构
