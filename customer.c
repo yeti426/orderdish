@@ -372,34 +372,19 @@ void view_bill() {
         return;
     }
 
-    // 读取订单状态（第一行）
-    int order_status;
-    if (fscanf(fp, "%d", &order_status) != 1) {
-    printf("订单文件格式错误！\n");
-    fclose(fp);
-    getch();
-    return;
-    }
+    // 读走状态行后面的换行
+    fgetc(fp);
 
-    // 跳过空备注行（可能为空行）
-    char dummy[10];
-    fgets(dummy, sizeof(dummy), fp); // 读走换行或空行
-
-    // 读取并跳过备注行
+    // 读取备注行
     char remark[200];
-    int ch;
-    while ((ch = fgetc(fp)) != '\n' && ch != EOF); 
-
-    // 现在读取备注行
     if (fgets(remark, sizeof(remark), fp) == NULL) {
-    // 如果读不到备注，可能是文件只有状态行，或者文件损坏
-        strcpy(remark, "无备注信息\n"); 
+    strcpy(remark, "无备注");
     }
-    
-    // 去除 remark 末尾可能的换行符，方便后续打印控制
+
+    // 去掉备注末尾换行
     size_t len = strlen(remark);
     if (len > 0 && remark[len - 1] == '\n') {
-        remark[len - 1] = '\0';
+    remark[len - 1] = '\0';
     }
     
     cart_item orders[MAX_LENGTH]; // 改用 cart_item
@@ -407,17 +392,14 @@ void view_bill() {
     double total = 0;
     
     // 读取所有订单项（现在是6个字段）
-    while (count < MAX_LENGTH) {
-        int ret = fscanf(fp, "%d %s %lf %d %d %d",
+    while (count < MAX_LENGTH &&
+           fscanf(fp, "%d %s %lf %d %d %d",
                   &orders[count].no,
                   orders[count].dish_name,
                   &orders[count].dish_price,
                   &orders[count].type,
                   &orders[count].nums,
-                  &orders[count].status); // ← 新增：读取状态
-        
-        if (ret != 6) break; // 严格检查返回值
-        
+                  &orders[count].status) == 6) {   
         total += orders[count].dish_price * orders[count].nums;
         count++;
     }
@@ -443,7 +425,7 @@ void view_bill() {
         
         for (int i = 0; i < count; i++) {
             double subtotal = orders[i].dish_price * orders[i].nums;
-            const char* status_str = (orders[i].status == DISH_STATUS_DONE) ? "已完成" : "⏳制作中";
+            const char* status_str = (orders[i].status == DISH_STATUS_DONE) ? "已完成" : "制作中";
             printf("%-4d %-6d %-10s %-8.2lf %-6d %-10.2lf %-8s\n",
                    i + 1,
                    orders[i].no,
@@ -508,33 +490,35 @@ void checkout() {
         getch();
         return;
     }
-     // 跳过状态行剩余的换行符
-    int ch;
-    while ((ch = fgetc(fp)) != '\n' && ch != EOF);
 
-    // 跳过备注行
+    fgetc(fp); // 吃掉换行
+
     char remark[200];
-    fgets(remark, sizeof(remark), fp);
+    if (fgets(remark, sizeof(remark), fp) == NULL) {
+        strcpy(remark, "无备注");
+    }
+
+    size_t len = strlen(remark);
+    if (len > 0 && remark[len - 1] == '\n') {
+        remark[len - 1] = '\0';
+    }
 
     cart_item orders[MAX_LENGTH]; // 改用 cart_item
     int count = 0;
     double total = 0;
     
     // 读取所有订单项（6个字段）
-     while (count < MAX_LENGTH) {
-        int ret = fscanf(fp, "%d %s %lf %d %d %d",
-                  &orders[count].no,
-                  orders[count].dish_name,
-                  &orders[count].dish_price,
-                  &orders[count].type,
-                  &orders[count].nums,
-                  &orders[count].status); // ← 新增：读取状态
-        if (ret != 6) break;             
-
+     while (count < MAX_LENGTH &&
+            fscanf(fp, "%d %s %lf %d %d %d",
+                   &orders[count].no,
+                   orders[count].dish_name,
+                   &orders[count].dish_price,
+                   &orders[count].type,
+                   &orders[count].nums,
+                   &orders[count].status) == 6)            
         total += orders[count].dish_price * orders[count].nums;
         count++;
     }
-    fclose(fp);
     
     system("cls");
     printf("========================================\n");
