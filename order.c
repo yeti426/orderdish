@@ -127,7 +127,7 @@ void check_bill() {
     printf("备注: [%s]\n", remark);
 
     while (cnt < MAX_LENGTH) {
-        // 【关键】检查 fscanf 的返回值
+        // 检查 fscanf 的返回值
         int ret = fscanf(fp, "%d %s %lf %d %d",
                &order[cnt].no,
                order[cnt].dish_name,
@@ -192,31 +192,10 @@ void check_bill() {
     }
 
 
-    double pay;
-    while (1) {
-        printf("\n请输入支付金额：");
-        if (scanf("%lf", &pay) != 1) {
-            // 防止输入非数字导致死循环
-            while(getchar() != '\n');
-            printf("输入无效，请输入数字！\n");
-            continue;
-        }
-
-        if (pay < final_total) {
-            // 金额不足时，提示差额并允许重新输入，不退出
-            printf("金额不足！还差 %.2lf 元，请重新输入。\n", final_total - pay);
-        } else {
-            // 金额足够，计算找零并跳出循环
-            double change = pay - final_total;
-            if (change > 0.001) { // 浮点数比较容差
-                printf("支付成功！应收：%d 元，实付：%.2lf 元，找零：%.2lf 元\n", 
-                       final_total, pay, change);
-            } else {
-                printf("支付成功！ exact payment.\n");
-            }
-            break; // 支付成功，跳出支付循环
-        }
-    }
+    //直接视为支付成功，不再要求输入金额
+    printf("\n正在处理支付...\n");
+    Sleep(1000); // 模拟支付过程等待1秒
+    printf("支付成功！应收：%d 元\n", final_total);
 
     double all_income = 0;
     double hot_income = 0;
