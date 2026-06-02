@@ -556,4 +556,5 @@ void checkout() {
     printf("店小二将为您办理结账手续\n");
     printf("\n按任意键返回主菜单...");
     getch();
+    check_bill(); // 处理支付逻辑（更新订单状态等）
 }

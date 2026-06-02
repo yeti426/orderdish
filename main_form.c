@@ -69,7 +69,7 @@ void greet(struct tm* p,int user_role){
 	else if(user_role == 1){
 		printf("客官远道而来，小店蓬荜生辉！\n");
 	}
-	else if(user_role == 2){ // ← 新增：厨师的欢迎语
+	else if(user_role == 3){ // ← 新增：厨师的欢迎语
 		printf("恭迎大厨入主后厨，灶火已旺！\n");
 	}
 	else{
