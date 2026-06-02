@@ -117,7 +117,7 @@ void add_to_cart(dish_menu* dm, int index, int nums) {
         
         cart.count++;
         update_total();
-        printf("已将 %s 加入购物车！\n", dm[index].dish_name);
+        printf("已将 %s 加入选膳筐！\n", dm[index].dish_name);
     }
     update_total();
     getch();
@@ -154,11 +154,11 @@ void remove_from_cart(int index) {
 void display_cart() {
     system("cls");
     printf("========================================\n");
-    printf("         购物车 (桌号: %d)\n", cart.table_no);
+    printf("         选膳筐 (桌号: %d)\n", cart.table_no);
     printf("========================================\n");
     
     if (cart.count == 0) {
-        printf("\n购物车为空！\n");
+        printf("\n选膳筐为空！\n");
     } else {
         printf("\n%-4s %-6s %-10s %-8s %-6s %-10s %-8s\n", 
                "序号", "编号", "菜品名称", "单价", "数量", "小计", "状态");
@@ -190,7 +190,7 @@ void display_cart() {
     } else {
     	// 否则显示完整选项
     	printf("1. 删除菜品\n");
-        printf("2. 提交订单到厨房\n");
+        printf("2. 提交，报送厨灶\n");
         printf("3. 返回主菜单\n");
 	}
     printf("请选择: ");
@@ -255,7 +255,7 @@ void clear_cart_items() {
  */
 void submit_order() {
     if (cart.count == 0) {
-        printf("购物车为空，无法提交！\n");
+        printf("选膳筐为空，无法提交！\n");
         getch();
         return;
     }
@@ -320,11 +320,11 @@ void submit_order() {
     
     system("cls");
     printf("========================================\n");
-    printf("         订单提交成功！\n");
+    printf("         膳单报送成功！\n");
     printf("========================================\n");
-    printf("\n订单已提交到厨房！\n");
+    printf("\n厨灶备餐中！\n");
     printf("总金额: %.2lf 元\n", cart.total_amount);
-    printf("\n提示：您可在【查看账单】中查看已提交订单。\n");
+    printf("\n提示：您可在【查看账单】中查看已提交膳单。\n");
     printf("\n正在返回主菜单...\n");
     
     Sleep(1500);  // 暂停1.5秒让用户看到提示

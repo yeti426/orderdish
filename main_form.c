@@ -1,9 +1,8 @@
 #include"init.h" //引入初始化模块
 
 /*
-* 名称：main_form
-* 功能: 程序主界面的显示界面，获取选择信息并返回至主函数main
-*/
+ * 函数功能: 程序主界面的显示界面，获取选择信息并返回至主函数main
+ */
 int main_form(){
 	system("cls"); //清屏
 	int greet_type = 0; //初始化问候类型
@@ -24,9 +23,8 @@ int main_form(){
 }
 
 /*
-* 名称: error_check 
-* 功能: 用于检测输入是否正确，若为非法输入，则重复修改选择直至合法
-*/
+ * 函数功能: 用于检测输入是否正确，若为非法输入，则重复修改选择直至合法
+ */
 void error_check(int range_left ,int range_right, int* op){
 	while(*op < range_left || *op > range_right){
 		printf("输入错误！请重新输入:");
@@ -35,21 +33,20 @@ void error_check(int range_left ,int range_right, int* op){
 }
 
 /*
-* 名称: greet
-* 功能: 问候函数，依据当前时间和用户类型给出问候
-*/
+ * 函数功能: 问候函数，依据当前时间和用户类型给出问候
+ */
 void greet(struct tm* p,int user_role){
 	//转换时区
 	int china_time = (p->tm_hour + 8) % 24; //伦敦时间->北京时间 
 	if(p->tm_hour + 8 >= 24) p->tm_mday -= 1; //日期回退 
 	//依据时间首先问好
 	printf("+++++++++++++++++++++++++++++++++++++++++++\n");
-	if(china_time >= 6 && china_time < 8) printf("早上好！");
-	else if(china_time >= 8 && china_time < 12) printf("上午好！"); 
-	else if(china_time >= 12 && china_time < 14) printf("中午好！");
-	else if(china_time >= 14 && china_time < 18) printf("下午好！");
-	else if(china_time >= 18 && china_time < 24) printf("晚上好！");
-	else printf("夜深人静，安歇吧！");
+	if(china_time >= 6 && china_time < 8) printf("晨光熹微，客官安好！");
+	else if(china_time >= 8 && china_time < 12) printf("日暖风和，客官安坐！"); 
+	else if(china_time >= 12 && china_time < 14) printf("日正中天，客官午安！");
+	else if(china_time >= 14 && china_time < 18) printf("午后清风，客官闲适！");
+	else if(china_time >= 18 && china_time < 24) printf("夜色渐浓，静候君来！");
+	else printf("夜深人静，君可安歇！");
 	
 	printf("\n");
 	
@@ -68,9 +65,8 @@ void greet(struct tm* p,int user_role){
 }
 
 /*
-* 名称: get_time 
-* 功能: 获取时间并返回相关参数
-*/
+ * 函数功能: 获取时间并返回相关参数
+ */
 struct tm* get_time(){
 	time_t timep; //定义时间戳变量：1970年到现在的秒数
 	struct tm* p;  
