@@ -28,7 +28,7 @@ int main_form(){
  */
 void error_check(int range_left ,int range_right, int* op){
 	while(*op < range_left || *op > range_right){
-		printf("输入错误！请重新输入:");
+		printf("输入错误！烦请重填:");
 		scanf("%d",op); 
 	}
 }

@@ -482,7 +482,7 @@ void save_review(int table_no) {
         case 5: strcpy(level, "拉完了"); break;
     }
     
-    printf("请输入您的留言 (最多100字): \n");
+    printf("评述感言 (至多百字): \n");
     clear_stdin_buffer(); // 清空缓冲区
     char comment[200];
     fgets(comment, sizeof(comment), stdin);
