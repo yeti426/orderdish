@@ -103,7 +103,15 @@ void check_bill() {
 
     fclose(fp);
     fp = fopen(fstr, "r");
-    fscanf(fp, "%d", &flag);
+    if (fscanf(fp, "%d", &flag) != 1) {
+         printf("订单文件格式错误！\n");
+         fclose(fp);
+         getch();
+         return;
+    }
+
+    int ch;
+    while ((ch = fgetc(fp)) != '\n' && ch != EOF);
 
     // 跳过备注行
     char remark[200];
@@ -115,8 +123,8 @@ void check_bill() {
         return;
     }
 
-// 【调试】打印出来看看读到了什么
-    printf("DEBUG: 读取到的备注是: [%s]\n", remark);
+    // 打印出来看看读到了什么
+    printf("备注: [%s]\n", remark);
 
     while (cnt < MAX_LENGTH) {
         // 【关键】检查 fscanf 的返回值
@@ -255,6 +263,10 @@ if (all_income > 0) {
     printf("支付成功！支付方式：%s\n", method_str);
     printf("订单已自动归档，营业额已更新。\n");
 
+    // 支付成功后停留3秒，让用户看清账单
+    printf("\n3秒后进入评价环节...");
+    Sleep(3000); 
+
     // 调用评价功能
     save_review(table_no);
 
@@ -365,22 +377,24 @@ void save_review(int table_no) {
     printf("         感谢您的用餐！请评价\n");
     printf("========================================\n");
     printf("请选择您的满意等级：\n");
-    printf("1. 顶级 (非常满意)\n");
-    printf("2. 人上人 (满意)\n");
-    printf("3. NPC (一般)\n");
-    printf("4. 拉完了 (不满意)\n");
-    printf("请选择 (1-4): ");
-    
+    printf("1. 夯 (超级满意)\n");      
+    printf("2. 顶级 (非常满意)\n");     
+    printf("3. 人上人 (满意)\n");      
+    printf("4. NPC (一般)\n");         
+    printf("5. 拉完了 (不满意)\n");    
+    printf("请选择 (1-5): ");           
+
     int choice;
     scanf("%d", &choice);
-    error_check(1, 4, &choice);
+    error_check(1, 5, &choice);
     
     char level[20];
     switch(choice) {
-        case 1: strcpy(level, "顶级"); break;
-        case 2: strcpy(level, "人上人"); break;
-        case 3: strcpy(level, "NPC"); break;
-        case 4: strcpy(level, "拉完了"); break;
+        case 1: strcpy(level, "夯"); break;   
+        case 2: strcpy(level, "顶级"); break;
+        case 3: strcpy(level, "人上人"); break;
+        case 4: strcpy(level, "NPC"); break;
+        case 5: strcpy(level, "拉完了"); break;
     }
     
     printf("请输入您的留言 (最多100字): \n");
@@ -406,8 +420,6 @@ void save_review(int table_no) {
     }
     
     // 生成评价文件名: reviews/review_桌号_时间戳.txt (简化为追加到总文件或者按桌号存)
-    // 这里选择追加到一个总的评价文件 reviews/all_reviews.txt，
-    // 或者按桌号保存: reviews/review_桌号.txt
     
     char filename[100];
     snprintf(filename, sizeof(filename), "reviews\\review_table_%d.txt", table_no);

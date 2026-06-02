@@ -309,19 +309,29 @@ void view_bill() {
     
     // 读取订单状态
     int order_status;
-    fscanf(fp, "%d", &order_status);
-
-    // 读取并跳过备注行
-    char remark[200];
-     if (fgets(remark, sizeof(remark), fp) == NULL) {
-        printf("错误：无法读取备注行！\n");
+    if (fscanf(fp, "%d", &order_status) != 1) {
+        printf("订单文件格式错误！\n");
         fclose(fp);
         getch();
         return;
     }
-    
-    printf("DEBUG ViewBill: 读取到的备注是: [%s]\n", remark);
 
+    // 读取并跳过备注行
+    char remark[200];
+    int ch;
+    while ((ch = fgetc(fp)) != '\n' && ch != EOF); 
+
+    // 现在读取备注行
+    if (fgets(remark, sizeof(remark), fp) == NULL) {
+    // 如果读不到备注，可能是文件只有状态行，或者文件损坏
+        strcpy(remark, "无备注信息\n"); 
+    }
+    
+    // 去除 remark 末尾可能的换行符，方便后续打印控制
+    size_t len = strlen(remark);
+    if (len > 0 && remark[len - 1] == '\n') {
+        remark[len - 1] = '\0';
+    }
     
     dish_order orders[MAX_LENGTH];
     int count = 0;
@@ -429,8 +439,16 @@ void checkout() {
     
     // 读取订单状态
     int order_status;
-    fscanf(fp, "%d", &order_status);
-    
+    if (fscanf(fp, "%d", &order_status) != 1) {
+        fclose(fp);
+        printf("订单文件读取错误！\n");
+        getch();
+        return;
+    }
+     // 跳过状态行剩余的换行符
+    int ch;
+    while ((ch = fgetc(fp)) != '\n' && ch != EOF);
+
     // 跳过备注行
     char remark[200];
     fgets(remark, sizeof(remark), fp);
@@ -440,14 +458,15 @@ void checkout() {
     double total = 0;
     
     // 读取所有订单项
-    while (count < MAX_LENGTH && 
-           fscanf(fp, "%d %s %lf %d %d",
+     while (count < MAX_LENGTH) {
+        int ret = fscanf(fp, "%d %s %lf %d %d",
                   &orders[count].no,
                   orders[count].dish_name,
                   &orders[count].dish_price,
                   &orders[count].type,
-                  &orders[count].nums) == 5) {
-        
+                  &orders[count].nums);
+        if (ret != 5) break;             
+
         total += orders[count].dish_price * orders[count].nums;
         count++;
     }
