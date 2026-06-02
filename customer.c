@@ -364,7 +364,7 @@ void view_bill() {
     
     system("cls");
     printf("========================================\n");
-    printf("         账单 (雅座: %d)\n", table_no);
+    printf("         膳单 (雅座: %d)\n", table_no);
     printf("========================================\n");
     printf("\n");
     
@@ -485,20 +485,18 @@ void checkout() {
         printf("账单为空！\n");
     } else {
         printf("%-4s %-6s %-10s %-8s %-6s %-10s %-8s\n", 
-               "序号", "编号", "菜品名称", "单价", "数量", "小计", "状态");
+               "序号", "编号", "菜品名称", "单价", "数量", "小计");
         printf("-------------------------------------------------------------------\n");
         
         for (int i = 0; i < count; i++) {
             double subtotal = orders[i].dish_price * orders[i].nums;
-            const char* status_str = (orders[i].status == STATUS_DONE) ? "✅已完成" : "⏳制作中";
             printf("%-4d %-6d %-10s %-8.2lf %-6d %-10.2lf %-8s\n",
                    i + 1,
                    orders[i].no,
                    orders[i].dish_name,
                    orders[i].dish_price,
                    orders[i].nums,
-                   subtotal,
-                   status_str);
+                   subtotal);
         }
         
         printf("-------------------------------------------------------------------\n");

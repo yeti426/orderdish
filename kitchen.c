@@ -1,5 +1,49 @@
 #include "init.h"
 
+
+/*
+ * 函数功能：厨房主界面 - 按提交顺序展示
+ */
+void kitchen_form() {
+    system("cls");
+    printf("========================================\n");
+    printf("         👨‍🍳 后厨 · 实时备餐队列\n");
+    printf("========================================\n");
+
+    kitchen_item queue[MAX_LENGTH];
+    int count = load_kitchen_queue(queue);
+    
+    if (count == 0) {
+        printf("\n当前所有菜品已制作完毕！☕\n");
+    } else {
+        printf("\n%-6s %-8s %-12s %-8s\n", "序号", "桌号", "菜品名称", "数量");
+        printf("----------------------------------------\n");
+        for (int i = 0; i < count; i++) {
+            if (queue[i].status == STATUS_PENDING) {
+                printf("[%d]    %-8d %-12s x%d\n", 
+                       i + 1, 
+                       queue[i].table_no, 
+                       queue[i].dish_name, 
+                       queue[i].nums);
+            }
+        }
+    }
+
+    printf("\n----------------------------------------\n");
+    printf("请输入已完成菜品【序号】（按0返回）: ");
+    int seq;
+    scanf("%d", &seq);
+    
+    if (seq > 0) {
+        complete_dish_in_queue(seq - 1); // 数组下标从0开始
+    }
+    
+    // 递归刷新
+    if (seq != 0) kitchen_form();
+}
+
+
+
 /*
  * 函数功能：加载厨房总队列
  */
@@ -49,47 +93,6 @@ void complete_dish_in_queue(int index) {
         }
     }
     fclose(fp);
-}
-
-/*
- * 函数功能：厨房主界面 - 按提交顺序展示
- */
-void kitchen_form() {
-    system("cls");
-    printf("========================================\n");
-    printf("         👨‍🍳 后厨 · 实时备餐队列\n");
-    printf("========================================\n");
-
-    kitchen_item queue[MAX_LENGTH];
-    int count = load_kitchen_queue(queue);
-    
-    if (count == 0) {
-        printf("\n当前所有菜品已制作完毕！☕\n");
-    } else {
-        printf("\n%-6s %-8s %-12s %-8s\n", "序号", "桌号", "菜品名称", "数量");
-        printf("----------------------------------------\n");
-        for (int i = 0; i < count; i++) {
-            if (queue[i].status == STATUS_PENDING) {
-                printf("[%d]    %-8d %-12s x%d\n", 
-                       i + 1, 
-                       queue[i].table_no, 
-                       queue[i].dish_name, 
-                       queue[i].nums);
-            }
-        }
-    }
-
-    printf("\n----------------------------------------\n");
-    printf("请输入【序号】标记完成 (输入0返回): ");
-    int seq;
-    scanf("%d", &seq);
-    
-    if (seq > 0) {
-        complete_dish_in_queue(seq - 1); // 数组下标从0开始
-    }
-    
-    // 递归刷新
-    if (seq != 0) kitchen_form();
 }
 
 /*

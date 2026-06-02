@@ -148,10 +148,25 @@ void remove_from_cart(int index) {
  * 函数功能：提交订单到厨房（智能合并同类菜品并累加到订单文件）
  */
 void submit_order() {
-    if (cart.count == 0) {
-        printf("购物车为空，无法提交！\n");
-        getch();
-        return;
+    // if (cart.count == 0) {
+    //     printf("购物车为空，无法提交！\n");
+    //     getch();
+    //     return;
+    // }
+
+
+    // --- 新增：同步到厨房总队列 (kitchen_queue.txt) ---
+    FILE* kfp = fopen("kitchen_queue.txt", "a"); // 使用追加模式，保证时间顺序
+    if (kfp) {
+        for (int i = 0; i < cart.count; i++) {
+            fprintf(kfp, "%d %d %s %d %d\n", 
+                    cart.table_no,             // 桌号
+                    cart.items[i].no,          // 菜品编号
+                    cart.items[i].dish_name,   // 菜名
+                    cart.items[i].nums,        // 数量
+                    STATUS_PENDING);           // 初始状态为待做
+        }
+        fclose(kfp);
     }
     
     char filename[50];
@@ -224,19 +239,7 @@ void submit_order() {
     printf("总金额: %.2lf 元\n", cart.total_amount);
     printf("\n正在返回主菜单...\n");
     
-    // --- 新增：同步到厨房总队列 (kitchen_queue.txt) ---
-    FILE* kfp = fopen("kitchen_queue.txt", "a"); // 使用追加模式，保证时间顺序
-    if (kfp) {
-        for (int i = 0; i < cart.count; i++) {
-            fprintf(kfp, "%d %d %s %d %d\n", 
-                    cart.table_no,             // 桌号
-                    cart.items[i].no,          // 菜品编号
-                    cart.items[i].dish_name,   // 菜名
-                    cart.items[i].nums,        // 数量
-                    STATUS_PENDING);           // 初始状态为待做
-        }
-        fclose(kfp);
-    }
+    
     
     Sleep(1500);
     clear_cart_items(); 
