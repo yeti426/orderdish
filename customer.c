@@ -363,7 +363,7 @@ void menu_controller(dish_menu* dm, int cnt) {
                 cart.items[cart.count].dish_price = selected.dish_price;
                 cart.items[cart.count].type = selected.type;
                 cart.items[cart.count].nums = nums;
-                cart.items[cart.count].status = STATUS_PENDING;
+                cart.items[cart.count].status = ORDER_STATUS_PENDING;
                 strcpy(cart.items[cart.count].remark, spicy_remark);
                 cart.count++;
             }
@@ -373,7 +373,7 @@ void menu_controller(dish_menu* dm, int cnt) {
             cart.items[cart.count].dish_price = selected.dish_price;
             cart.items[cart.count].type = selected.type;
             cart.items[cart.count].nums = nums;
-            cart.items[cart.count].status = STATUS_PENDING;
+            cart.items[cart.count].status = ORDER_STATUS_PENDING;
             strcpy(cart.items[cart.count].remark, spicy_remark);
             cart.count++;
         }

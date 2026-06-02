@@ -45,7 +45,7 @@
 #define MAX_TABLES 20 
 
 // 定义菜品制作状态
-#define STATUS_PENDING 0   // 待制作
+#define ORDER_STATUS_PENDING 0   // 待制作
 #define STATUS_DONE 1      // 已制作
 
 //菜单数据结构

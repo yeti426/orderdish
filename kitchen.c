@@ -101,7 +101,7 @@ void complete_dish_in_queue(int index) {
                 // 匹配：菜品编号和备注都一致才更新状态
                 if (orders[ocount].no == dno &&
                     strcmp(orders[ocount].remark, remark_target) == 0 &&
-                    orders[ocount].status == STATUS_PENDING) {
+                    orders[ocount].status == ORDER_STATUS_PENDING) {
                     orders[ocount].status = STATUS_DONE;
                 }
                 ocount++;
@@ -129,7 +129,7 @@ void complete_dish_in_queue(int index) {
     FILE* fp = fopen("kitchen_queue.txt", "w");
     for (int i = 0; i < count; i++) {
         // 只写入未完成的菜品，已完成的直接从队列中移除
-        if (queue[i].status == STATUS_PENDING) {
+        if (queue[i].status == ORDER_STATUS_PENDING) {
             fprintf(fp, "%d %d %s %d %d %s\n",
                     queue[i].table_no,
                     queue[i].dish_no,
@@ -160,7 +160,7 @@ void kitchen_form() {
         printf("\n%-6s %-8s %-12s %-8s %-10s\n", "序号", "桌号", "菜品名称", "数量", "备注");
         printf("----------------------------------------\n");
         for (int i = 0; i < count; i++) {
-            if (queue[i].status == STATUS_PENDING) {
+            if (queue[i].status == ORDER_STATUS_PENDING) {
                 printf("[%d]    %-8d %-12s x%d   [%s]\n", 
                        i + 1, 
                        queue[i].table_no, 
@@ -215,7 +215,7 @@ int load_pending_orders(int table_no, cart_item* orders) {
             strcpy(orders[count].remark, "-");
         }
         
-        if (orders[count].status == STATUS_PENDING) {
+        if (orders[count].status == ORDER_STATUS_PENDING) {
             count++;
         }
     }
@@ -265,7 +265,7 @@ void mark_dish_done(int table_no, int dish_no) {
     // 查找并修改状态
     int found = 0;
     for (int i = 0; i < total_count; i++) {
-        if (all_orders[i].no == dish_no && all_orders[i].status == STATUS_PENDING) {
+        if (all_orders[i].no == dish_no && all_orders[i].status == ORDER_STATUS_PENDING) {
             all_orders[i].status = STATUS_DONE;
             found = 1;
             break;
