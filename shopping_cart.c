@@ -28,7 +28,7 @@ void submit_order();                           // 提交订单到厨房
 
 
 /*
- *函数功能：在购物车查找菜品 
+ *函数功能：在购物车查找菜品，用于累计数量
  */
 int find_item_in_cart(int dish_no) {
     for (int i = 0; i < cart.count; i++) {
@@ -75,11 +75,6 @@ void init_cart(int table_no) {
  * 参数：dm - 菜单数组, index - 菜品索引, nums - 数量
  */
 void add_to_cart(dish_menu* dm, int index, int nums) {
-	if (cart.kitchen_received) {
-		printf("订单已提交，无法修改购物车！\n");
-		getch();
-		return;
-	}
 	if (nums <= 0) {
 		printf("数量必须 > 0!\n");
 		getch();
@@ -164,9 +159,7 @@ void display_cart() {
                "序号", "编号", "菜品名称", "单价", "数量", "小计", "状态");
         printf("----------------------------------------------------------\n");
         
-        for (int i = 0; i < cart.count; i++) {
-            const char* status = (cart.items[i].status == 0) ? "未提交" :
-                                 (cart.items[i].status == 1) ? "制作中" : "已上菜"; 
+        for (int i = 0; i < cart.count; i++) { 
             printf("%-4d %-6d %-10s %-8.2lf %-6d %-10.2lf %-8s\n",
                    i + 1,
                    cart.items[i].no,
@@ -174,12 +167,11 @@ void display_cart() {
                    cart.items[i].dish_price,
                    cart.items[i].nums,
                    cart.items[i].subtotal,
-                   status);
+                   "未提交");
         }
         printf("----------------------------------------------------------\n");
-        printf("总金额：%.2lf 元 | 厨房状态：%s\n",
-		       cart.total_amount,
-			   cart.kitchen_received ? "已接收" : "未接收"); 
+        printf("总金额：%.2lf 元 | 厨房状态：已接收\n",
+		       cart.total_amount);
     }
     
     printf("\n========================================\n");
@@ -271,7 +263,7 @@ void submit_order() {
     
     FILE* fp = fopen(filename, "w");
     if (!fp) {
-        printf("订单提交失败！\n");
+        printf("订单提交失败！请联系工作人员操作\n");
         getch();
         return;
     }

@@ -38,7 +38,7 @@ int check_order_file(char* fstr) {
     char remark[200];
     fgets(remark, sizeof(remark), fp);
 
-    dish_order o;
+    cart_item o; // 改用 cart_item
     // 检查每一行数据是否合法
     while (!feof(fp)) {
         int ret = fscanf(fp, "%d %s %lf %d %d",
@@ -95,7 +95,7 @@ void check_bill() {
     }
 
     double total = 0;
-    dish_order order[MAX_LENGTH];
+    cart_item order[MAX_LENGTH]; // 改用 cart_item
     int cnt = 0;
 
     // 读取所有菜品
@@ -319,11 +319,11 @@ void calculate_value(char* fstr, double* all,
     int flag;
     fscanf(fp, "%d", &flag);
 
-    //跳过备注行
+    //跳过备注行（如果有的话，或者读取第一行状态后的换行）
     char remark[200];
     fgets(remark, sizeof(remark), fp);
 
-    dish_order o;
+    cart_item o; // 改用 cart_item 结构体
     while (!feof(fp)) {
     // 必须检查返回值，防止最后一行重复读取
          if (fscanf(fp, "%d %s %lf %d %d",

@@ -338,7 +338,7 @@ void view_bill() {
         remark[len - 1] = '\0';
     }
     
-    dish_order orders[MAX_LENGTH];
+    cart_item orders[MAX_LENGTH]; // 改用 cart_item
     int count = 0;
     double total = 0;
     
@@ -458,7 +458,7 @@ void checkout() {
     char remark[200];
     fgets(remark, sizeof(remark), fp);
 
-    dish_order orders[MAX_LENGTH];
+    cart_item orders[MAX_LENGTH]; // 改用 cart_item
     int count = 0;
     double total = 0;
     
