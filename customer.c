@@ -42,12 +42,23 @@ void customer_form() {
     
     // 选桌
     printf("**************************************\n");
-    printf("请入坐雅间桌号：");
+    // 显示座位总数提示
+    printf("       本店共设 %d 间雅座\n", MAX_TABLES); 
+    printf("**************************************\n");
+    printf("请入坐雅间桌号 (1-%d)：", MAX_TABLES);
+    
     while (scanf("%d", &table_no) != 1) {
         while (getchar() != '\n');
         printf("桌号有误，请重报雅座编号：");
     }
     
+    //增加桌号范围检查，防止输入超过最大座位数
+    while (table_no < 1 || table_no > MAX_TABLES) {
+        printf("抱歉，本店只有 1 到 %d 号雅座，请重新输入：", MAX_TABLES);
+        while (getchar() != '\n'); // 清空缓冲区
+        scanf("%d", &table_no);
+    }
+
     init_cart(table_no);          // 初始化购物车
     
     // 选择服务

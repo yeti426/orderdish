@@ -155,7 +155,13 @@ void check_bill() {
     double discount_rate = 0.88;
     double discounted_total = total * discount_rate;
     int final_total = (int)discounted_total;// 抹零取整
-    int reduction = (int)(discounted_total - final_total);
+    double reduction_double = discounted_total - final_total;
+    if (reduction_double < 0) reduction_double = 0; // 防止浮点误差导致的负数
+    int reduction = (int)(reduction_double * 100 + 0.5) / 100.0; 
+    
+    //直接计算小数部分，并处理浮点精度
+    double reduction_amount = discounted_total - final_total;
+    if (reduction_amount < 0.001) reduction_amount = 0.0; // 消除 -0.000001 这种误差
 
     printf("========== 账单明细 ==========\n");
     printf("桌号：%d\n", table_no);
@@ -163,7 +169,7 @@ void check_bill() {
     printf("原价：%.2lf 元\n", total);
     printf("折扣：8.8 折\n");
     printf("折后价：%.2lf 元\n", discounted_total);
-    printf("抹零：-%d 元\n", reduction);
+    printf("抹零：-%.2lf 元\n", reduction_amount);
     printf("实收金额：%d 元\n", final_total);
     printf("==============================\n");
 
@@ -417,6 +423,13 @@ void save_review(int table_no) {
     } else {
         printf("\n评价保存失败。\n");
     }
-    getch();
+
+     
+    printf("\n按任意键返回主菜单...");
+    fflush(stdin); 
+    int c;
+    while((c = getchar()) != '\n' && c != EOF); // 清空遗留的回车
+
+    getch();// 现在等待用户按键
 }
 

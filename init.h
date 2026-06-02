@@ -9,6 +9,7 @@
 #include <time.h>
 
 #define MAX_LENGTH 100
+#define MAX_TABLES 20 
 
 //菜单数据结构
 typedef struct a{
