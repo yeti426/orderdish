@@ -338,7 +338,7 @@ void view_bill() {
         remark[len - 1] = '\0';
     }
     
-    dish_order orders[MAX_LENGTH];
+    cart_item orders[MAX_LENGTH]; // 改用 cart_item
     int count = 0;
     double total = 0;
     
@@ -358,19 +358,19 @@ void view_bill() {
     }
     fclose(fp);
     
-    // 获取订单状态文字
-    char* status_text;
-    switch(order_status) {
-        case 1: status_text = "待支付"; break;
-        case 2: status_text = "已支付"; break; 
-        default: status_text = "未知状态"; break;
-    }
+    // // 获取订单状态文字
+    // char* status_text;
+    // switch(order_status) {
+    //     case 1: status_text = "待支付"; break;
+    //     case 2: status_text = "已支付"; break; 
+    //     default: status_text = "未知状态"; break;
+    // }
     
     system("cls");
     printf("========================================\n");
     printf("         账单 (雅座: %d)\n", table_no);
     printf("========================================\n");
-    printf("订单状态: %s\n", status_text);
+    printf("订单状态: %s\n", order_status == 1 ? "待支付" : (order_status == 2 ? "已支付" : "未知状态"));
     printf("\n");
     
     //显示备注
@@ -458,7 +458,7 @@ void checkout() {
     char remark[200];
     fgets(remark, sizeof(remark), fp);
 
-    dish_order orders[MAX_LENGTH];
+    cart_item orders[MAX_LENGTH]; // 改用 cart_item
     int count = 0;
     double total = 0;
     
