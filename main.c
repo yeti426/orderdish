@@ -1,5 +1,8 @@
 #include"init.h"   //引入初始化模块
 
+// 定义全局变量 table_no
+int table_no = 0;
+
 //外部函数声明
 extern int main_form();
 extern void customer_form();

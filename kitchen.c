@@ -1,5 +1,12 @@
 #include "init.h"
 
+// --- 新增：函数声明 ---
+int load_kitchen_queue(kitchen_item* queue);
+void complete_dish_in_queue(int index);
+int load_pending_orders(int table_no, cart_item* orders);
+void mark_dish_done(int table_no, int dish_no);
+// ---------------------
+
 
 /*
  * 函数功能：厨房主界面 - 按提交顺序展示

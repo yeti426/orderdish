@@ -266,7 +266,6 @@ void menu_controller(dish_menu* dm, int cnt) {
             continue;
         }
 
-        add_to_cart(dm, choice - 1, nums);
 
         printf("是否继续点菜？ 1.是 2.否：");
         while (scanf("%d", &continue_choice) != 1) {

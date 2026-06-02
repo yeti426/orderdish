@@ -82,16 +82,23 @@ void error_check(int, int, int*);
 void greet(struct tm* p, int user_role);
 struct tm* get_time(void);
 
+
 // 购物车相关
 void init_cart(int table_no);
-void add_to_cart(dish_menu* dm, int index, int nums);
 void display_cart(void);
 void remove_from_cart(int index);
 void submit_order(void);
 void clear_stdin_buffer(void);
 void clear_cart_items(void);
 void ordering_menu(void);
+int  is_recommend(int type, int no);
 
-int is_recommend(int type, int no);
+
+// 厨房模块相关函数声明
+void kitchen_form();
+int load_kitchen_queue(kitchen_item* queue);
+void complete_dish_in_queue(int index);
+int load_pending_orders(int table_no, cart_item* orders);
+void mark_dish_done(int table_no, int dish_no);
 
 #endif
