@@ -55,8 +55,9 @@ void display_cart() {
                    "未提交");
         }
         printf("----------------------------------------------------------\n");
-        printf("总金额：%.2lf 元 | 厨房状态：已接收\n",
-		       cart.total_amount);
+        printf("总金额：%.2lf 元 | 厨房状态：%-6s\n",
+               cart.total_amount,
+               cart.kitchen_received ? "已接收" : "未接收");
     }
     
     printf("\n========================================\n");
@@ -217,19 +218,28 @@ void submit_order() {
         getch();
         return;
     }
-    
+
+    // 写入状态：1 = 待支付
+    fprintf(fp, "1\n");
+
+    // 写入备注（空备注）
+    fprintf(fp, "\n");
+
     for (int i = 0; i < total_count; i++) {
-        fprintf(fp, "%d %s %.2lf %d %d\n",
+        fprintf(fp, "%d %s %.2lf %d %d %d\n",
                 final_orders[i].no,
                 final_orders[i].dish_name,
                 final_orders[i].dish_price,
                 final_orders[i].type,
-                final_orders[i].nums);
+                final_orders[i].nums,
+                DISH_STATUS_PENDING);  // 状态为待制作
     }  
-    
     fclose(fp);
     
-    // 4. 提示用户并清空内存购物车
+    // 4. 更新购物车状态：标记厨房已接收，并清空购物车
+    cart.kitchen_received = 1; 
+
+    // 5. 提示用户并清空内存购物车
     system("cls");
     printf("========================================\n");
     printf("         订单提交成功！\n");

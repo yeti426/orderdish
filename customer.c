@@ -371,22 +371,19 @@ void view_bill() {
         }
         return;
     }
-    
-    // 读取订单状态
-    // int order_status;
-    // if (fscanf(fp, "%d", &order_status) != 1) {
-    //     printf("订单文件格式错误！\n");
-    //     fclose(fp);
-    //     getch();
-    //     return;
-    // }
-    // // 获取订单状态文字
-    // char* status_text;
-    // switch(order_status) {
-    //     case 1: status_text = "待支付"; break;
-    //     case 2: status_text = "已支付"; break; 
-    //     default: status_text = "未知状态"; break;
-    // }
+
+    // 读取订单状态（第一行）
+    int order_status;
+    if (fscanf(fp, "%d", &order_status) != 1) {
+    printf("订单文件格式错误！\n");
+    fclose(fp);
+    getch();
+    return;
+    }
+
+    // 跳过空备注行（可能为空行）
+    char dummy[10];
+    fgets(dummy, sizeof(dummy), fp); // 读走换行或空行
 
     // 读取并跳过备注行
     char remark[200];
