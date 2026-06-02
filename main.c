@@ -13,6 +13,10 @@ extern void kitchen_form(); // ← 新增：厨房端函数声明
  * 函数功能: 主函数，程序入口
  */
 int main(){
+#ifdef _WIN32
+    system("chcp 65001 >nul");  // Windows终端设置为UTF-8编码
+    SetConsoleOutputCP(65001);  // 设置控制台输出编码为UTF-8
+#endif
 	int op;
 	do{
 		op = main_form();           //显示主界面并获取选择信息
