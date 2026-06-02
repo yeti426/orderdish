@@ -42,29 +42,26 @@ int check_order_file(char* fstr) {
     FILE* fp = fopen(fstr, "r");
     if (!fp) return 0;
 
-    int flag;
-    if (fscanf(fp, "%d", &flag) != 1) {
-        fclose(fp);
-        return 0;
-    }
+    // [已移除] 订单文件直接存储菜品数据，无状态行头部
 
-    // [已禁用-备注] 跳过备注行，否则下面的循环会读错位置
-    // char remark[200];
-    // fgets(remark, sizeof(remark), fp);
-
-    cart_item o; // 改用 cart_item
-    // 检查每一行数据是否合法（6个字段：编号、名称、价格、类型、数量、状态）[备注已禁用]
+    cart_item o;
+    // 检查每一行数据是否合法（7个字段：编号、名称、价格、类型、数量、状态、口味）
     while (!feof(fp)) {
-        int ret = fscanf(fp, "%d %s %lf %d %d %d",
+        int ret = fscanf(fp, "%d %s %lf %d %d %d %s",
                          &o.no,
                          o.dish_name,
                          &o.dish_price,
                          &o.type,
                          &o.nums,
-                         &o.status);
+                         &o.status,
+                         o.remark);
 
         // 如果读到末尾或格式不对，跳出循环
-        if (ret < 6) break; 
+        if (ret == 6) {
+            strcpy(o.remark, "-");
+        } else if (ret < 6) {
+            break;
+        } 
 
         if (o.dish_price <= 0) { fclose(fp); return 0; }
         if (o.nums <= 0) { fclose(fp); return 0; }
@@ -99,8 +96,7 @@ void check_bill() {
     }
 
     FILE* fp = fopen(fstr, "r");
-    int flag;
-    fscanf(fp, "%d", &flag);
+    // [已移除] 不再读取状态行
 
     // // 只有状态为 1 (已下单/点餐中) 才能结账
     // if (flag != 1) {
@@ -118,42 +114,25 @@ void check_bill() {
 
     fclose(fp);
     fp = fopen(fstr, "r");
-    if (fscanf(fp, "%d", &flag) != 1) {
-         printf("订单文件格式错误！\n");
-         fclose(fp);
-         getch();
-         return;
-    }
-
-    int ch;
-    while ((ch = fgetc(fp)) != '\n' && ch != EOF);
-
-    // [已禁用-备注] 跳过备注行
-    // char remark[200];
-    //  // 使用 fgets 读取整行直到换行符
-    // if (fgets(remark, sizeof(remark), fp) == NULL) {
-    //     printf("错误：读取备注行失败！\n");
-    //     fclose(fp);
-    //     getch();
-    //     return;
-    // }
-
-    // [已禁用-备注] 打印出来看看读到了什么
-    // printf("备注: [%s]\n", remark);
+    // [已移除] 订单文件直接存储菜品数据，无状态行头部
 
     while (cnt < MAX_LENGTH) {
         // 检查 fscanf 的返回值
-        int ret = fscanf(fp, "%d %s %lf %d %d",
+        int ret = fscanf(fp, "%d %s %lf %d %d %d %s",
                &order[cnt].no,
                order[cnt].dish_name,
                &order[cnt].dish_price,
                &order[cnt].type,
-               &order[cnt].nums );
+               &order[cnt].nums,
+               &order[cnt].status,
+               order[cnt].remark);
         
-        if (ret != 5) {
-            // 如果读取失败，打印一下当前读到了什么，方便排查
-            // printf("DEBUG: 读取菜品失败，返回值: %d\n", ret);
-            break; 
+        if (ret == 6) {
+            strcpy(order[cnt].remark, "-");
+        } else if (ret < 6) {
+            break;
+        } else if (strlen(order[cnt].remark) == 0) {
+            strcpy(order[cnt].remark, "-");
         }
         total += order[cnt].dish_price * order[cnt].nums;
         cnt++;
@@ -441,23 +420,24 @@ void calculate_value(char* fstr, double* all,
     FILE* fp = fopen(fstr, "r");
      if(!fp) return;
 
-    int flag;
-    fscanf(fp, "%d", &flag);
+    // [已移除] 订单文件直接存储菜品数据，无状态行头部
 
-    // [已禁用-备注] 跳过备注行（如果有的话，或者读取第一行状态后的换行）
-    // char remark[200];
-    // fgets(remark, sizeof(remark), fp);
-
-    cart_item o; // 改用 cart_item 结构体
+    cart_item o;
     while (!feof(fp)) {
-    // 必须检查返回值，防止最后一行重复读取（6个字段）[备注已禁用]
-         if (fscanf(fp, "%d %s %lf %d %d %d",
+    // 必须检查返回值，防止最后一行重复读取（7个字段，含口味备注）
+         int ret = fscanf(fp, "%d %s %lf %d %d %d %s",
                &o.no,
                o.dish_name,
                &o.dish_price,
                &o.type,
                &o.nums,
-               &o.status) < 6) break;
+               &o.status,
+               o.remark);
+        if (ret == 6) {
+            strcpy(o.remark, "-");
+        } else if (ret < 6) {
+            break;
+        }
 
         double sum = o.dish_price * o.nums;
         *all += sum;

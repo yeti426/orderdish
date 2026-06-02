@@ -1,6 +1,6 @@
 #include "init.h"
 
-int find_item_in_cart(int dish_no);
+int find_item_in_cart(const char* dish_name, const char* remark);
 void update_total(void);
 
 //变量声明 
@@ -239,22 +239,24 @@ void display_menu(dish_menu *dm, int cnt, int sort_type) {
 
 	
 	CLEAR_SCREEN();
-	printf("----------------------------------------------------------\n");
-    printf("序号      菜品编号      菜品名称      价格\n");
-    printf("----------------------------------------------------------\n");
+	printf("------------------------------------------------------------\n");
+    printf("%-6s%-10s%-20s%s\n", "序号", "菜品编号", "菜品名称", "价格");
+    printf("------------------------------------------------------------\n");
     
     for(i = 0; i < cnt; i++){
-        // 构建菜名前缀：招牌标记
-        char prefix[30] = "";
+        // 拼接显示名：招牌前缀 + 菜名 + 选后缀
+        char display_name[40] = "";
         if (is_recommend(temp_dm[i].type, temp_dm[i].no)) {
-            strcat(prefix, "【招牌】");
+            strcat(display_name, "【招牌】");
         }
-        // 菜名固定宽度左对齐，【选】放在菜名后面
-        printf(" %d\t %d\t %s%-10s%s\t %.2lf\n",
-               i + 1, temp_dm[i].no, prefix, temp_dm[i].dish_name,
-               temp_dm[i].has_options ? "【选】" : "", temp_dm[i].dish_price);
+        strcat(display_name, temp_dm[i].dish_name);
+        if (temp_dm[i].has_options) {
+            strcat(display_name, "[选]");
+        }
+        printf("%-6d%-10d%-20s%.2lf\n",
+               i + 1, temp_dm[i].no, display_name, temp_dm[i].dish_price);
     }
-	printf("----------------------------------------------------------\n");
+	printf("------------------------------------------------------------\n");
 }
 
 
@@ -348,7 +350,7 @@ void menu_controller(dish_menu* dm, int cnt) {
             }
         }
 
-        int idx = find_item_in_cart(selected.no);
+        int idx = find_item_in_cart(selected.dish_name, spicy_remark);
 
         if (idx != -1) {
             // 如果已有同编号菜品，检查辣度是否一致，一致则累加数量
@@ -421,14 +423,14 @@ void view_bill() {
         return;
     }
 
-    // 读状态行（整行，含换行）
-    char status_line[10];
-    if (fgets(status_line, sizeof(status_line), fp) == NULL) {
-        fclose(fp);
-        printf("订单文件格式错误：缺失状态行！\n");
-        getch();
-        return;
-    }
+    // [已移除] 读状态行 - 订单文件直接存储菜品数据，无状态行头部
+    // char status_line[10];
+    // if (fgets(status_line, sizeof(status_line), fp) == NULL) {
+    //     fclose(fp);
+    //     printf("订单文件格式错误：缺失状态行！\n");
+    //     getch();
+    //     return;
+    // }
 
     // [已禁用-备注] 读备注行（整行）
     // char remark[200];
@@ -447,18 +449,23 @@ void view_bill() {
     double total = 0;
     
     // 读取所有订单项（现在是7个字段，包含菜品备注）
-    while (count < MAX_LENGTH &&
-           fscanf(fp, "%d %s %lf %d %d %d %[^\n]",
+    while (count < MAX_LENGTH) {
+        int ret = fscanf(fp, "%d %s %lf %d %d %d %s",
                   &orders[count].no,
                   orders[count].dish_name,
                   &orders[count].dish_price,
                   &orders[count].type,
                   &orders[count].nums,
                   &orders[count].status,
-                  orders[count].remark) >= 6) {   
-        // 兼容旧格式：如果没读到备注，给个默认值
+                  orders[count].remark);
+        if (ret == 6) {
+            strcpy(orders[count].remark, "-");
+        } else if (ret < 6) {
+            break;
+        }   
+        // 7字段时如果备注为空也给默认值
         if (strlen(orders[count].remark) == 0) {
-            strcpy(orders[count].remark, "正常");
+            strcpy(orders[count].remark, "-");
         }
         total += orders[count].dish_price * orders[count].nums;
         count++;
@@ -539,33 +546,15 @@ void checkout() {
         return;
     }
     
-    // 读状态行
-    char status_line[10];
-    if (fgets(status_line, sizeof(status_line), fp) == NULL) {
-        fclose(fp);
-        printf("订单文件格式错误：缺失状态行！\n");
-        getch();
-        return;
-    }
+    // [已移除] 订单文件直接存储菜品数据，无状态行和备注行头部
 
-    // 读备注行
-    char remark[200];
-    if (fgets(remark, sizeof(remark), fp) == NULL) {
-        strcpy(remark, "无备注");
-    } else {
-        size_t len = strlen(remark);
-        if (len > 0 && remark[len - 1] == '\n') {
-            remark[len - 1] = '\0';
-        }
-    }
-
-    cart_item orders[MAX_LENGTH]; // 改用 cart_item
+    cart_item orders[MAX_LENGTH];
     int count = 0;
     double total = 0;
     
     // 读取所有订单项（7个字段）
      while (count < MAX_LENGTH) {
-        int ret = fscanf(fp, "%d %s %lf %d %d %d %[^\n]",
+        int ret = fscanf(fp, "%d %s %lf %d %d %d %s",
                   &orders[count].no,
                   orders[count].dish_name,
                   &orders[count].dish_price,
@@ -573,11 +562,16 @@ void checkout() {
                   &orders[count].nums,
                   &orders[count].status,
                   orders[count].remark); // ← 新增：读取状态
-        if (ret < 6) break;             
+        if (ret == 6) {
+            // 旧格式：没有口味备注字段
+            strcpy(orders[count].remark, "-");
+        } else if (ret < 6) {
+            break;
+        }             
 
-        // 兼容旧格式
+        // 7字段时如果备注为空也给默认值
         if (strlen(orders[count].remark) == 0) {
-            strcpy(orders[count].remark, "正常");
+            strcpy(orders[count].remark, "-");
         }
 
         total += orders[count].dish_price * orders[count].nums;

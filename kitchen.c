@@ -123,7 +123,7 @@ int load_pending_orders(int table_no, cart_item* orders) {
     int count = 0;
     while (count < MAX_LENGTH) {
         // 尝试读取7个字段（兼容新格式）
-        int ret = fscanf(fp, "%d %s %lf %d %d %d %[^\n]", 
+        int ret = fscanf(fp, "%d %s %lf %d %d %d %s", 
                   &orders[count].no,
                   orders[count].dish_name,
                   &orders[count].dish_price,
@@ -132,11 +132,14 @@ int load_pending_orders(int table_no, cart_item* orders) {
                   &orders[count].status,
                   orders[count].remark);
         
-        // 如果读不到6个基本字段则退出
-        if (ret < 6) break;
-
-        // 如果没读到备注，给个默认值
-        if (ret == 6) strcpy(orders[count].remark, "正常");
+        // 旧格式没有备注字段，新格式有7个字段
+        if (ret == 6) {
+            strcpy(orders[count].remark, "-");
+        } else if (ret < 6) {
+            break;
+        } else if (strlen(orders[count].remark) == 0) {
+            strcpy(orders[count].remark, "-");
+        }
         
         if (orders[count].status == STATUS_PENDING) {
             count++;
@@ -164,7 +167,7 @@ void mark_dish_done(int table_no, int dish_no) {
     int total_count = 0;
     
     while (total_count < MAX_LENGTH) {
-        int ret = fscanf(fp, "%d %s %lf %d %d %d %[^\n]", 
+        int ret = fscanf(fp, "%d %s %lf %d %d %d %s", 
                   &all_orders[total_count].no,
                   all_orders[total_count].dish_name,
                   &all_orders[total_count].dish_price,
@@ -173,8 +176,13 @@ void mark_dish_done(int table_no, int dish_no) {
                   &all_orders[total_count].status,
                   all_orders[total_count].remark);
         
-        if (ret < 6) break;
-        if (ret == 6) strcpy(all_orders[total_count].remark, "正常");
+        if (ret == 6) {
+            strcpy(all_orders[total_count].remark, "-");
+        } else if (ret < 6) {
+            break;
+        } else if (strlen(all_orders[total_count].remark) == 0) {
+            strcpy(all_orders[total_count].remark, "-");
+        }
         
         total_count++;
     }

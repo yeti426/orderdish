@@ -136,10 +136,10 @@ void input_password(char pw_input[],int wrong_time){
 	int i = 0;           // 数组下标
 	do{
 		ch = getch();
-		if(ch == 13){//回车键 
+		if(ch == 13 || ch == 10){//回车键 (Windows:13, Mac:10) 
 			;
 		}
-		else if(ch == 8){//退格键 
+		else if(ch == 8 || ch == 127){//退格键 (Windows:8, Mac:127) 
 			if(i>0){
 				i--;
 				cnt--;
@@ -149,20 +149,30 @@ void input_password(char pw_input[],int wrong_time){
 				gotoxy(x,y);// 再移回来，让光标停在正确位置
 			}
 		}
+		else if(ch == 27){//ESC序列起始（方向键、删除键等），吞掉后续字节
+			int ch2 = getch();
+			if(ch2 == '[') {
+				int ch3 = getch();
+				if(ch3 >= '0' && ch3 <= '9') {
+					getch(); // 再读一个（如 '~'）
+				}
+			}
+			continue; // 忽略整个ESC序列
+		}
 		else if (i >= 19) {
 			// 密码已达最大长度，不允许再输入
 			printf("\n");
 			printf("密码最长只能输入19位。");
 			continue;
 		}
-		else{//普通字符 
+		else if(ch >= 32 && ch <= 126){//普通可打印字符 
 			temp_input[i] = ch;
 			printf("*");
 			x++;
 			i++;
 			cnt++;
 		}
-	}while(ch != 13);//直到按回车，才停止输入。
+	}while(ch != 13 && ch != 10);//直到按回车，才停止输入。
 	printf("\n");
 	
 	if (cnt == 0) {

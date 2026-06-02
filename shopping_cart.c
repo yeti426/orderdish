@@ -184,18 +184,21 @@ void submit_order() {
         // 简单处理：如果文件存在，尝试逐行解析。
         // 为了稳健，我们先清空 final_orders，然后尝试解析所有可能的行。
         
-        while (total_count < MAX_LENGTH && 
-               fscanf(fp, "%d %s %lf %d %d %d %[^\n]", 
+        while (total_count < MAX_LENGTH) {
+            int ret = fscanf(fp, "%d %s %lf %d %d %d %s", 
                       &final_orders[total_count].no,
                       final_orders[total_count].dish_name,
                       &final_orders[total_count].dish_price,
                       &final_orders[total_count].type,
                       &final_orders[total_count].nums,
                       &final_orders[total_count].status,
-                      final_orders[total_count].remark) >= 6) {
-            // 如果读取到的 remark 是空的或者格式不对，给个默认值
-            if (strlen(final_orders[total_count].remark) == 0) {
-                 strcpy(final_orders[total_count].remark, "正常");
+                      final_orders[total_count].remark);
+            if (ret == 6) {
+                strcpy(final_orders[total_count].remark, "-");
+            } else if (ret < 6) {
+                break;
+            } else if (strlen(final_orders[total_count].remark) == 0) {
+                strcpy(final_orders[total_count].remark, "-");
             }
             total_count++;
         }
@@ -207,7 +210,7 @@ void submit_order() {
         int found = 0;
         // 在已有订单中查找是否已存在该菜品（编号和备注都必须一致才合并）
         for (int j = 0; j < total_count; j++) {
-            if (final_orders[j].no == cart.items[i].no && 
+            if (strcmp(final_orders[j].dish_name, cart.items[i].dish_name) == 0 && 
                 strcmp(final_orders[j].remark, cart.items[i].remark) == 0) {
                 final_orders[j].nums += cart.items[i].nums; // 找到则累加数量
                 found = 1;
@@ -244,6 +247,7 @@ void submit_order() {
     // 不过参考方案里去掉了它。我将遵循参考方案，只写入菜品数据。
     
     for (int i = 0; i < total_count; i++) {
+        const char* remark_str = (strlen(final_orders[i].remark) == 0) ? "-" : final_orders[i].remark;
         fprintf(fp, "%d %s %.2lf %d %d %d %s\n",
                 final_orders[i].no,
                 final_orders[i].dish_name,
@@ -251,7 +255,7 @@ void submit_order() {
                 final_orders[i].type,
                 final_orders[i].nums,
                 final_orders[i].status,
-                final_orders[i].remark);
+                remark_str);
     }  
     
     fclose(fp);
@@ -261,7 +265,7 @@ void submit_order() {
     if (kfp) {
         for (int i = 0; i < cart.count; i++) {
             // 使用 | 作为分隔符，避免空格问题
-            fprintf(kfp, "%d|%d|%s|%d|%d|%s\n", 
+            fprintf(kfp, "%d %d %s %d %d %s\n", 
                     cart.table_no,             // 桌号
                     cart.items[i].no,          // 菜品编号
                     cart.items[i].dish_name,   // 菜名
@@ -292,9 +296,9 @@ void submit_order() {
 /*
  *函数功能：在购物车查找菜品，用于累计数量
  */
-int find_item_in_cart(int dish_no) {
+int find_item_in_cart(const char* dish_name, const char* remark) {
     for (int i = 0; i < cart.count; i++) {
-        if (cart.items[i].no == dish_no) return i;
+        if (strcmp(cart.items[i].dish_name, dish_name) == 0 && strcmp(cart.items[i].remark, remark) == 0) return i;
     }
     return -1;
 }
