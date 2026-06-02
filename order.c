@@ -134,8 +134,7 @@ void check_bill() {
                order[cnt].dish_name,
                &order[cnt].dish_price,
                &order[cnt].type,
-               &order[cnt].nums,
-               &order[cnt].status );
+               &order[cnt].nums );
         
         if (ret != 5) {
             // 如果读取失败，打印一下当前读到了什么，方便排查

@@ -237,8 +237,6 @@ void menu_controller(dish_menu* dm, int cnt) {
         display_menu(dm, cnt);
 
         printf("请输入要点的菜品序号(0返回)：");
-        scanf("%d", &choice);
-
         while (scanf("%d", &choice) != 1) {
             clear_stdin_buffer();
             printf("输入无效，请重新输入：");
@@ -253,8 +251,6 @@ void menu_controller(dish_menu* dm, int cnt) {
         }
 
         printf("请输入点菜数量：");
-        scanf("%d", &nums);
-
         while (scanf("%d", &nums) != 1) {
             clear_stdin_buffer();
             printf("输入无效，请重新输入数量：");
@@ -483,13 +479,13 @@ void checkout() {
     if (count == 0) {
         printf("账单为空！\n");
     } else {
-        printf("%-4s %-6s %-10s %-8s %-6s %-10s %-8s\n", 
+        printf("%-4s %-6s %-10s %-8s %-6s %-10s\n", 
                "序号", "编号", "菜品名称", "单价", "数量", "小计");
         printf("-------------------------------------------------------------------\n");
         
         for (int i = 0; i < count; i++) {
             double subtotal = orders[i].dish_price * orders[i].nums;
-            printf("%-4d %-6d %-10s %-8.2lf %-6d %-10.2lf %-8s\n",
+            printf("%-4d %-6d %-10s %-8.2lf %-6d %-10.2lf\n",
                    i + 1,
                    orders[i].no,
                    orders[i].dish_name,

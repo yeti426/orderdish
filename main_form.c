@@ -49,7 +49,6 @@ void clear_stdin_buffer(void) {
 void greet(struct tm* p,int user_role){
 	//转换时区
 	int china_time = (p->tm_hour + 8) % 24;   //伦敦时间->北京时间 
-	if(p->tm_hour + 8 >= 24) p->tm_mday -= 1; //日期回退 
 	//依据时间首先问好
 	printf("+++++++++++++++++++++++++++++++++++++++++++\n");
 	if(china_time >= 6 && china_time < 8) printf("晨光熹微，客官安好！");

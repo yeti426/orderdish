@@ -72,7 +72,7 @@ void admin_form() {
                 Sleep(1000);
             }
         }
-    } while(flag == 1);
+    } while(flag != 0);
     
     do {
         choice = admin_menu();
@@ -520,7 +520,7 @@ void create_date_filename(char* fdate){
 	char date[20] = "";//strcat 拼接的前提：目标字符串必须是空的！
 	struct tm* p = get_time();//struct tm 是系统固定结构，localtime 自动把当前时间 年 / 月 / 日 填进去，p 指向这个装满时间的盒子
 	int mday = p->tm_mday;// 使用局部变量，避免修改gmtime返回的共享内存
-	if(p->tm_hour + 8 >= 24) mday -= 1;//如果当前时间是23点，则减一天，因为23点是0点，0点是第二天的第一点，所以要减一天。
+	if(p->tm_hour + 8 >= 24) mday -= 1;//北京时间已过午夜，凌晨营业的收银额归入前一天
 	
 	char year[5] = "";
 	char month[5] = "";
