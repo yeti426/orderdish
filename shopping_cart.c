@@ -40,7 +40,7 @@ void display_cart() {
         printf("\n选膳筐为空！\n");
     } else {
         printf("\n%-4s %-6s %-10s %-8s %-6s %-10s %-8s %-10s\n", 
-               "序号", "编号", "菜品名称", "单价", "数量", "小计", "状态", "备注");
+               "序号", "编号", "菜品名称", "单价", "数量", "小计", "状态", "口味");
         printf("---------------------------------------------------------------------\n");
         
         for (int i = 0; i < cart.count; i++) { 
@@ -52,18 +52,17 @@ void display_cart() {
                    cart.items[i].nums,
                    cart.items[i].subtotal,
                    "未提交",
-                   cart.items[i].remark[0] != '\0' ? cart.items[i].remark : "正常");
+                   cart.items[i].remark[0] != '\0' ? cart.items[i].remark : "-");
         }
         printf("---------------------------------------------------------------------\n");
-        printf("总金额：%.2lf 元 | 厨房状态：%-6s\n",
-               cart.total_amount,
-               cart.kitchen_received ? "已接收" : "未接收");
+        printf("总金额：%.2lf 元\n",
+               cart.total_amount);
     }
     
     printf("\n========================================\n");
     
-    // 如果购物车为空或已提交，只显示返回选项
-    if (cart.count == 0 || cart.kitchen_received) {
+    // 如果购物车为空，只显示返回选项
+    if (cart.count == 0) {
         printf("1. 返回主菜单\n");
     } else {
     	// 否则显示完整选项
@@ -273,8 +272,7 @@ void submit_order() {
         fclose(kfp);
     }
     
-    // 4. 更新购物车状态：标记厨房已接收，并清空购物车
-    cart.kitchen_received = 1; 
+    // 4. 清空购物车 [厨房已接收标记已移除] 
 
     // 5. 提示用户并清空内存购物车
     CLEAR_SCREEN();
@@ -320,7 +318,7 @@ void update_total() {
 void init_cart(int table_no) {
     cart.count = 0;
     cart.total_amount = 0;
-    cart.kitchen_received = 0;
+    // cart.kitchen_received = 0; // [厨房已接收标记已移除]
     cart.table_no = table_no;
     
     // 清空购物车数组

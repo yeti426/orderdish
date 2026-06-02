@@ -244,13 +244,15 @@ void display_menu(dish_menu *dm, int cnt, int sort_type) {
     printf("----------------------------------------------------------\n");
     
     for(i = 0; i < cnt; i++){
+        // 构建菜名前缀：招牌标记
+        char prefix[30] = "";
         if (is_recommend(temp_dm[i].type, temp_dm[i].no)) {
-            printf(" %d\t %d\t 【招牌】%s\t %.2lf\n",
-                   i + 1, temp_dm[i].no, temp_dm[i].dish_name, temp_dm[i].dish_price);
-        } else {
-            printf(" %d\t %d\t %s\t %.2lf\n",
-                   i + 1, temp_dm[i].no, temp_dm[i].dish_name, temp_dm[i].dish_price);
+            strcat(prefix, "【招牌】");
         }
+        // 菜名固定宽度左对齐，【选】放在菜名后面
+        printf(" %d\t %d\t %s%-10s%s\t %.2lf\n",
+               i + 1, temp_dm[i].no, prefix, temp_dm[i].dish_name,
+               temp_dm[i].has_options ? "【选】" : "", temp_dm[i].dish_price);
     }
 	printf("----------------------------------------------------------\n");
 }
@@ -324,22 +326,62 @@ void menu_controller(dish_menu* dm, int cnt) {
         // 加入购物车
         // ===============================
         dish_menu selected = dm[choice - 1];
+
+        // 辣度选择（仅对有口味选项的菜品）
+        char spicy_remark[50] = ""; // 默认无备注
+        if (selected.has_options) {
+            printf("\n===== 请选择辣度 =====\n");
+            printf("1. 不辣\n");
+            printf("2. 微辣\n");
+            printf("3. 中辣\n");
+            printf("4. 特辣\n");
+            printf("======================\n");
+            printf("请选择 (1-4): ");
+            int spicy_choice;
+            scanf("%d", &spicy_choice);
+            error_check(1, 4, &spicy_choice);
+            switch(spicy_choice) {
+                case 1: strcpy(spicy_remark, "不辣"); break;
+                case 2: strcpy(spicy_remark, "微辣"); break;
+                case 3: strcpy(spicy_remark, "中辣"); break;
+                case 4: strcpy(spicy_remark, "特辣"); break;
+            }
+        }
+
         int idx = find_item_in_cart(selected.no);
 
         if (idx != -1) {
-            cart.items[idx].nums += nums;
+            // 如果已有同编号菜品，检查辣度是否一致，一致则累加数量
+            if (strcmp(cart.items[idx].remark, spicy_remark) == 0) {
+                cart.items[idx].nums += nums;
+            } else {
+                // 辣度不同，作为新菜品添加
+                cart.items[cart.count].no = selected.no;
+                strcpy(cart.items[cart.count].dish_name, selected.dish_name);
+                cart.items[cart.count].dish_price = selected.dish_price;
+                cart.items[cart.count].type = selected.type;
+                cart.items[cart.count].nums = nums;
+                cart.items[cart.count].status = STATUS_PENDING;
+                strcpy(cart.items[cart.count].remark, spicy_remark);
+                cart.count++;
+            }
         } else {
             cart.items[cart.count].no = selected.no;
             strcpy(cart.items[cart.count].dish_name, selected.dish_name);
             cart.items[cart.count].dish_price = selected.dish_price;
             cart.items[cart.count].type = selected.type;
             cart.items[cart.count].nums = nums;
-            cart.items[cart.count].status = STATUS_PENDING; // 使用 init.h 中定义的宏
+            cart.items[cart.count].status = STATUS_PENDING;
+            strcpy(cart.items[cart.count].remark, spicy_remark);
             cart.count++;
         }
 
         update_total();
-        printf("已添加：%s × %d\n", selected.dish_name, nums);
+        if (selected.has_options) {
+            printf("已添加：%s × %d (%s)\n", selected.dish_name, nums, spicy_remark);
+        } else {
+            printf("已添加：%s × %d\n", selected.dish_name, nums);
+        }
         getch();
 
         printf("是否继续点菜？ 1.是 2.否：");
