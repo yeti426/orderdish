@@ -42,23 +42,12 @@ void customer_form() {
     
     // 选桌
     printf("**************************************\n");
-    // 显示座位总数提示
-    printf("       本店共设 %d 间雅座\n", MAX_TABLES); 
-    printf("**************************************\n");
-    printf("请入坐雅间桌号 (1-%d)：", MAX_TABLES);
-    
+    printf("请入坐雅间桌号：");
     while (scanf("%d", &table_no) != 1) {
         while (getchar() != '\n');
         printf("桌号有误，请重报雅座编号：");
     }
     
-    //增加桌号范围检查，防止输入超过最大座位数
-    while (table_no < 1 || table_no > MAX_TABLES) {
-        printf("抱歉，本店只有 1 到 %d 号雅座，请重新输入：", MAX_TABLES);
-        while (getchar() != '\n'); // 清空缓冲区
-        scanf("%d", &table_no);
-    }
-
     init_cart(table_no);          // 初始化购物车
     
     // 选择服务
@@ -139,10 +128,10 @@ void read_menu(char* filename, dish_menu* dm, int* cnt) {
  */
 void ordering_menu() {
 
-    // 如果上一单已提交且购物车为空，重置状态以允许新点餐
-    if (cart.kitchen_received && cart.count == 0) {
-        cart.kitchen_received = 0;
-    }
+    // // 如果上一单已提交且购物车为空，重置状态以允许新点餐
+    // if (cart.kitchen_received && cart.count == 0) {
+    //     cart.kitchen_received = 0;
+    // }
 
     int choice;
     do {
@@ -369,13 +358,13 @@ void view_bill() {
     }
     fclose(fp);
     
-    // 获取订单状态文字
-    char* status_text;
-    switch(order_status) {
-        case 1: status_text = "待支付"; break;
-        case 2: status_text = "已支付"; break; 
-        default: status_text = "未知状态"; break;
-    }
+    // // 获取订单状态文字
+    // char* status_text;
+    // switch(order_status) {
+    //     case 1: status_text = "待支付"; break;
+    //     case 2: status_text = "已支付"; break; 
+    //     default: status_text = "未知状态"; break;
+    // }
     
     system("cls");
     printf("========================================\n");
