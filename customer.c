@@ -1,5 +1,8 @@
 #include "init.h"
 
+int find_item_in_cart(int dish_no);
+void update_total(void);
+
 //变量声明 
 extern int table_no;                 //餐台号 
 extern shopping_cart cart;    //购物车全局变量
@@ -250,104 +253,80 @@ void display_menu(dish_menu *dm, int cnt, int sort_type) {
  * 函数功能：菜单交互（显示菜单、处理点菜逻辑）
  */
 void menu_controller(dish_menu* dm, int cnt) {
-    int choice;
-    int nums;
-    int continue_choice;
-    int sort_type = 0; // 0:默认, 1:升序, 2:降序
-
     if (dm == NULL || cnt <= 0) {
         printf("当前分类没有可用菜单。\n");
         getch();
         return;
     }
 
-    do {
-         // 先显示排序选择菜单
-        system("cls");
-        printf("========================================\n");
-        printf("         查看方式选择\n");
-        printf("========================================\n");
-        printf("1. 默认排序\n");
-        printf("2. 价格降序 (高 -> 低)\n");
-        printf("3. 价格升序 (低 -> 高)\n");
-        printf("========================================\n");
-        printf("请选择查看方式: ");
-        
-        int sort_choice;
-        scanf("%d", &sort_choice);
-        error_check(1, 3, &sort_choice);
-        sort_type = sort_choice;
+    int sort_type = 0; // 0默认 1降序 2升序
 
-        // 显示排序后的菜单
+    // ===== 只问一次排序方式 =====
+    system("cls");
+    printf("========================================\n");
+    printf("         选择查看方式\n");
+    printf("========================================\n");
+    printf("1. 默认排序\n");
+    printf("2. 价格降序 (高 → 低)\n");
+    printf("3. 价格升序 (低 → 高)\n");
+    printf("========================================\n");
+    printf("请选择: ");
+    scanf("%d", &sort_type);
+    error_check(1, 3, &sort_type);
+
+    int choice, nums, continue_choice;
+
+    do {
+        // ===== 每次都用同一排序规则 =====
         display_menu(dm, cnt, sort_type);
 
         printf("请输入要点的菜品序号(0返回)：");
         if (scanf("%d", &choice) != 1) {
             clear_stdin_buffer();
-            printf("输入无效，请重新输入菜品序号：");
             continue;
         }
-
-        if (choice == 0)  return;
-
+        if (choice == 0) return;
         if (choice < 1 || choice > cnt) {
-            printf("无效的菜品序号！\n");
+            printf("无效序号！\n");
             getch();
             continue;
         }
 
         printf("请输入点菜数量：");
-        scanf("%d", &nums);
-
-        while (scanf("%d", &nums) != 1) {
-            clear_stdin_buffer();
-            printf("输入无效，请重新输入数量：");
-        }
-
-        if (nums <= 0) {
-            printf("份数需至少一份\n");
+        if (scanf("%d", &nums) != 1 || nums <= 0) {
+            printf("数量无效！\n");
             getch();
             continue;
         }
 
+        // ===============================
+        // 真正加入购物车
+        // ===============================
+        dish_menu selected = dm[choice - 1];
+        int idx = find_item_in_cart(selected.no);
 
-        dish_menu current_display_dm[MAX_LENGTH];
-        for(int k=0; k<cnt; k++) current_display_dm[k] = dm[k];
-        
-        // 再次执行相同的排序逻辑
-        if (sort_type == 1 || sort_type == 2) {
-            for (int i = 0; i < cnt - 1; i++) {
-                for (int j = 0; j < cnt - 1 - i; j++) {
-                    int should_swap = 0;
-                    if (sort_type == 1) { 
-                        if (current_display_dm[j].dish_price > current_display_dm[j+1].dish_price) should_swap = 1;
-                    } else if (sort_type == 2) { 
-                        if (current_display_dm[j].dish_price < current_display_dm[j+1].dish_price) should_swap = 1;
-                    }
-                    if (should_swap) {
-                        dish_menu temp = current_display_dm[j];
-                        current_display_dm[j] = current_display_dm[j+1];
-                        current_display_dm[j+1] = temp;
-                    }
-                }
-            }
+        if (idx != -1) {
+            cart.items[idx].nums += nums;
+        } else {
+            cart.items[cart.count].no = selected.no;
+            strcpy(cart.items[cart.count].dish_name, selected.dish_name);
+            cart.items[cart.count].dish_price = selected.dish_price;
+            cart.items[cart.count].type = selected.type;
+            cart.items[cart.count].nums = nums;
+            cart.items[cart.count].status = DISH_STATUS_PENDING;
+            cart.count++;
         }
 
-        getch(); // 暂停一下让用户看到反馈
-
-
-
+        update_total();
+        printf("已添加：%s × %d\n", selected.dish_name, nums);
+        getch();
 
         printf("是否继续点菜？ 1.是 2.否：");
-        while (scanf("%d", &continue_choice) != 1) {
-            clear_stdin_buffer();
-            printf("输入无效，请重新输入：");
-        }
+        scanf("%d", &continue_choice);
         error_check(1, 2, &continue_choice);
 
     } while (continue_choice == 1);
 }
-
 
 /*
  * 函数功能：查看已点菜品（显示所有已点菜品）
@@ -452,7 +431,7 @@ void view_bill() {
         
         for (int i = 0; i < count; i++) {
             double subtotal = orders[i].dish_price * orders[i].nums;
-            const char* status_str = (orders[i].status == DISH_STATUS_DONE) ? "✅已完成" : "⏳制作中";
+            const char* status_str = (orders[i].status == DISH_STATUS_DONE) ? "已完成" : "⏳制作中";
             printf("%-4d %-6d %-10s %-8.2lf %-6d %-10.2lf %-8s\n",
                    i + 1,
                    orders[i].no,
