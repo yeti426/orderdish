@@ -516,7 +516,7 @@ void checkout() {
                    &orders[count].dish_price,
                    &orders[count].type,
                    &orders[count].nums,
-                   &orders[count].status) == 6)            
+                   &orders[count].status) == 6){           
         total += orders[count].dish_price * orders[count].nums;
         count++;
     }
