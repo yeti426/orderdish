@@ -26,8 +26,8 @@ typedef struct a{
 //顾客点菜订单的数据结构 
 
 // 定义菜品制作状态
-#define STATUS_PENDING 0   // 待制作
-#define STATUS_DONE 1      // 已制作
+#define DISH_STATUS_PENDING 0   // 待制作
+#define DISH_STATUS_DONE 1      // 已制作
 
 // 购物车项结构（也是订单项结构）
 typedef struct {
@@ -54,7 +54,8 @@ typedef struct {
     cart_item items[MAX_LENGTH];  // 购物车项数组
     int count;                     // 当前菜品数量
     double total_amount;           // 总金额
-    int table_no;                  // 雅座
+    int table_no;   
+    int kitchen_received;          // 标记厨房是否已接收订单               // 雅座
 } shopping_cart;
 
 // 评价结构
@@ -88,6 +89,8 @@ void display_cart(void);
 void remove_from_cart(int index);
 void submit_order(void);
 void clear_stdin_buffer(void);
+void clear_cart_items(void);
+void ordering_menu(void);
 
 int is_recommend(int type, int no);
 

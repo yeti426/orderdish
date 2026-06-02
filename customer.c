@@ -382,7 +382,7 @@ void view_bill() {
         
         for (int i = 0; i < count; i++) {
             double subtotal = orders[i].dish_price * orders[i].nums;
-            const char* status_str = (orders[i].status == STATUS_DONE) ? "✅已完成" : "⏳制作中";
+            const char* status_str = (orders[i].status == DISH_STATUS_DONE) ? "✅已完成" : "⏳制作中";
             printf("%-4d %-6d %-10s %-8.2lf %-6d %-10.2lf %-8s\n",
                    i + 1,
                    orders[i].no,

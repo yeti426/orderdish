@@ -164,7 +164,7 @@ void submit_order() {
                     cart.items[i].no,          // 菜品编号
                     cart.items[i].dish_name,   // 菜名
                     cart.items[i].nums,        // 数量
-                    STATUS_PENDING);           // 初始状态为待做
+                    DISH_STATUS_PENDING);      // 初始状态为待做
         }
         fclose(kfp);
     }
