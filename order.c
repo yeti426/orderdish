@@ -7,7 +7,7 @@
 
 
 /*
- * 功能：根据桌号生成订单文件名
+ * 功能：根据雅座生成订单文件名
  */
 void create_order_filename(int table_no, char* fstr,int size) {
 // 确保 order 目录存在
@@ -71,7 +71,7 @@ void check_bill() {
     system("cls");
 
     int table_no;
-    printf("请输入桌号：");
+    printf("请输入雅座：");
     scanf("%d", &table_no);
 
     char fstr[50];
@@ -164,7 +164,7 @@ void check_bill() {
     if (reduction_amount < 0.001) reduction_amount = 0.0; // 消除 -0.000001 这种误差
 
     printf("========== 账单明细 ==========\n");
-    printf("桌号：%d\n", table_no);
+    printf("雅座：%d\n", table_no);
     printf("菜品数量：%d 项\n", cnt);
     printf("原价：%.2lf 元\n", total);
     printf("折扣：8.8 折\n");
@@ -267,7 +267,7 @@ void order_status() {
     system("cls");
 
     int table_no;
-    printf("请输入桌号：");
+    printf("请输入雅座：");
     scanf("%d", &table_no);
 
     char fstr[50];
@@ -278,7 +278,7 @@ void order_status() {
         printf("========================================\n");
         printf("         订单状态查询\n");
         printf("========================================\n");
-        printf("桌号 %d 当前没有待支付的订单。\n", table_no);
+        printf("雅座 %d 当前没有待支付的订单。\n", table_no);
         printf("(可能尚未点餐，或订单已支付并归档)\n");
         printf("========================================\n");
         getch();
@@ -292,7 +292,7 @@ void order_status() {
     printf("========================================\n");
     printf("         订单状态查询\n");
     printf("========================================\n");
-    printf("桌号: %d\n", table_no);
+    printf("雅座: %d\n", table_no);
     
     switch (flag) {
         case 1: 
@@ -404,7 +404,7 @@ void save_review(int table_no) {
         system("mkdir reviews");
     }
     
-    // 生成评价文件名: reviews/review_桌号_时间戳.txt (简化为追加到总文件或者按桌号存)
+    // 生成评价文件名: reviews/review_雅座_时间戳.txt (简化为追加到总文件或者按雅座存)
     
     char filename[100];
     snprintf(filename, sizeof(filename), "reviews\\review_table_%d.txt", table_no);
@@ -412,7 +412,7 @@ void save_review(int table_no) {
     FILE* fp = fopen(filename, "a"); // 追加模式
     if (fp) {
         fprintf(fp, "--------------------------\n");
-        fprintf(fp, "桌号: %d\n", table_no);
+        fprintf(fp, "雅座: %d\n", table_no);
         fprintf(fp, "时间: %s\n", time_str);
         fprintf(fp, "等级: %s\n", level);
         fprintf(fp, "留言: %s\n", comment);

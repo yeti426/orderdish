@@ -70,53 +70,53 @@ void init_cart(int table_no) {
 }
 
 
-/*
- * 函数功能：添加菜品到购物车
- * 参数：dm - 菜单数组, index - 菜品索引, nums - 数量
- */
-void add_to_cart(dish_menu* dm, int index, int nums) {
-	if (nums <= 0) {
-		printf("数量必须 > 0!\n");
-		getch();
-		return;
-	}
-	if(index < 0 || index >= MAX_LENGTH || dm[index].no == 0) {
-		printf("无效菜品序号！\n");
-		getch();
-		return;
-	}
+// /*
+//  * 函数功能：添加菜品到购物车
+//  * 参数：dm - 菜单数组, index - 菜品索引, nums - 数量
+//  */
+// void add_to_cart(dish_menu* dm, int index, int nums) {
+// 	if (nums <= 0) {
+// 		printf("数量必须 > 0!\n");
+// 		getch();
+// 		return;
+// 	}
+// 	if(index < 0 || index >= MAX_LENGTH || dm[index].no == 0) {
+// 		printf("无效菜品序号！\n");
+// 		getch();
+// 		return;
+// 	}
 	
-	int i = find_item_in_cart(dm[index].no);
-	if (i != -1) {
-		// 已存在，增加数量
-		cart.items[i].nums += nums;
-		printf("已增加 %s ×%d！\n", dm[index].dish_name, nums);
-		cart.items[i].subtotal = cart.items[i].dish_price * cart.items[i].nums;
-		update_total();
-		getch();
-		return;
-	} else {
-		// 不存在，添加新项
-		if (cart.count >= MAX_LENGTH) {
-            printf("购物车已满！\n");
-            getch();
-            return;
-        }
-        cart.items[cart.count].no = dm[index].no;
-        strcpy(cart.items[cart.count].dish_name, dm[index].dish_name);
-        cart.items[cart.count].dish_price = dm[index].dish_price;
-        cart.items[cart.count].type = dm[index].type;
-        cart.items[cart.count].nums = nums;
-        cart.items[cart.count].subtotal = dm[index].dish_price * nums;
-        cart.items[cart.count].status = 0; 
+// 	int i = find_item_in_cart(dm[index].no);
+// 	if (i != -1) {
+// 		// 已存在，增加数量
+// 		cart.items[i].nums += nums;
+// 		printf("已增加 %s ×%d！\n", dm[index].dish_name, nums);
+// 		cart.items[i].subtotal = cart.items[i].dish_price * cart.items[i].nums;
+// 		update_total();
+// 		getch();
+// 		return;
+// 	} else {
+// 		// 不存在，添加新项
+// 		if (cart.count >= MAX_LENGTH) {
+//             printf("购物车已满！\n");
+//             getch();
+//             return;
+//         }
+//         cart.items[cart.count].no = dm[index].no;
+//         strcpy(cart.items[cart.count].dish_name, dm[index].dish_name);
+//         cart.items[cart.count].dish_price = dm[index].dish_price;
+//         cart.items[cart.count].type = dm[index].type;
+//         cart.items[cart.count].nums = nums;
+//         cart.items[cart.count].subtotal = dm[index].dish_price * nums;
+//         cart.items[cart.count].status = 0; 
         
-        cart.count++;
-        update_total();
-        printf("已将 %s 加入选膳筐！\n", dm[index].dish_name);
-    }
-    update_total();
-    getch();
-}
+//         cart.count++;
+//         update_total();
+//         printf("已将 %s 加入选膳筐！\n", dm[index].dish_name);
+//     }
+//     update_total();
+//     getch();
+// }
     
 
 /*
@@ -149,7 +149,7 @@ void remove_from_cart(int index) {
 void display_cart() {
     system("cls");
     printf("========================================\n");
-    printf("         选膳筐 (桌号: %d)\n", cart.table_no);
+    printf("         选膳筐 (雅座: %d)\n", cart.table_no);
     printf("========================================\n");
     
     if (cart.count == 0) {
@@ -181,21 +181,27 @@ void display_cart() {
         printf("1. 返回主菜单\n");
     } else {
     	// 否则显示完整选项
-    	printf("1. 删除菜品\n");
-        printf("2. 提交，报送厨灶\n");
-        printf("3. 返回主菜单\n");
+    	printf("1. 提交，报送厨灶\n");
+        printf("2. 删除菜品\n");
+        printf("3. 继续加菜\n");
+        printf("4. 返回\n");
 	}
     printf("请选择: ");
         
     int choice;
     scanf("%d", &choice);
-    error_check(1, cart.kitchen_received || cart.count == 0 ? 1 : 3, &choice);
-    if (cart.kitchen_received || cart.count == 0){
-    	return;
-	}
+    // error_check(1, cart.kitchen_received || cart.count == 0 ? 1 : 3, &choice);
+    // if (cart.kitchen_received || cart.count == 0){
+    // 	return;
+	// }
     
     switch(choice) {
-        case 1: {
+        case 1:  {
+            submit_order();  // 提交后会显示已点菜品
+            break;
+        }
+        case 2:
+        {
             printf("请输入要删除的序号: ");
             int del_index;
             scanf("%d", &del_index);
@@ -219,12 +225,12 @@ void display_cart() {
             getch();
             break;
         }
-        case 2: {
-            submit_order();  // 提交后会显示已点菜品
-            break;
-        }
         case 3:
+           ordering_menu();  // 继续点菜
             break;
+        case 4: 
+            break;
+        
     }
 }
 
@@ -268,8 +274,6 @@ void submit_order() {
         return;
     }
     
-    // 写入订单状态：1-待支付
-    fprintf(fp, "1\n");
     
     // 获取并写入订单备注
     char remark[200] = "";
