@@ -25,6 +25,7 @@ void checkout(void);                          //结账（呼叫店小二）
 extern void error_check(int,int,int*);              //输入错误检查
 extern void greet(struct tm* p,int);                //问候语
 extern struct tm* get_time();                       //获取系统时间
+extern void clear_stdin_buffer(void);
 extern void create_order_filename(int,char*,int);   //生成订单文件名  
 extern void order_status();                         //生成订单状态
 extern void display_cart();                         //查看已点菜品
@@ -38,17 +39,19 @@ void customer_form() {
     system("cls");
     int greet_type = 1;
 	struct tm* p = get_time();
-	greet(p,greet_type);          // 根据时间和身份，打印问候语
+	greet(p,greet_type);           // 根据时间和身份，打印问候语
     
     // 选桌
     printf("**************************************\n");
-    printf("请入坐雅间桌号：");
+    printf("请入坐雅间雅座：");
+
+    // 输入验证，确保整数
     while (scanf("%d", &table_no) != 1) {
-        while (getchar() != '\n');
-        printf("桌号有误，请重报雅座编号：");
+        while (getchar() != '\n'); // 清空输入缓冲区
+        printf("雅座有误，请重报雅座编号：");
     }
     
-    init_cart(table_no);          // 初始化购物车
+    init_cart(table_no);           // 初始化购物车（绑定雅座）
     
     // 选择服务
     int choice;
@@ -70,16 +73,16 @@ void customer_form() {
         
         switch(choice) {
             case 1: 
-                ordering_menu();  // 点菜子菜单
+                ordering_menu();  // 点菜
                 break;
             case 2: 
                 display_cart();   // 查看购物车
                 break;
             case 3: 
-                view_bill();      // 查看账单（已点菜品）
+                view_bill();      // 查看账单（已提交订单）
                 break;
             case 4: 
-                checkout();       // 结账
+                checkout();       // 呼叫结账
                 break;
             case 5: 
                 break;
@@ -127,7 +130,6 @@ void read_menu(char* filename, dish_menu* dm, int* cnt) {
  * 函数功能：点菜子菜单（整合四类菜品）
  */
 void ordering_menu() {
-
     // 如果上一单已提交且购物车为空，重置状态以允许新点餐
     if (cart.kitchen_received && cart.count == 0) {
         cart.kitchen_received = 0;
@@ -139,10 +141,10 @@ void ordering_menu() {
         printf("========================================\n");
         printf("         点菜菜单\n");
         printf("========================================\n");
-        printf("1. 炉上热馔\n");
-        printf("2. 清润冷碟\n");
-        printf("3. 五谷主食\n");
-        printf("4. 琼浆茶饮\n");
+        printf("1. 炉上热馔\n"); //热菜
+        printf("2. 清润冷碟\n"); //凉菜
+        printf("3. 五谷主食\n"); //主食
+        printf("4. 琼浆茶饮\n"); //饮品
         printf("5. 返回主菜单\n");
         printf("========================================\n");
         printf("请选择: ");
@@ -155,7 +157,6 @@ void ordering_menu() {
             case 2: cold_dish(); break;
             case 3: staple_food(); break;
             case 4: drink(); break;
-            case 5: break;
         }
     } while(choice != 5);
 }
@@ -171,7 +172,7 @@ void cold_dish(){
 	int cnt = 0;
 	//打开 cold_dish.txt 并读取数据进行显示
 	read_menu(cold_dish_filename,cold_dish_menu,&cnt);
-	//显示菜单并执行点菜操作
+	//调用菜单交互函数，处理点菜逻辑
 	menu_controller(cold_dish_menu,cnt); 
 }
 void hot_dish(){
@@ -214,7 +215,6 @@ void display_menu(dish_menu *dm, int cnt){
                    i + 1, dm[i].no, dm[i].dish_name, dm[i].dish_price);
         }
     }
-	
 	printf("----------------------------------------------------------\n");
 }
 
@@ -294,7 +294,7 @@ void view_bill() {
     if (!fp) {
         system("cls");
         printf("========================================\n");
-        printf("         账单 (桌号: %d)\n", table_no);
+        printf("         账单 (雅座: %d)\n", table_no);
         printf("========================================\n");
         printf("\n您还没有点菜！\n");
         printf("\n========================================\n");
@@ -368,7 +368,7 @@ void view_bill() {
     
     system("cls");
     printf("========================================\n");
-    printf("         账单 (桌号: %d)\n", table_no);
+    printf("         账单 (雅座: %d)\n", table_no);
     printf("========================================\n");
     printf("订单状态: %s\n", status_text);
     printf("\n");
@@ -434,7 +434,7 @@ void checkout() {
     if (!fp) {
         system("cls");
         printf("========================================\n");
-        printf("         结账 (桌号: %d)\n", table_no);
+        printf("         结账 (雅座: %d)\n", table_no);
         printf("========================================\n");
         printf("\n您还没有点菜，无法结账！\n");
         printf("\n按任意键返回...");
@@ -479,7 +479,7 @@ void checkout() {
     
     system("cls");
     printf("========================================\n");
-    printf("         结账 (桌号: %d)\n", table_no);
+    printf("         结账 (雅座: %d)\n", table_no);
     printf("========================================\n");
     printf("\n");
     

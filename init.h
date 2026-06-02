@@ -47,7 +47,7 @@ typedef struct {
     cart_item items[MAX_LENGTH];  // 购物车项数组
     int count;                     // 当前菜品数量
     double total_amount;           // 总金额
-    int table_no;                  // 桌号
+    int table_no;                  // 雅座
     int kitchen_received;          // 厨房是否收到：0-未收到, 1-已收到
 } shopping_cart;
 
@@ -56,7 +56,7 @@ typedef struct {
     char level[20];   // 评价等级:夯, 顶级, 人上人, NPC, 拉完了
     char comment[200]; // 评价留言
     char time_str[50]; // 评价时间
-    int table_no;      // 桌号
+    int table_no;      // 雅座
 } review;
 
 

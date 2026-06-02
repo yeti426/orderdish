@@ -154,7 +154,7 @@ void remove_from_cart(int index) {
 void display_cart() {
     system("cls");
     printf("========================================\n");
-    printf("         选膳筐 (桌号: %d)\n", cart.table_no);
+    printf("         选膳筐 (雅座: %d)\n", cart.table_no);
     printf("========================================\n");
     
     if (cart.count == 0) {

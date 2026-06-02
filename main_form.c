@@ -1,29 +1,29 @@
 #include"init.h" //引入初始化模块
 
 /*
- * 函数功能: 程序主界面的显示界面，获取选择信息并返回至主函数main
+ * 函数功能: 主界面函数，显示主界面并获取用户选择信息
  */
 int main_form(){
-	system("cls"); //清屏
-	int greet_type = 0; //初始化问候类型
+	system("cls");             //清屏
+	int greet_type = 0;        //初始化问候类型
 	struct tm* p = get_time(); //获取时间
-	greet(p,greet_type); //根据时间打印问候语 
+	greet(p,greet_type);       //根据时间打印问候语 
 	
 	int op; //定义一个选择变量 
 	printf("请择一身份入内：\n");
-	printf("1.往来客商\n");
-	printf("2.掌柜内务\n");
-	printf("3.打烊离去\n");
+	printf("1.往来客商\n");     //顾客界面
+	printf("2.掌柜内务\n");     //管理员界面
+	printf("3.打烊离去\n");     //退出程序
 	printf("请在此输入：");
 	scanf("%d",&op);
 	
-	//差错检测，防止输入错误选择导致程序崩溃
-	error_check(1,3,&op);
+	error_check(1,3,&op);	   //差错检测，防止输入错误选择导致程序崩溃
 	return op; 
 }
 
+
 /*
- * 函数功能: 用于检测输入是否正确，若为非法输入，则重复修改选择直至合法
+ * 函数功能: 用于检测输入是否正确，若为非法输入，则重复修改选择直至合法输入
  */
 void error_check(int range_left ,int range_right, int* op){
 	while(*op < range_left || *op > range_right){
@@ -32,12 +32,22 @@ void error_check(int range_left ,int range_right, int* op){
 	}
 }
 
+
 /*
- * 函数功能: 问候函数，依据当前时间和用户类型给出问候
+ * 函数功能: 清空标准输入缓冲区
+ */
+void clear_stdin_buffer(void) {
+    int ch;
+    while ((ch = getchar()) != '\n' && ch != EOF);
+}
+
+
+/*
+ * 函数功能: 智能问候函数，根据时间和用户身份输出不同的问候语
  */
 void greet(struct tm* p,int user_role){
 	//转换时区
-	int china_time = (p->tm_hour + 8) % 24; //伦敦时间->北京时间 
+	int china_time = (p->tm_hour + 8) % 24;   //伦敦时间->北京时间 
 	if(p->tm_hour + 8 >= 24) p->tm_mday -= 1; //日期回退 
 	//依据时间首先问好
 	printf("+++++++++++++++++++++++++++++++++++++++++++\n");
@@ -64,14 +74,15 @@ void greet(struct tm* p,int user_role){
 	}   
 }
 
+
 /*
  * 函数功能: 获取时间并返回相关参数
  */
 struct tm* get_time(){
-	time_t timep; //定义时间戳变量：1970年到现在的秒数
+	time_t timep;         //定义时间戳变量：1970年到现在的秒数
 	struct tm* p;  
-	time(&timep); //把时间填入变量
-	p = gmtime(&timep); //把秒数变成含年月日时分秒的结构体 
+	time(&timep);         //把时间填入变量
+	p = gmtime(&timep);   //把秒数变成含年月日时分秒的结构体 
 	
 	return p; 
 } 

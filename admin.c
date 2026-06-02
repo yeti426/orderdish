@@ -824,7 +824,7 @@ void view_reviews() {
         return;
     }
 
-    // 列出所有评价文件（review_table_桌号.txt）
+    // 列出所有评价文件（review_table_雅座.txt）
     struct _finddata_t fileinfo;
     intptr_t handle;
     char pattern[100] = "reviews\\review_table_*.txt";
@@ -839,30 +839,30 @@ void view_reviews() {
     int tables[100];
     int table_cnt = 0;
 
-    printf("已有评价的桌号：\n");
+    printf("已有评价的雅座：\n");
     printf("--------------------------\n");
     do {
         int table_no;
-        // 从文件名 "review_table_1.txt" 中提取桌号
+        // 从文件名 "review_table_1.txt" 中提取雅座
         sscanf(fileinfo.name, "review_table_%d.txt", &table_no);
         tables[table_cnt++] = table_no;
-        printf("  桌号: %d\n", table_no);
+        printf("  雅座: %d\n", table_no);
     } while (_findnext(handle, &fileinfo) == 0);
     _findclose(handle);
 
     printf("--------------------------\n");
-    printf("请输入要查看的桌号(0退出)：");
+    printf("请输入要查看的雅座(0退出)：");
     int choice;
     scanf("%d", &choice);
     if (choice == 0) return;
 
-    // 验证桌号是否存在
+    // 验证雅座是否存在
     int found = 0, i;
     for (i = 0; i < table_cnt; i++) {
         if (tables[i] == choice) { found = 1; break; }
     }
     if (!found) {
-        printf("该桌号暂无评价！\n");
+        printf("该雅座暂无评价！\n");
         getch();
         return;
     }
