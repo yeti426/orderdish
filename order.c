@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <windows.h>
 #include <string.h>
-#include <direct.h>
+#include <io.h> 
 
 
 /*
