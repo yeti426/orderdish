@@ -259,34 +259,45 @@ void menu_controller(dish_menu* dm, int cnt) {
         return;
     }
 
-    int sort_type = 0; // 0默认 1降序 2升序
-
-    // ===== 只问一次排序方式 =====
-    system("cls");
-    printf("========================================\n");
-    printf("         选择查看方式\n");
-    printf("========================================\n");
-    printf("1. 默认排序\n");
-    printf("2. 价格降序 (高 → 低)\n");
-    printf("3. 价格升序 (低 → 高)\n");
-    printf("========================================\n");
-    printf("请选择: ");
-    scanf("%d", &sort_type);
-    error_check(1, 3, &sort_type);
-
+    int sort_type = 0; // 0=默认 1=降序 2=升序
     int choice, nums, continue_choice;
 
-    do {
-        // ===== 每次都用同一排序规则 =====
-        display_menu(dm, cnt, sort_type);
+    // ===============================
+    // ① 默认顺序显示
+    // ===============================
+    display_menu(dm, cnt, sort_type);
 
+    // ===============================
+    // ② 是否改变显示顺序
+    // ===============================
+    printf("是否改变本类菜品显示顺序？(1.是 2.否)：");
+    int change_order;
+    scanf("%d", &change_order);
+    error_check(1, 2, &change_order);
+
+    if (change_order == 1) {
+        system("cls");
+        printf("========================================\n");
+        printf("       选择排序方式（仅影响显示）\n");
+        printf("========================================\n");
+        printf("1. 价格升序 (低 → 高)\n");
+        printf("2. 价格降序 (高 → 低)\n");
+        printf("========================================\n");
+        printf("请选择: ");
+        scanf("%d", &sort_type);
+        error_check(1, 2, &sort_type);
+
+        // 立即重新显示（不跳菜单）
+        display_menu(dm, cnt, sort_type);
+    }
+
+    // ===============================
+    // ③ 然后才开始点菜
+    // ===============================
+    do {
         printf("请输入要点的菜品序号(0返回)：");
         scanf("%d", &choice);
 
-        while (scanf("%d", &choice) != 1) {
-            clear_stdin_buffer();
-            continue;
-        }
         if (choice == 0) return;
         if (choice < 1 || choice > cnt) {
             printf("无效序号！\n");
@@ -296,12 +307,6 @@ void menu_controller(dish_menu* dm, int cnt) {
 
         printf("请输入点菜数量：");
         scanf("%d", &nums);
-
-        while (scanf("%d", &nums) != 1) {
-            clear_stdin_buffer();
-            printf("输入无效，请重新输入数量：");
-        }
-
         if (nums <= 0) {
             printf("份数需至少一份\n");
             getch();
@@ -309,7 +314,7 @@ void menu_controller(dish_menu* dm, int cnt) {
         }
 
         // ===============================
-        // 真正加入购物车
+        // 加入购物车
         // ===============================
         dish_menu selected = dm[choice - 1];
         int idx = find_item_in_cart(selected.no);
@@ -336,6 +341,7 @@ void menu_controller(dish_menu* dm, int cnt) {
 
     } while (continue_choice == 1);
 }
+
 
 /*
  * 函数功能：查看已点菜品（显示所有已点菜品）
