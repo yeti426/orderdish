@@ -1,7 +1,7 @@
 #include "init.h"
 
 //变量声明 
-int table_no;                 //餐台号 
+extern int table_no;                 //餐台号 
 extern shopping_cart cart;    //购物车全局变量
 extern char hot_dish_filename[20];
 extern char cold_dish_filename[20];
@@ -15,7 +15,6 @@ void staple_food();           //主食
 void drink();                 //饮品 
 
 void menu_controller(dish_menu* , int);       //菜单交互 
-void display_menu(dish_menu* , int);          //显示菜单信息
 void read_menu(char* , dish_menu* , int*);    //从文件中读取菜单 
 void ordering_menu(void);                     //点菜子菜单
 void view_bill(void);                         //查看账单（已点菜品）
@@ -27,9 +26,9 @@ extern void greet(struct tm* p,int);                //问候语
 extern struct tm* get_time();                       //获取系统时间
 extern void clear_stdin_buffer(void);
 extern void create_order_filename(int,char*,int);   //生成订单文件名  
-extern void order_status();                         //生成订单状态
-extern void display_cart();                         //查看已点菜品
-extern void check_bill();                           //支付订单 
+extern void order_status(void);                         //生成订单状态
+extern void display_cart(void);                         //查看已点菜品
+extern void check_bill(void);                           //支付订单 
 
 
 /*
@@ -85,6 +84,7 @@ void customer_form() {
                 checkout();       // 呼叫结账
                 break;
             case 5: 
+                printf("感谢光临，欢迎客官下次再来！\n");
                 break;
         }
     } while(choice != 5);
@@ -219,12 +219,6 @@ void display_menu(dish_menu *dm, int cnt){
 }
 
 
-void clear_stdin_buffer(void) {
-    int ch;
-    while ((ch = getchar()) != '\n' && ch != EOF);
-}
-
-
 /*
  * 函数功能：菜单交互（显示菜单、处理点菜逻辑）
  */
@@ -243,14 +237,14 @@ void menu_controller(dish_menu* dm, int cnt) {
         display_menu(dm, cnt);
 
         printf("请输入要点的菜品序号(0返回)：");
+        scanf("%d", &choice);
+
         while (scanf("%d", &choice) != 1) {
             clear_stdin_buffer();
             printf("输入无效，请重新输入：");
         }
 
-        if (choice == 0) {
-            return;
-        }
+        if (choice == 0)  return;
 
         if (choice < 1 || choice > cnt) {
             printf("无效的菜品序号！\n");
@@ -259,6 +253,8 @@ void menu_controller(dish_menu* dm, int cnt) {
         }
 
         printf("请输入点菜数量：");
+        scanf("%d", &nums);
+
         while (scanf("%d", &nums) != 1) {
             clear_stdin_buffer();
             printf("输入无效，请重新输入数量：");
