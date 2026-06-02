@@ -372,19 +372,25 @@ void view_bill() {
         return;
     }
 
-    // 读走状态行后面的换行
-    fgetc(fp);
-
-    // 读取备注行
-    char remark[200];
-    if (fgets(remark, sizeof(remark), fp) == NULL) {
-    strcpy(remark, "无备注");
+    // 读状态行（整行，含换行）
+    char status_line[10];
+    if (fgets(status_line, sizeof(status_line), fp) == NULL) {
+        fclose(fp);
+        printf("订单文件格式错误：缺失状态行！\n");
+        getch();
+        return;
     }
 
-    // 去掉备注末尾换行
-    size_t len = strlen(remark);
-    if (len > 0 && remark[len - 1] == '\n') {
-    remark[len - 1] = '\0';
+    // 读备注行（整行）
+    char remark[200];
+    if (fgets(remark, sizeof(remark), fp) == NULL) {
+        strcpy(remark, "无备注");
+    } else {
+        // 去掉末尾换行（如果存在）
+        size_t len = strlen(remark);
+        if (len > 0 && remark[len - 1] == '\n') {
+            remark[len - 1] = '\0';
+        }
     }
     
     cart_item orders[MAX_LENGTH]; // 改用 cart_item
@@ -408,12 +414,8 @@ void view_bill() {
     system("cls");
     printf("========================================\n");
     printf("         膳单 (雅座: %d)\n", table_no);
-    printf("========================================\n");
-    printf("\n");
-    
-    //显示备注
     printf("订单备注: %s", remark); // remark里包含换行符，所以不用再加\n
-
+    printf("========================================\n");
     printf("\n");
 
     if (count == 0) {
@@ -482,25 +484,24 @@ void checkout() {
         return;
     }
     
-    // 读取订单状态
-    int order_status;
-    if (fscanf(fp, "%d", &order_status) != 1) {
+    // 读状态行
+    char status_line[10];
+    if (fgets(status_line, sizeof(status_line), fp) == NULL) {
         fclose(fp);
-        printf("订单文件读取错误！\n");
+        printf("订单文件格式错误：缺失状态行！\n");
         getch();
         return;
     }
 
-    fgetc(fp); // 吃掉换行
-
+    // 读备注行
     char remark[200];
     if (fgets(remark, sizeof(remark), fp) == NULL) {
         strcpy(remark, "无备注");
-    }
-
-    size_t len = strlen(remark);
-    if (len > 0 && remark[len - 1] == '\n') {
-        remark[len - 1] = '\0';
+    } else {
+        size_t len = strlen(remark);
+        if (len > 0 && remark[len - 1] == '\n') {
+            remark[len - 1] = '\0';
+        }
     }
 
     cart_item orders[MAX_LENGTH]; // 改用 cart_item
@@ -519,7 +520,9 @@ void checkout() {
         total += orders[count].dish_price * orders[count].nums;
         count++;
     }
-    
+
+    fclose(fp);
+
     system("cls");
     printf("========================================\n");
     printf("         结账 (雅座: %d)\n", table_no);
@@ -553,5 +556,4 @@ void checkout() {
     printf("店小二将为您办理结账手续\n");
     printf("\n按任意键返回主菜单...");
     getch();
-    check_bill();  // 更新订单状态为已支付
 }
