@@ -1,4 +1,5 @@
 #include "init.h"
+#include <io.h>    // 用于 _findfirst / _findnext 遍历文件
 //变量声明
 //char pw[20] = "123456";                        //预置密码，方便调试 
 //部分全局变量
@@ -28,6 +29,7 @@ void format_input_income(FILE*,double,double,double,double,double);            /
 int format_output_income(FILE*,double*,double*,double*,double*,double*);       //收入格式化输出到程序，返回1成功0失败 
 void calculate_value(char* , double* , double* , double* , double * , double*);//计算收入   
 void record_income(double,double,double,double,double);                        //用于记录单笔订单收入信息至收入文件中 
+void view_reviews();                           //查看顾客评价
 
 
 //外部函数声明 
@@ -82,9 +84,10 @@ void admin_form() {
             case 5: change_password(); break; 
             case 6: set_recommend(); break;
             case 7: cancel_recommend(); break;
+            case 8: view_reviews(); break;
             default: break; 
         }
-    } while(choice != 8);
+    } while(choice != 9);
 }
 
 
@@ -400,15 +403,16 @@ int admin_menu(){
 	printf("5.密码修改\n"); 
 	printf("6.设置招牌菜\n");
 	printf("7.取消招牌菜\n");
-	printf("8.退出\n");
+	printf("8.查看顾客评价\n");
+	printf("9.退出\n");
 
 	printf("在此输入：");
 	while (scanf("%d", &choice) != 1) {
 		while (getchar() != '\n');  // 清空输入缓冲区，一个一个吃掉缓冲区里的字符，直到遇到换行符为止，把 abc\n 全部清空。
-		printf("输入无效，请重新输入(1-8):");
+		printf("输入无效，请重新输入(1-9):");
 	}
 	
-	error_check(1,8,&choice);
+	error_check(1,9,&choice);
 	return choice;
 }
 
@@ -801,6 +805,93 @@ void del_dish(){
 	}while(choice != 2);
 }
 
+
+
+/*
+* function_name: view_reviews
+* return_type  : void
+* param        : NULL
+* description  : 查看顾客评价
+*/
+void view_reviews() {
+    system("cls");
+    printf("===== 查看顾客评价 =====\n\n");
+
+    // 检查 reviews 目录是否存在
+    if (access("reviews", 0) != 0) {
+        printf("暂无顾客评价记录！\n");
+        getch();
+        return;
+    }
+
+    // 列出所有评价文件（review_table_桌号.txt）
+    struct _finddata_t fileinfo;
+    intptr_t handle;
+    char pattern[100] = "reviews\\review_table_*.txt";
+
+    handle = _findfirst(pattern, &fileinfo);
+    if (handle == -1) {
+        printf("暂无顾客评价文件！\n");
+        getch();
+        return;
+    }
+
+    int tables[100];
+    int table_cnt = 0;
+
+    printf("已有评价的桌号：\n");
+    printf("--------------------------\n");
+    do {
+        int table_no;
+        // 从文件名 "review_table_1.txt" 中提取桌号
+        sscanf(fileinfo.name, "review_table_%d.txt", &table_no);
+        tables[table_cnt++] = table_no;
+        printf("  桌号: %d\n", table_no);
+    } while (_findnext(handle, &fileinfo) == 0);
+    _findclose(handle);
+
+    printf("--------------------------\n");
+    printf("请输入要查看的桌号(0退出)：");
+    int choice;
+    scanf("%d", &choice);
+    if (choice == 0) return;
+
+    // 验证桌号是否存在
+    int found = 0, i;
+    for (i = 0; i < table_cnt; i++) {
+        if (tables[i] == choice) { found = 1; break; }
+    }
+    if (!found) {
+        printf("该桌号暂无评价！\n");
+        getch();
+        return;
+    }
+
+    // 读取并显示评价内容
+    char filename[100];
+    snprintf(filename, sizeof(filename), "reviews\\review_table_%d.txt", choice);
+    FILE* fp = fopen(filename, "r");
+    if (fp == NULL) {
+        printf("无法打开评价文件！\n");
+        getch();
+        return;
+    }
+
+    system("cls");
+    printf("===== %d号桌顾客评价 =====\n\n", choice);
+    char line[300];
+    while (fgets(line, sizeof(line), fp) != NULL) {
+        printf("%s", line);
+    }
+    fclose(fp);
+
+    printf("\n按任意键返回...");
+    getch();
+}
+
+//以下为c部分
+
+
 /*
 * function_name: is_recommend
 * return_type  : int
@@ -821,10 +912,6 @@ int is_recommend(int type, int no) {
 	fclose(fp);
 	return 0;
 }
-
-
-//以下也是c部分
-
 
 /*
 * function_name: set_recommend
