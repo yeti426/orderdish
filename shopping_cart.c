@@ -274,8 +274,6 @@ void submit_order() {
         return;
     }
     
-    // 写入订单状态：1-待支付
-    fprintf(fp, "1\n");
     
     // 获取并写入订单备注
     char remark[200] = "";
