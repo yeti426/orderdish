@@ -2,13 +2,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #ifdef _WIN32
-    #include <windows.h>
+#include <windows.h>
 #else
-    #include <unistd.h>   // macOS/Linux: access() 函数
+#include <unistd.h>   // macOS/Linux: access() 函数
 #endif
 #include <string.h>
 #ifdef _WIN32
-    #include <io.h>       // Windows: access() 函数
+#include <io.h>       // Windows: access() 函数
 #endif
 
 
@@ -34,7 +34,6 @@ if (access("order", 0) != 0) { // 需要 #include <io.h> 或 <unistd.h>
 
 
 
-
 /*
  * 功能：检查订单文件完整性
  */
@@ -42,37 +41,17 @@ int check_order_file(char* fstr) {
     FILE* fp = fopen(fstr, "r");
     if (!fp) return 0;
 
-    // [已移除] 订单文件直接存储菜品数据，无状态行头部
-
-    cart_item o;
-    // 检查每一行数据是否合法（7个字段：编号、名称、价格、类型、数量、状态、口味）
-    while (!feof(fp)) {
-        int ret = fscanf(fp, "%d %s %lf %d %d %d %s",
-                         &o.no,
-                         o.dish_name,
-                         &o.dish_price,
-                         &o.type,
-                         &o.nums,
-                         &o.status,
-                         o.remark);
-
-        // 如果读到末尾或格式不对，跳出循环
-        if (ret == 6) {
-            strcpy(o.remark, "-");
-        } else if (ret < 6) {
-            break;
-        } 
-
-        if (o.dish_price <= 0) { fclose(fp); return 0; }
-        if (o.nums <= 0) { fclose(fp); return 0; }
-        if (o.type < 1 || o.type > 4) { fclose(fp); return 0; }
-    }
-
+    cart_item o[MAX_LENGTH];
+    int cnt = parse_order_items(fp, o, MAX_LENGTH);
     fclose(fp);
+
+    for (int i = 0; i < cnt; i++) {
+        if (o[i].dish_price <= 0) return 0;
+        if (o[i].nums <= 0) return 0;
+        if (o[i].type < 1 || o[i].type > 4) return 0;
+    }
     return 1;
 }
-
-
 
 
 
@@ -361,9 +340,9 @@ if (all_income > 0) {
 /*
  * 功能：查询订单状态
  */
-void order_status() {
+void order_status() 
+{
     CLEAR_SCREEN();
-
     int table_no;
     printf("请输入雅座：");
     scanf("%d", &table_no);
@@ -372,35 +351,19 @@ void order_status() {
     create_order_filename(table_no, fstr, 50);
 
     FILE* fp = fopen(fstr, "r");
-    if (!fp) {
-        printf("========================================\n");
-        printf("         订单状态查询\n");
-        printf("========================================\n");
-        printf("雅座 %d 当前没有待支付的订单。\n", table_no);
-        printf("(可能尚未点餐，或订单已支付并归档)\n");
-        printf("========================================\n");
-        getch();
-        return;
-    }
-
-    int flag;
-     fscanf(fp, "%d", &flag);
-    fclose(fp);
-
     printf("========================================\n");
     printf("         订单状态查询\n");
     printf("========================================\n");
     printf("雅座: %d\n", table_no);
     
-    switch (flag) {
-        case 1: 
-            printf("状态: 【待支付】\n");
-            printf("说明: 订单已提交厨房，请前往结账。\n");
-            break;
-        default: 
-            printf("状态: 未知 (%d)\n", flag);
-            printf("说明: 订单文件可能存在异常。\n");
-            break;
+    if (!fp) {
+        printf("状态: 【无订单】\n");
+        printf("说明: 当前没有待支付的订单。\n");
+    } else {
+        // 文件存在即代表有待支付订单
+        printf("状态: 【待支付】\n");
+        printf("说明: 订单已提交厨房，请前往结账。\n");
+        fclose(fp);
     }
     printf("========================================\n");
 
@@ -409,47 +372,29 @@ void order_status() {
 
 
 
-
 /*
  * 功能：计算订单金额 (供 admin.c 调用)
  */
-void calculate_value(char* fstr, double* all,
-                     double* hot, double* cold,
-                     double* staple, double* drink) {
-
+void calculate_value(char* fstr, double* all, double* hot, double* cold, double* staple, double* drink) {
     FILE* fp = fopen(fstr, "r");
-     if(!fp) return;
+    if(!fp) return;
 
-    // [已移除] 订单文件直接存储菜品数据，无状态行头部
+    cart_item o[MAX_LENGTH];
+    int cnt = parse_order_items(fp, o, MAX_LENGTH);
+    fclose(fp);
 
-    cart_item o;
-    while (!feof(fp)) {
-    // 必须检查返回值，防止最后一行重复读取（7个字段，含口味备注）
-         int ret = fscanf(fp, "%d %s %lf %d %d %d %s",
-               &o.no,
-               o.dish_name,
-               &o.dish_price,
-               &o.type,
-               &o.nums,
-               &o.status,
-               o.remark);
-        if (ret == 6) {
-            strcpy(o.remark, "-");
-        } else if (ret < 6) {
-            break;
-        }
-
-        double sum = o.dish_price * o.nums;
+    for (int i = 0; i < cnt; i++) {
+        double sum = o[i].dish_price * o[i].nums;
         *all += sum;
-        switch (o.type) {
+        switch (o[i].type) {
             case 1: *hot += sum; break;
             case 2: *cold += sum; break;
             case 3: *staple += sum; break;
             case 4: *drink += sum; break;
         }
     }
-    fclose(fp);
 }
+
 
 
 
