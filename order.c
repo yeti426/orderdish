@@ -40,9 +40,27 @@ if (access("order", 0) != 0) { // 需要 #include <io.h> 或 <unistd.h>
 int check_order_file(char* fstr) {
     FILE* fp = fopen(fstr, "r");
     if (!fp) return 0;
-    int cnt = 0;
 
     cart_item o[MAX_LENGTH];
+    int cnt = 0;
+    while (cnt < MAX_LENGTH) {
+        int ret = fscanf(fp, "%d %s %lf %d %d %d %s",
+               &o[cnt].no,
+               o[cnt].dish_name,
+               &o[cnt].dish_price,
+               &o[cnt].type,
+               &o[cnt].nums,
+               &o[cnt].status,
+               o[cnt].remark);
+        if (ret == 6) {
+            strcpy(o[cnt].remark, "-");
+        } else if (ret < 6) {
+            break;
+        } else if (strlen(o[cnt].remark) == 0) {
+            strcpy(o[cnt].remark, "-");
+        }
+        cnt++;
+    }
     fclose(fp);
 
     for (int i = 0; i < cnt; i++) {
@@ -52,6 +70,7 @@ int check_order_file(char* fstr) {
     }
     return 1;
 }
+
 
 
 
@@ -381,7 +400,25 @@ void calculate_value(char* fstr, double* all, double* hot, double* cold, double*
     if(!fp) return;
 
     cart_item o[MAX_LENGTH];
-    int cnt = parse_order_items(fp, o, MAX_LENGTH);
+    int cnt = 0;
+    while (cnt < MAX_LENGTH) {
+        int ret = fscanf(fp, "%d %s %lf %d %d %d %s",
+                 &o[cnt].no,
+                 o[cnt].dish_name,
+                 &o[cnt].dish_price,
+                 &o[cnt].type,
+                 &o[cnt].nums,
+                 &o[cnt].status,
+                 o[cnt].remark);
+        if (ret == 6) {
+            strcpy(o[cnt].remark, "-");
+        } else if (ret < 6) {
+            break;
+        } else if (strlen(o[cnt].remark) == 0) {
+            strcpy(o[cnt].remark, "-");
+        }
+        cnt++;
+    }
     fclose(fp);
 
     for (int i = 0; i < cnt; i++) {
@@ -395,6 +432,7 @@ void calculate_value(char* fstr, double* all, double* hot, double* cold, double*
         }
     }
 }
+
 
 
 
