@@ -62,7 +62,7 @@ int is_recommend(int type, int no) {
 	if(fp == NULL) return 0;
 
 	int t, n;
-	while(fscanf(fp, "%d %d", &t, &n) == 2) {
+	while(fscanf(fp, "%d %d", &t, &n) == 2) {//成功读取两个数据
 		if(t == type && n == no) {
 			fclose(fp);
 			return 1;

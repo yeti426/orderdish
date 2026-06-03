@@ -55,8 +55,12 @@ extern void record_income(double account, double account_hot_dish, double accoun
 * description  : 管理员系统的主循环 
 */
 void admin_form() {
-    CLEAR_SCREEN();
-#ifdef _WIN32
+    CLEAR_SCREEN();//清屏
+	/*在管理员界面入口进来时自动创建两个文件夹：
+	income/ — 用来存收入/对账相关的文件
+	order/ — 用来存订单文件
+	*/
+#ifdef _WIN32//编译器自带的宏，只要在 Windows 下编译运行，它就自动成立
 	system("mkdir income 2>nul");
 	system("mkdir order 2>nul");
 #else
@@ -166,7 +170,7 @@ void input_password(char pw_input[],int wrong_time){
 					getch(); // 再读一个（如 '~'）
 				}
 			}
-			continue; // 忽略整个ESC序列
+			continue; // 忽略整个ESC序列，重新循环
 		}
 		else if (i >= 19) {
 			// 密码已达最大长度，不允许再输入
@@ -238,7 +242,7 @@ void change_password(){
 	fscanf(fp, "%s", pw_old);
 	fclose(fp);
 
-    CLEAR_SCREEN();
+    CLEAR_SCREEN();//清屏
 	printf("**************************************\n");
 	printf("请输入旧密码：");
 	scanf("%19s", pw_old_input);
@@ -508,12 +512,19 @@ void view_reviews() {
     // 列出所有评价文件（review_table_雅座.txt）
 #ifdef _WIN32
     // Windows 版本
-    struct _finddata_t fileinfo;
-    intptr_t handle;
-    char pattern[100] = "reviews\\review_table_*.txt";
-
+    struct _finddata_t fileinfo;//存一个文件的信息
+    intptr_t handle;//创建一个 “文件查找手柄”
+    /*intptr_t = 系统自带的，专门用来存【指针 / 句柄 / 遥控器】的整数类型
+	 Windows 用【数字编号】管理所有资源
+	*/
+	
+	char pattern[100] = "reviews\\review_table_*.txt";
+	//* 是通配符，匹配任意字符，代替任意内容、任意字符、任意长度。
     handle = _findfirst(pattern, &fileinfo);
-    if (handle == -1) {
+	//_findfirst = Windows 系统自带的【按规则找文件】函数。
+	//成功找到文件 → 返回一个 >= 0 的整数（句柄 / 编号）
+	//失败找到文件 → 返回 -1
+    if (handle == -1) {//文件未找到。
         printf("暂无顾客评价文件！\n");
         getch();
         return;
@@ -527,19 +538,33 @@ void view_reviews() {
     do {
         int table_no;
         // 从文件名 "review_table_1.txt" 中提取雅座
-        sscanf(fileinfo.name, "review_table_%d.txt", &table_no);
+        sscanf(fileinfo.name, "review_table_%d.txt", &table_no);//从字符串里 “抠出” 想要的数据
         tables[table_cnt++] = table_no;
         printf("  雅座: %d\n", table_no);
-    } while (_findnext(handle, &fileinfo) == 0);
-    _findclose(handle);
+    } while (_findnext(handle, &fileinfo) == 0);//返回 0 → 成功找到下一个文件， 非 0 → 没有更多文件了。
+	/*handle 里 “藏着”：
+	要查哪个文件夹
+	规则是什么
+	查到第几个文件了
+	*/
+    _findclose(handle);//关闭查找句柄 / 清理资源
+	/*调用 _findfirst 时：
+	系统专门开辟一块内存，记录查找规则、查到哪了
+	给handle 编号
+	*/
 #else
     // macOS/Linux 版本
-    DIR* dir;
-    struct dirent* entry;
+    DIR* dir;//文件夹“指针” = 文件夹句柄（类似Windows的handle）
+    //DIR* = Linux / Mac 系统自带的【文件夹结构体指针】
+	struct dirent* entry;// 存放“单个文件信息”（类似Windows的fileinfo）
     int tables[100];
     int table_cnt = 0;
 
     dir = opendir("reviews");
+	/*打开名叫 reviews 的评价文件夹
+	→ 打开成功，返回文件夹指针
+	→ 打开失败，返回 NULL
+	*/
     if (dir == NULL) {
         printf("无法打开评价目录！\n");
         getch();
@@ -549,11 +574,11 @@ void view_reviews() {
     printf("已有评价的雅座：\n");
     printf("--------------------------\n");
     
-    while ((entry = readdir(dir)) != NULL) {
-        if (entry->d_type == DT_REG || entry->d_type == DT_UNKNOWN) {
+    while ((entry = readdir(dir)) != NULL) {//读取文件夹中的每个条目，直到没有更多条目
+        if (entry->d_type == DT_REG || entry->d_type == DT_UNKNOWN) {//只看普通文件，排除文件夹
             // 检查文件名是否匹配 review_table_*.txt 格式
             if (strncmp(entry->d_name, "review_table_", 13) == 0 && 
-                strstr(entry->d_name, ".txt") != NULL) {
+                strstr(entry->d_name, ".txt") != NULL) {//strstr = 在一个字符串里，查找【有没有包含】另一个字符串
                 int table_no;
                 if (sscanf(entry->d_name, "review_table_%d.txt", &table_no) == 1) {
                     tables[table_cnt++] = table_no;
@@ -590,7 +615,7 @@ void view_reviews() {
 
     // 读取并显示评价内容
     char filename[100];
-#ifdef _WIN32
+#ifdef _WIN32//拼出要打开的评价文件路径
     snprintf(filename, sizeof(filename), "reviews\\review_table_%d.txt", choice);
 #else
     snprintf(filename, sizeof(filename), "reviews/review_table_%d.txt", choice);
@@ -606,6 +631,9 @@ void view_reviews() {
     printf("===== %d号桌顾客评价 =====\n\n", choice);
     char line[300];
     while (fgets(line, sizeof(line), fp) != NULL) {
+		//fgets = 从文件里读取一行，并存到 line 里。
+		//返回值 = 读取到的字符串（不包括换行符）
+		//返回值 = NULL → 读取失败 / 读到文件末尾
         printf("%s", line);
     }
     fclose(fp);
