@@ -438,7 +438,7 @@ double display_order_common(int t_no, int show_menu) {
     if (count == 0) {
         printf("暂无已点菜品\n");
     } else {
-        printf("%-4d %-10s %-8s %-6s %-10s %-8s %-10s\n",
+        printf("%-4s %-10s %-8s %-6s %-10s %-8s %-10s\n",
                "编号", "菜品名称", "单价", "数量", "小计", "状态", "口味");
         printf("-----------------------------------------------------------------------\n");
 
@@ -446,7 +446,7 @@ double display_order_common(int t_no, int show_menu) {
             double subtotal = orders[i].dish_price * orders[i].nums;
             const char* status_str = (orders[i].status == STATUS_DONE) ? "已完成" : "制作中";
 
-            printf("%-4d %-8.2lf %-6d %-10.2lf %-8s [%s]\n",
+            printf("%-4d %10s %-8.2lf %-6d %-10.2lf %-8s [%s]\n",
                    i + 1,
                    orders[i].dish_name,
                    orders[i].dish_price,
