@@ -328,7 +328,10 @@ if (all_income > 0) {
     }
 
     // 3. 记录收入
-    record_income(all_income, hot_income, cold_income, staple_income, drink_income);
+    if(!record_income(all_income, hot_income, cold_income, staple_income, drink_income)) {
+        printf("警告: 营业额记录失败，请检查 income 目录权限！\n");
+        Sleep(2000);
+    }
 
     // 4. 删除订单文件 (相当于订单完成并归档)
     remove(fstr);

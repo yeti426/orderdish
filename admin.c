@@ -28,7 +28,7 @@ void create_date_filename(char*);         //生成当日文件名
 void format_input_income(FILE*,double,double,double,double,double);            //收入格式化输入文件
 int format_output_income(FILE*,double*,double*,double*,double*,double*);       //收入格式化输出到程序，返回1成功0失败 
 void calculate_value(char* , double* , double* , double* , double * , double*);//计算收入   
-void record_income(double,double,double,double,double);                        //用于记录单笔订单收入信息至收入文件中 
+int record_income(double,double,double,double,double);                        //用于记录单笔订单收入信息至收入文件中，返回1成功0失败
 void view_reviews();                           //查看顾客评价
 
 
@@ -45,7 +45,7 @@ extern void price_adjust();
 extern void create_date_filename(char* fdate);
 extern void format_input_income(FILE* fp, double a, double b, double c, double d, double e);
 extern int format_output_income(FILE* fp, double* a, double* b, double* c, double* d, double* e);
-extern void record_income(double account, double account_hot_dish, double account_cold_dish, double account_staple_food, double account_drink);                   
+extern int record_income(double account, double account_hot_dish, double account_cold_dish, double account_staple_food, double account_drink);                   
 
 
 /*

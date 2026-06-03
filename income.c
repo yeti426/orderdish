@@ -1,10 +1,23 @@
 #include "init.h"
+#include <sys/stat.h>
 
 // 函数声明
 void create_date_filename(char* fdate);
 void format_input_income(FILE* fp, double a, double b, double c, double d, double e);
 int format_output_income(FILE* fp, double* a, double* b, double* c, double* d, double* e);
-void record_income(double account, double account_hot_dish, double account_cold_dish, double account_staple_food, double account_drink);
+int record_income(double account, double account_hot_dish, double account_cold_dish, double account_staple_food, double account_drink);
+
+/* 确保目录存在（跨平台） */
+static void ensure_dir(const char* dir) {
+    struct stat st;
+    if(stat(dir, &st) != 0) {
+#ifdef _WIN32
+        mkdir(dir);
+#else
+        mkdir(dir, 0755);
+#endif
+    }
+}
 
 /*
 * function_name: create_date_filename
@@ -59,10 +72,13 @@ int format_output_income(FILE* fp, double* a, double* b, double* c, double* d, d
 * function_name: record_income
 * 将单笔订单收入信息累加记录至收入文件中
 */
-void record_income(double account, double account_hot_dish, double account_cold_dish, double account_staple_food, double account_drink) {
+int record_income(double account, double account_hot_dish, double account_cold_dish, double account_staple_food, double account_drink) {
     double all_income = 0.0, staple_food_income = 0.0, hot_dish_income = 0.0, cold_dish_income = 0.0, drink_income = 0.0;
     char fdate[50] = "";
     create_date_filename(fdate); 
+
+    // 确保 income 目录存在，防止 fopen 失败
+    ensure_dir("income");
                     
     FILE *fp;
     fp = fopen(fdate, "r");
@@ -70,15 +86,16 @@ void record_income(double account, double account_hot_dish, double account_cold_
         fp = fopen(fdate, "w");
         if(fp == NULL) {
             printf("错误: 无法创建收入文件 %s\n", fdate);
-            return;
+            return 0;
         }
         format_input_income(fp, account, account_hot_dish, account_cold_dish, account_staple_food, account_drink);
         fclose(fp);
+        return 1;
     } else {
         if(!format_output_income(fp, &all_income, &hot_dish_income, &cold_dish_income, &staple_food_income, &drink_income)) {
             printf("错误: 收入文件 %s 格式错误，本次数据可能丢失！\n", fdate);
             fclose(fp);
-            return;
+            return 0;
         }
         fclose(fp);
 
@@ -95,13 +112,19 @@ void record_income(double account, double account_hot_dish, double account_cold_
         fp = fopen(tmpname, "w");
         if(fp == NULL) {
             printf("错误: 无法写入收入文件 %s\n", fdate);
-            return;
+            return 0;
         }
         format_input_income(fp, all_income, hot_dish_income, cold_dish_income, staple_food_income, drink_income);
         fclose(fp);
 
+        // Windows 下 rename 不能覆盖已存在文件，需先删除；Linux/macOS 可直接覆盖
+#ifdef _WIN32
+        remove(fdate);
+#endif
         if(rename(tmpname, fdate) != 0) {
             printf("错误: 无法保存收入文件 %s\n", fdate);
+            return 0;
         }
+        return 1;
     } 
 }

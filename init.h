@@ -102,7 +102,7 @@ void create_order_filename(int table_no, char* fstr, int size);
 void check_bill();
 void order_status();
 void calculate_value(char*, double*, double*, double*, double*, double*);
-void record_income(double account, double account_hot_dish, double account_cold_dish, double account_staple_food, double account_drink);
+int record_income(double account, double account_hot_dish, double account_cold_dish, double account_staple_food, double account_drink);
 
 void save_review(int table_no); // 保存评价
 // void add_remark_to_order(int table_no); // 在下单前添加备注 [已禁用] 
