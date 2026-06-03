@@ -146,6 +146,8 @@ void set_recommend() {
 	getch();
 }
 
+
+
 /*
 * function_name: cancel_recommend
 * return_type  : void
@@ -212,6 +214,8 @@ void cancel_recommend() {
 	printf("已取消该招牌菜！\n");
 	getch();
 }
+
+
 
 /*
 * function_name: price_adjust 
@@ -299,6 +303,8 @@ void price_adjust() {
 		error_check(1, 2, &choice);
 	} while(choice != 2);
 }
+
+
 
 /*
 * function_name: add_dish 
