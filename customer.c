@@ -488,7 +488,8 @@ double display_order_common(int t_no, int show_menu) {
             ordering_menu();  // 继续点菜  
                 break;
         case 3:  
-            break;  
+            break;
+        }  
     }
 }
   
