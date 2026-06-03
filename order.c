@@ -44,17 +44,17 @@ int check_order_file(char* fstr) {
     cart_item o[MAX_LENGTH];
     int cnt = 0;
     while (cnt < MAX_LENGTH) {
-        int ret = fscanf(fp, "%s %lf %d %d %d %s",
-               
+        int ret = fscanf(fp, "%d %s %lf %d %d %d %s",
+               &o[cnt].no,
                o[cnt].dish_name,
                &o[cnt].dish_price,
                &o[cnt].type,
                &o[cnt].nums,
                &o[cnt].status,
                o[cnt].remark);
-        if (ret ==5) {
+        if (ret == 6) {
             strcpy(o[cnt].remark, "-");
-        } else if (ret < 5) {
+        } else if (ret < 6) {
             break;
         } else if (strlen(o[cnt].remark) == 0) {
             strcpy(o[cnt].remark, "-");
@@ -116,8 +116,8 @@ void check_bill() {
 
     while (cnt < MAX_LENGTH) {
         // 检查 fscanf 的返回值
-        int ret = fscanf(fp, "%s %lf %d %d %d %s",
-              
+        int ret = fscanf(fp, "%d %s %lf %d %d %d %s",
+               &order[cnt].no,
                order[cnt].dish_name,
                &order[cnt].dish_price,
                &order[cnt].type,
@@ -405,8 +405,8 @@ void calculate_value(char* fstr, double* all, double* hot, double* cold, double*
     cart_item o[MAX_LENGTH];
     int cnt = 0;
     while (cnt < MAX_LENGTH) {
-        int ret = fscanf(fp, "%s %lf %d %d %d %s",
-              
+        int ret = fscanf(fp, "%d %s %lf %d %d %d %s",
+                 &o[cnt].no,
                  o[cnt].dish_name,
                  &o[cnt].dish_price,
                  &o[cnt].type,

@@ -74,7 +74,8 @@ void complete_dish_in_queue(int index) {
             char line[256];
             while (ocount < MAX_LENGTH && fgets(line, sizeof(line), ofp) != NULL) {
                 int consumed = 0;
-                int ret = sscanf(line, "%s %lf %d %d %d %n",
+                int ret = sscanf(line, "%d %s %lf %d %d %d %n",
+                          &orders[ocount].no,
                           orders[ocount].dish_name,
                           &orders[ocount].dish_price,
                           &orders[ocount].type,
@@ -98,7 +99,7 @@ void complete_dish_in_queue(int index) {
                 }
 
                 // 匹配：菜品编号和备注都一致才更新状态
-                if (orders[ocount].dish_name== dno &&
+                if (orders[ocount].no == dno &&
                     strcmp(orders[ocount].remark, remark_target) == 0 &&
                     orders[ocount].status == ORDER_STATUS_PENDING) {
                     orders[ocount].status = STATUS_DONE;
@@ -111,7 +112,8 @@ void complete_dish_in_queue(int index) {
             ofp = fopen(filename, "w");
             if (ofp) {
                 for (int j = 0; j < ocount; j++) {
-                    fprintf(ofp, "%s %.2lf %d %d %d %s\n",
+                    fprintf(ofp, "%d %s %.2lf %d %d %d %s\n",
+                            orders[j].no,
                             orders[j].dish_name,
                             orders[j].dish_price,
                             orders[j].type,
@@ -195,8 +197,8 @@ int load_pending_orders(int table_no, cart_item* orders) {
     int count = 0;
     while (count < MAX_LENGTH) {
         // 尝试读取7个字段（兼容新格式）
-        int ret = fscanf(fp, "%s %lf %d %d %d %s", 
-                 
+        int ret = fscanf(fp, "%d %s %lf %d %d %d %s", 
+                  &orders[count].no,
                   orders[count].dish_name,
                   &orders[count].dish_price,
                   &orders[count].type,
