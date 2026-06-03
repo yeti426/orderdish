@@ -22,12 +22,8 @@ void change_password();                   //密码修改
 void change_password_by_sms();             //手机验证码修改密码
 void send_sms_code(char*, char*);          //发送短信验证码
 void generate_code(char*);                 //生成验证码
-int input_new_password(char*);             //输入并确认新密码(返回1成功0失败)
-void create_date_filename(char*);         //生成当日文件名 
-void format_input_income(FILE*,double,double,double,double,double);            //收入格式化输入文件
-int format_output_income(FILE*,double*,double*,double*,double*,double*);       //收入格式化输出到程序，返回1成功0失败 
-void calculate_value(char* , double* , double* , double* , double * , double*);//计算收入   
-void record_income(double,double,double,double,double);                        //用于记录单笔订单收入信息至收入文件中 
+int input_new_password(char*);             //输入并确认新密码(返回1成功0失败) 
+void calculate_value(char* , double* , double* , double* , double * , double*);//计算收入 
 void view_reviews();                           //查看顾客评价
 
 
@@ -433,132 +429,6 @@ int admin_menu(){
 	error_check(1,9,&choice);
 	return choice;
 }
-
-
-
-
-
-/*
-* function_name: record_income
-* return_type  : void
-* param        : 5个double数据 传入订单中各项收入信息 
-* description  : 将读取到的订单收入信息记录到 income 文件夹 对应日期的文件中 
-*/
-void record_income(double account, double account_hot_dish, double account_cold_dish, double account_staple_food, double account_drink){
-	double all_income = 0.0, staple_food_income = 0.0, hot_dish_income = 0.0, cold_dish_income = 0.0, drink_income = 0.0;
-	//接收本次订单赚的钱，准备存起来。
-	char fdate[50]="";
-	create_date_filename(fdate); 
-					
-	FILE *fp1;
-	fp1 = fopen(fdate , "r");// 第一步：用 "r" 打开，只想看看文件有没有
-	if(fp1 == NULL){
-		fp1 = fopen(fdate,"w");
-		if(fp1 == NULL){
-			printf("错误: 无法创建收入文件 %s\n", fdate);
-			return;
-		}
-		format_input_income(fp1,account,account_hot_dish,account_cold_dish,account_staple_food,account_drink);
-		fclose(fp1);
-	}
-	else{
-		if(!format_output_income(fp1,&all_income,&hot_dish_income,&cold_dish_income,&staple_food_income,&drink_income)){
-			printf("错误: 收入文件 %s 格式错误，本次数据可能丢失！\n", fdate);
-			fclose(fp1);
-			return;
-		}
-		fclose(fp1);
-		all_income += account;                // 今天总钱 + 本次钱
-		hot_dish_income += account_hot_dish;  // 热菜累加
-		cold_dish_income += account_cold_dish;// 凉菜累加
-		staple_food_income += account_staple_food;//主食累加
-		drink_income += account_drink;        // 饮料累加
-		fp1 = fopen(fdate , "w");
-		if(fp1 == NULL){
-			printf("错误: 无法写入收入文件 %s，本次收入数据丢失！\n", fdate);
-			return;
-		}
-		format_input_income(fp1,all_income,hot_dish_income,cold_dish_income,staple_food_income,drink_income);
-		fclose(fp1); 
-	} 
-}
-
-
-
-
-
-
-
-/*
-* function_name: format_input_income 
-* return_type  : void
-* param        : FILE* fp 5 个double数据 
-* description  : 格式化输入数据 ，将5个double数据格式化输入到文件中 
-*/
-void format_input_income(FILE* fp,double a,double b,double c,double d,double e){
-	fprintf(fp,"%lf\n",a);
-	fprintf(fp,"%lf\n",b);
-	fprintf(fp,"%lf\n",c);
-	fprintf(fp,"%lf\n",d);
-	fprintf(fp,"%lf\n",e);
-}
-
-
-
-
-
-/*
-* function_name: format_output_income 
-* return_type  : void
-* param        : FILE* fp 5 个double数据 
-* description  : 格式化输出数据 ，将5个double数据格式化输出到程序中 
-*/
-int format_output_income(FILE* fp,double* a,double* b,double* c,double* d,double* e){
-	if(fscanf(fp,"%lf\n",a) != 1) return 0;
-	if(fscanf(fp,"%lf\n",b) != 1) return 0;
-	if(fscanf(fp,"%lf\n",c) != 1) return 0;
-	if(fscanf(fp,"%lf\n",d) != 1) return 0;
-	if(fscanf(fp,"%lf\n",e) != 1) return 0;
-	return 1;
-}
-
-
-
-
-
-
-/*
-* function_name: create_date_filename
-* return_type  : void
-* param        : char* fdate(用于返回生成后的文件名)
-* description  : 自动获取当天日期，并返回文件名 如202161.txt 
-*/
-void create_date_filename(char* fdate){
-	fdate[0] = '\0';// 防御性清空，防止调用方传入未初始化的字符串
-	char date[20] = "";//strcat 拼接的前提：目标字符串必须是空的！
-	struct tm* p = get_time();//struct tm 是系统固定结构，localtime 自动把当前时间 年 / 月 / 日 填进去，p 指向这个装满时间的盒子
-	int mday = p->tm_mday;// 使用局部变量，避免修改gmtime返回的共享内存
-	if(p->tm_hour + 8 >= 24) mday -= 1;//北京时间已过午夜，凌晨营业的收银额归入前一天
-	
-	char year[5] = "";
-	char month[5] = "";
-	char day[5] = "";
-	//使用 sprintf 替代非标准的 itoa 函数（跨平台兼容）
-	sprintf(year, "%d", p->tm_year + 1900);//因为 tm_year 是从 1900 年开始算的，所以要 +1900。
-	sprintf(month, "%d", p->tm_mon + 1);//月份也是从 0 开始算
-	sprintf(day, "%d", mday);// tm_mday 直接表示当月第几天，不需要 +1
-	strcat(date,year);
-	strcat(date,month);
-	strcat(date,day);
-	strcat(date,".txt");
-	
-	strcat(fdate , "income//");
-	strcat(fdate , date);
-}
-
-
-
-
 
 
 /*

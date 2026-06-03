@@ -223,7 +223,7 @@ void display_menu(dish_menu *dm, int cnt, int sort_type) {
 	
 	CLEAR_SCREEN();
 	printf("------------------------------------------------------------\n");
-    printf("%-6s%-10s%-20s%s\n", "序号", "菜品编号", "菜品名称", "价格");
+    printf("%-10s%-20s%s\n", "菜品编号", "菜品名称", "价格");
     printf("------------------------------------------------------------\n");
     
     for(int i = 0; i < cnt; i++){
@@ -236,8 +236,8 @@ void display_menu(dish_menu *dm, int cnt, int sort_type) {
         if (temp_dm[i].has_options) {
             strcat(display_name, "[选]");
         }
-        printf("%-6d%-10d%-20s%.2lf\n",
-               i + 1, temp_dm[i].no, display_name, temp_dm[i].dish_price);
+        printf("%-10d%-20s%.2lf\n",
+               temp_dm[i].no, display_name, temp_dm[i].dish_price);
     }
 	printf("------------------------------------------------------------\n");
 }
