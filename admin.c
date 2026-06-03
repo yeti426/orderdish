@@ -36,7 +36,11 @@ extern void del_dish();
 extern void set_recommend();                     
 extern void cancel_recommend();  
 extern int is_recommend(int, int);                 
-extern void price_adjust();                    
+extern void price_adjust(); 
+extern void create_date_filename(char* fdate);
+extern void format_input_income(FILE* fp, double a, double b, double c, double d, double e);
+extern int format_output_income(FILE* fp, double* a, double* b, double* c, double* d, double* e);
+extern void record_income(double account, double account_hot_dish, double account_cold_dish, double account_staple_food, double account_drink);                   
 
 
 
