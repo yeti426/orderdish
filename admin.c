@@ -1,8 +1,8 @@
 #include "init.h"
 #ifdef _WIN32
-    #include <io.h>    // Windows: 用于 _findfirst / _findnext 遍历文件
+#include <io.h>    // Windows: 用于 _findfirst / _findnext 遍历文件
 #else
-    #include <dirent.h> // macOS/Linux: 目录遍历
+#include <dirent.h> // macOS/Linux: 目录遍历
 #endif
 
 //变量声明
