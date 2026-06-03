@@ -40,9 +40,9 @@ if (access("order", 0) != 0) { // 需要 #include <io.h> 或 <unistd.h>
 int check_order_file(char* fstr) {
     FILE* fp = fopen(fstr, "r");
     if (!fp) return 0;
+    int cnt = 0;
 
     cart_item o[MAX_LENGTH];
-    int cnt = parse_order_items(fp, o, MAX_LENGTH);
     fclose(fp);
 
     for (int i = 0; i < cnt; i++) {
