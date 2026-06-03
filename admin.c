@@ -19,9 +19,9 @@ int check_password(char pw_input[]);      //密码检测
 int admin_menu();                         //管理员菜单  
 void income_check();                      //查看营业额 /*
 void change_password();                   //密码修改 
-void change_password_by_sms();             //手机验证码修改密码
-void send_sms_code(char*, char*);          //发送短信验证码
-void generate_code(char*);                 //生成验证码
+// void change_password_by_sms();             //手机验证码修改密码
+// void send_sms_code(char*, char*);          //发送短信验证码
+// void generate_code(char*);                 //生成验证码
 int input_new_password(char*);             //输入并确认新密码(返回1成功0失败) 
 void calculate_value(char* , double* , double* , double* , double * , double*);//计算收入 
 void view_reviews();                           //查看顾客评价
@@ -243,16 +243,16 @@ void change_password(){
 	while (strcmp(pw_old, pw_old_input) != 0) {
 		try_count++;
 		if (try_count >= 3) {
-			printf("错误次数过多！\n");
-			printf("是否通过手机验证码修改？(1.是 2.否)：");
-			int sms_choice;
-			scanf("%d", &sms_choice);
-			error_check(1, 2, &sms_choice);
-			if (sms_choice == 1) {
-				change_password_by_sms();
-			} else {
-				printf("修改取消。\n");
-			}
+			printf("错误次数过多，返回主菜单！\n");
+			// printf("是否通过手机验证码修改？(1.是 2.否)：");
+			// int sms_choice;
+			// scanf("%d", &sms_choice);
+			// error_check(1, 2, &sms_choice);
+			// if (sms_choice == 1) {
+			// 	change_password_by_sms();
+			// } else {
+			// 	printf("修改取消。\n");
+			// }
 			getch();
 			return;
 		}
@@ -313,98 +313,98 @@ int input_new_password(char* pw_new) {
 	return 1;
 }
 
-/*
-* function_name: generate_code
-* return_type  : void
-* param        : char*(验证码)
-* description  : 生成6位随机数字验证码
-*/
-void generate_code(char* code) {
-	srand((unsigned int)time(NULL));
-	int i;
-	for (i = 0; i < 6; i++) {
-		code[i] = '0' + rand() % 10;
-	}
-	code[6] = '\0';
-}
+// /*
+// * function_name: generate_code
+// * return_type  : void
+// * param        : char*(验证码)
+// * description  : 生成6位随机数字验证码
+// */
+// void generate_code(char* code) {
+// 	srand((unsigned int)time(NULL));
+// 	int i;
+// 	for (i = 0; i < 6; i++) {
+// 		code[i] = '0' + rand() % 10;
+// 	}
+// 	code[6] = '\0';
+// }
 
-/*
-* function_name: send_sms_code
-* return_type  : void
-* param        : char*(手机号), char*(验证码)
-* description  : 模拟发送短信验证码(正式部署请接入短信API)
-*/
-void send_sms_code(char* phone, char* code) {
-	printf("【模拟短信】验证码已发送至手机号 %s，验证码为：%s\n", phone, code);
-	printf("（正式部署时请接入短信服务商API）\n");
-}
+// /*
+// * function_name: send_sms_code
+// * return_type  : void
+// * param        : char*(手机号), char*(验证码)
+// * description  : 模拟发送短信验证码(正式部署请接入短信API)
+// */
+// void send_sms_code(char* phone, char* code) {
+// 	printf("【模拟短信】验证码已发送至手机号 %s，验证码为：%s\n", phone, code);
+// 	printf("（正式部署时请接入短信服务商API）\n");
+// }
 
-/*
-* function_name: change_password_by_sms
-* return_type  : void
-* param        : NULL
-* description  : 通过手机短信验证码修改密码
-*/
-void change_password_by_sms() {
-	char phone[12];
-	char sms_code[7];
-	char input_code[7];
-	char pw_new[20];
+// /*
+// * function_name: change_password_by_sms
+// * return_type  : void
+// * param        : NULL
+// * description  : 通过手机短信验证码修改密码
+// */
+// void change_password_by_sms() {
+// 	char phone[12];
+// 	char sms_code[7];
+// 	char input_code[7];
+// 	char pw_new[20];
 
-	CLEAR_SCREEN();
-	printf("**************************************\n");
-	printf("         手机验证码修改密码\n");
-	printf("**************************************\n");
+// 	CLEAR_SCREEN();
+// 	printf("**************************************\n");
+// 	printf("         手机验证码修改密码\n");
+// 	printf("**************************************\n");
 
-	printf("请输入绑定的手机号(11位)：");
-	scanf("%11s", phone);
+// 	printf("请输入绑定的手机号(11位)：");
+// 	scanf("%11s", phone);
 
-	if (strlen(phone) != 11) {
-		printf("手机号格式不正确！\n");
-		getch();
-		return;
-	}
+// 	if (strlen(phone) != 11) {
+// 		printf("手机号格式不正确！\n");
+// 		getch();
+// 		return;
+// 	}
 
-	generate_code(sms_code);
-	send_sms_code(phone, sms_code);
+// 	generate_code(sms_code);
+// 	send_sms_code(phone, sms_code);
 
-	int try_count = 0;
-	while (try_count < 3) {
-		printf("请输入6位短信验证码：");
-		scanf("%6s", input_code);
+// 	int try_count = 0;
+// 	while (try_count < 3) {
+// 		printf("请输入6位短信验证码：");
+// 		scanf("%6s", input_code);
 
-		if (strcmp(sms_code, input_code) == 0) {
-			printf("验证通过！\n");
-			break;
-		}
+// 		if (strcmp(sms_code, input_code) == 0) {
+// 			printf("验证通过！\n");
+// 			break;
+// 		}
 
-		try_count++;
-		if (try_count >= 3) {
-			printf("验证码错误次数过多，操作取消。\n");
-			getch();
-			return;
-		}
-		printf("验证码错误，请重新输入(剩余%d次)：", 3 - try_count);
-	}
+// 		try_count++;
+// 		if (try_count >= 3) {
+// 			printf("验证码错误次数过多，操作取消。\n");
+// 			getch();
+// 			return;
+// 		}
+// 		printf("验证码错误，请重新输入(剩余%d次)：", 3 - try_count);
+// 	}
 
-	if (!input_new_password(pw_new)) {
-		getch();
-		return;
-	}
+// 	if (!input_new_password(pw_new)) {
+// 		getch();
+// 		return;
+// 	}
 
-	FILE* fp = fopen("password.txt", "w");
-	if (fp == NULL) {
-		printf("密码文件写入失败！\n");
-		getch();
-		return;
-	}
-	fprintf(fp, "%s", pw_new);
-	fclose(fp);
+// 	FILE* fp = fopen("password.txt", "w");
+// 	if (fp == NULL) {
+// 		printf("密码文件写入失败！\n");
+// 		getch();
+// 		return;
+// 	}
+// 	fprintf(fp, "%s", pw_new);
+// 	fclose(fp);
 
-	printf("\n密码修改成功！\n");
-	printf("**************************************\n");
-	getch();
-}
+// 	printf("\n密码修改成功！\n");
+// 	printf("**************************************\n");
+// 	getch();
+// }
 
 
 /*
