@@ -389,20 +389,11 @@ double display_order_common(int t_no, int show_menu) {
         if (show_menu) {
             CLEAR_SCREEN();
             printf("========================================\n");
-        printf("         账单 (雅座: %d)\n", table_no);  
+            printf("         膳单 (雅座: %d)\n", t_no);
             printf("========================================\n");
             printf("\n您还没有点菜！\n");
             printf("\n========================================\n");
-        printf("1. 去点菜\n");  
-        printf("2. 返回主菜单\n");  
-        printf("请选择: ");  
-          
-        int choice;  
-        scanf("%d", &choice);  
-        error_check(1, 2, &choice);  
-          
-        if (choice == 1) {  
-            ordering_menu();  
+            printf("1. 去点菜\n2. 返回主菜单\n请选择: ");
         }
         return -1.0;
     }
@@ -455,9 +446,8 @@ double display_order_common(int t_no, int show_menu) {
             double subtotal = orders[i].dish_price * orders[i].nums;
             const char* status_str = (orders[i].status == STATUS_DONE) ? "已完成" : "制作中";
 
-            printf("%-4d %-10s %-8.2lf %-6d %-10.2lf %-8s [%s]\n",
+            printf("%-4d %-8.2lf %-6d %-10.2lf %-8s [%s]\n",
                    i + 1,
-                   orders[i].no,
                    orders[i].dish_name,
                    orders[i].dish_price,
                    orders[i].nums,
@@ -470,11 +460,31 @@ double display_order_common(int t_no, int show_menu) {
         printf("\n总金额: ¥%.2lf\n", total);
     }
 
+    if (show_menu) {
         printf("\n========================================\n");
         printf("1. 去结账\n");
         printf("2. 继续点菜\n");
         printf("3. 返回主菜单\n");
         printf("请选择: ");
+    }
+
+    return total;
+}
+
+
+/*
+ * 函数功能：查看账单
+ */
+void view_bill() {
+    double total = display_order_common(table_no, 1); // show_menu = 1
+
+    if (total < 0.0) {
+        int choice;
+        scanf("%d", &choice);
+        error_check(1, 2, &choice);
+        if (choice == 1) ordering_menu();
+        return;
+    }
 
     int choice;
     scanf("%d", &choice);
@@ -489,8 +499,7 @@ double display_order_common(int t_no, int show_menu) {
                 break;
         case 3:  
             break;
-        }  
-    }
+    }  
 }
   
   
