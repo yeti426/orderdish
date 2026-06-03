@@ -389,11 +389,20 @@ double display_order_common(int t_no, int show_menu) {
         if (show_menu) {
             CLEAR_SCREEN();
             printf("========================================\n");
-            printf("         膳单 (雅座: %d)\n", t_no);
+        printf("         账单 (雅座: %d)\n", table_no);  
             printf("========================================\n");
             printf("\n您还没有点菜！\n");
             printf("\n========================================\n");
-            printf("1. 去点菜\n2. 返回主菜单\n请选择: ");
+        printf("1. 去点菜\n");  
+        printf("2. 返回主菜单\n");  
+        printf("请选择: ");  
+          
+        int choice;  
+        scanf("%d", &choice);  
+        error_check(1, 2, &choice);  
+          
+        if (choice == 1) {  
+            ordering_menu();  
         }
         return -1.0;
     }
@@ -448,6 +457,7 @@ double display_order_common(int t_no, int show_menu) {
 
             printf("%-4d %-10s %-8.2lf %-6d %-10.2lf %-8s [%s]\n",
                    i + 1,
+                   orders[i].no,
                    orders[i].dish_name,
                    orders[i].dish_price,
                    orders[i].nums,
@@ -456,45 +466,29 @@ double display_order_common(int t_no, int show_menu) {
                    orders[i].remark);
         }
 
-        printf("-----------------------------------------------------------------------\n");
-        printf("\n总金额: %.2lf 元\n", total);
+        printf("----------------------------------------\n");
+        printf("\n总金额: ¥%.2lf\n", total);
     }
 
-    if (show_menu) {
         printf("\n========================================\n");
         printf("1. 去结账\n");
         printf("2. 继续点菜\n");
         printf("3. 返回主菜单\n");
         printf("请选择: ");
-    }
-
-    return total;
-}
-
-/*
- * 函数功能：查看已点菜品（显示所有已点菜品）
- */
-void view_bill() {
-    double total = display_order_common(table_no, 1); // show_menu = 1
-
-    if (total < 0.0) {
-        int choice;
-        scanf("%d", &choice);
-        error_check(1, 2, &choice);
-        if (choice == 1) ordering_menu();
-        return;
-    }
 
     int choice;
     scanf("%d", &choice);
     error_check(1, 3, &choice);
 
-    switch (choice) {
-        case 1: checkout(); 
+    switch(choice) {  
+        case 1:  
+            checkout();       // 去结账  
                 break;
-        case 2: ordering_menu(); 
+        case 2:  
+            ordering_menu();  // 继续点菜  
                 break;
-        case 3: break;
+        case 3:  
+            break;  
     }
 }
   

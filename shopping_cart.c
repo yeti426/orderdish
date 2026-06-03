@@ -40,12 +40,12 @@ void display_cart() {
     if (cart.count == 0) {
         printf("\n选膳筐为空！\n");
     } else {
-        printf("\n%-4s %-6s %-10s %-8s %-6s %-10s %-8s %-10s\n", 
+        printf("\n%-4s %-6s %-12s %-8s %-6s %-9s %-8s %-10s\n", 
                "序号", "编号", "菜品名称", "单价", "数量", "小计", "状态", "口味");
         printf("---------------------------------------------------------------------\n");
         
         for (int i = 0; i < cart.count; i++) { 
-            printf("%-4d %-6d %-10s %-8.2lf %-6d %-10.2lf %-8s %-10s\n",
+            printf("%-4d %-6d %-12s ¥%-7.2lf %-6d ¥%-9.2lf %-8s %-10s\n",
                    i + 1,
                    cart.items[i].no,
                    cart.items[i].dish_name,
@@ -56,7 +56,7 @@ void display_cart() {
                    cart.items[i].remark[0] != '\0' ? cart.items[i].remark : "-");
         }
         printf("---------------------------------------------------------------------\n");
-        printf("总金额：%.2lf 元\n",
+        printf("总金额：¥%-9.2lf 元\n",
                cart.total_amount);
     }
     
