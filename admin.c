@@ -19,23 +19,16 @@ int check_password(char pw_input[]);      //密码检测
 int admin_menu();                         //管理员菜单  
 void income_check();                      //查看营业额 /*
 void change_password();                   //密码修改 
-<<<<<<< HEAD
 // void change_password_by_sms();             //手机验证码修改密码
 // void send_sms_code(char*, char*);          //发送短信验证码
 // void generate_code(char*);                 //生成验证码
 int input_new_password(char*);             //输入并确认新密码(返回1成功0失败) 
 void calculate_value(char* , double* , double* , double* , double * , double*);//计算收入 
-=======
-void change_password_by_sms();             //手机验证码修改密码
-void send_sms_code(char*, char*);          //发送短信验证码
-void generate_code(char*);                 //生成验证码
-int input_new_password(char*);             //输入并确认新密码(返回1成功0失败)
 void create_date_filename(char*);         //生成当日文件名 
 void format_input_income(FILE*,double,double,double,double,double);            //收入格式化输入文件
 int format_output_income(FILE*,double*,double*,double*,double*,double*);       //收入格式化输出到程序，返回1成功0失败 
 void calculate_value(char* , double* , double* , double* , double * , double*);//计算收入   
 void record_income(double,double,double,double,double);                        //用于记录单笔订单收入信息至收入文件中 
->>>>>>> 3f0840c (酋长——不知道啊)
 void view_reviews();                           //查看顾客评价
 
 
@@ -43,6 +36,16 @@ void view_reviews();                           //查看顾客评价
 extern void error_check(int,int,int*);
 extern void greet(struct tm* p,int);
 extern struct tm* get_time();
+extern void add_dish();                          
+extern void del_dish();                         
+extern void set_recommend();                     
+extern void cancel_recommend();  
+extern int is_recommend(int, int);                 
+extern void price_adjust(); 
+extern void create_date_filename(char* fdate);
+extern void format_input_income(FILE* fp, double a, double b, double c, double d, double e);
+extern int format_output_income(FILE* fp, double* a, double* b, double* c, double* d, double* e);
+extern void record_income(double account, double account_hot_dish, double account_cold_dish, double account_staple_food, double account_drink);                   
 
 
 /*
@@ -234,18 +237,11 @@ void change_password(){
 	}
 	fscanf(fp, "%s", pw_old);
 	fclose(fp);
-	
-	CLEAR_SCREEN();
-	printf("========================================\n");
-	printf("  总收入:   %.2lf\n", all_income);
-	printf("  热菜收入: %.2lf\n", hot_dish_income);
-	printf("  凉菜收入: %.2lf\n", cold_dish_income);
-	printf("  主食收入: %.2lf\n", staple_food_income);
-	printf("  饮品收入: %.2lf\n", drink_income);
-	printf("========================================\n");
+
+    CLEAR_SCREEN();
 	printf("**************************************\n");
 	printf("请输入旧密码：");
-	scanf("s", pw_old_input);
+	scanf("%19s", pw_old_input);
 	
 	int try_count = 0;
 	while (strcmp(pw_old, pw_old_input) != 0) {
@@ -265,7 +261,7 @@ void change_password(){
 			return;
 		}
 		printf("输入错误，请重新输入(剩余%d次):", 3 - try_count);
-		scanf("s", pw_old_input);
+		scanf("%19s", pw_old_input);
 	}
 	
 	if (!input_new_password(pw_new)) {
@@ -301,10 +297,10 @@ int input_new_password(char* pw_new) {
 	int retry = 0;
 
 	printf("请输入新密码：");
-	scanf("s", pw_new);
+	scanf("%19s", pw_new);
 
 	printf("请确认新密码：");
-	scanf("s", pw_check);
+	scanf("%19s", pw_check);
 
 	while (strcmp(pw_new, pw_check) != 0) {
 		retry++;
@@ -314,9 +310,9 @@ int input_new_password(char* pw_new) {
 		}
 		printf("两次输入不一致！(剩余%d次)\n", 3 - retry);
 		printf("请输入新密码：");
-		scanf("s", pw_new);
+		scanf("%19s", pw_new);
 		printf("请确认新密码：");
-		scanf("s", pw_check);
+		scanf("%19s", pw_check);
 	}
 	return 1;
 }
@@ -450,132 +446,6 @@ int admin_menu(){
 }
 
 
-
-
-
-/*
-* function_name: record_income
-* return_type  : void
-* param        : 5个double数据 传入订单中各项收入信息 
-* description  : 将读取到的订单收入信息记录到 income 文件夹 对应日期的文件中 
-*/
-void record_income(double account, double account_hot_dish, double account_cold_dish, double account_staple_food, double account_drink){
-	double all_income = 0.0, staple_food_income = 0.0, hot_dish_income = 0.0, cold_dish_income = 0.0, drink_income = 0.0;
-	//接收本次订单赚的钱，准备存起来。
-	char fdate[50]="";
-	create_date_filename(fdate); 
-					
-	FILE *fp1;
-	fp1 = fopen(fdate , "r");// 第一步：用 "r" 打开，只想看看文件有没有
-	if(fp1 == NULL){
-		fp1 = fopen(fdate,"w");
-		if(fp1 == NULL){
-			printf("错误: 无法创建收入文件 %s\n", fdate);
-			return;
-		}
-		format_input_income(fp1,account,account_hot_dish,account_cold_dish,account_staple_food,account_drink);
-		fclose(fp1);
-	}
-	else{
-		if(!format_output_income(fp1,&all_income,&hot_dish_income,&cold_dish_income,&staple_food_income,&drink_income)){
-			printf("错误: 收入文件 %s 格式错误，本次数据可能丢失！\n", fdate);
-			fclose(fp1);
-			return;
-		}
-		fclose(fp1);
-		all_income += account;                // 今天总钱 + 本次钱
-		hot_dish_income += account_hot_dish;  // 热菜累加
-		cold_dish_income += account_cold_dish;// 凉菜累加
-		staple_food_income += account_staple_food;//主食累加
-		drink_income += account_drink;        // 饮料累加
-		fp1 = fopen(fdate , "w");
-		if(fp1 == NULL){
-			printf("错误: 无法写入收入文件 %s，本次收入数据丢失！\n", fdate);
-			return;
-		}
-		format_input_income(fp1,all_income,hot_dish_income,cold_dish_income,staple_food_income,drink_income);
-		fclose(fp1); 
-	} 
-}
-
-
-
-
-
-
-
-/*
-* function_name: format_input_income 
-* return_type  : void
-* param        : FILE* fp 5 个double数据 
-* description  : 格式化输入数据 ，将5个double数据格式化输入到文件中 
-*/
-void format_input_income(FILE* fp,double a,double b,double c,double d,double e){
-	fprintf(fp,"%lf\n",a);
-	fprintf(fp,"%lf\n",b);
-	fprintf(fp,"%lf\n",c);
-	fprintf(fp,"%lf\n",d);
-	fprintf(fp,"%lf\n",e);
-}
-
-
-
-
-
-/*
-* function_name: format_output_income 
-* return_type  : void
-* param        : FILE* fp 5 个double数据 
-* description  : 格式化输出数据 ，将5个double数据格式化输出到程序中 
-*/
-int format_output_income(FILE* fp,double* a,double* b,double* c,double* d,double* e){
-	if(fscanf(fp,"%lf\n",a) != 1) return 0;
-	if(fscanf(fp,"%lf\n",b) != 1) return 0;
-	if(fscanf(fp,"%lf\n",c) != 1) return 0;
-	if(fscanf(fp,"%lf\n",d) != 1) return 0;
-	if(fscanf(fp,"%lf\n",e) != 1) return 0;
-	return 1;
-}
-
-
-
-
-
-
-/*
-* function_name: create_date_filename
-* return_type  : void
-* param        : char* fdate(用于返回生成后的文件名)
-* description  : 自动获取当天日期，并返回文件名 如202161.txt 
-*/
-void create_date_filename(char* fdate){
-	fdate[0] = '\0';// 防御性清空，防止调用方传入未初始化的字符串
-	char date[20] = "";//strcat 拼接的前提：目标字符串必须是空的！
-	struct tm* p = get_time();//struct tm 是系统固定结构，localtime 自动把当前时间 年 / 月 / 日 填进去，p 指向这个装满时间的盒子
-	int mday = p->tm_mday;// 使用局部变量，避免修改gmtime返回的共享内存
-	if(p->tm_hour + 8 >= 24) mday -= 1;//北京时间已过午夜，凌晨营业的收银额归入前一天
-	
-	char year[5] = "";
-	char month[5] = "";
-	char day[5] = "";
-	//使用 sprintf 替代非标准的 itoa 函数（跨平台兼容）
-	sprintf(year, "%d", p->tm_year + 1900);//因为 tm_year 是从 1900 年开始算的，所以要 +1900。
-	sprintf(month, "%d", p->tm_mon + 1);//月份也是从 0 开始算
-	sprintf(day, "%d", mday);// tm_mday 直接表示当月第几天，不需要 +1
-	strcat(date,year);
-	strcat(date,month);
-	strcat(date,day);
-	strcat(date,".txt");
-	
-	strcat(fdate , "income//");
-	strcat(fdate , date);
-}
-
-
-
-
-
-
 /*
 * function_name: income_check
 * return_type  : void
@@ -616,238 +486,6 @@ void income_check(){
 	printf("**************************************\n");
 	getch();
 }
-
-
-
-/*
-* function_name: add_dish 
-* return_type  : void
-* param        : NULL
-* description  : 添加菜品 
-*/ 
-void add_dish(){
-	//定义文件指针
-	FILE *fp;
-	
-	//定义控制变量
-	int choice; 
- 
-	//功能运行主体
-	do{
-		//定义添加主体
-		dish_menu new_dish; 
-		
-		//功能界面 
-		CLEAR_SCREEN();
-		printf("请输入菜品编号：");
-		scanf("%d",&new_dish.no); 
-		printf("请输入菜品名称：");
-		scanf("%s",new_dish.dish_name); 
-		printf("请输入菜品价格：");
-		scanf("%lf",&new_dish.dish_price);
-		printf("请选择菜品种类(1.热菜 2.凉菜 3.主食 4.饮品)：");
-		scanf("%d",&new_dish.type);
-		error_check(1,4,&new_dish.type);
-		
-		// --- 新增：询问是否需要口味选项 ---
-		printf("该菜品是否需要调整辣度/口味？(1.是 0.否): ");
-		scanf("%d", &new_dish.has_options);
-		
-		char filename[20];
-		switch(new_dish.type){
-			case 1:strcpy( filename , hot_dish_filename );break;
-			case 2:strcpy( filename , cold_dish_filename );break;
-			case 3:strcpy( filename , staple_food_filename );break;
-			case 4:strcpy( filename , drink_filename );break;
-		}
-		
-		fp = fopen( filename , "a");// 在文件末尾追加，不覆盖原有数据。
-		if(fp == NULL){
-			printf("错误: 无法打开菜品文件 %s\n", filename);
-			getch();
-			return;
-		}
-		//将菜品信息录入文件（现在是5个字段）
-		fprintf(fp,"%d\n",new_dish.no);
-		fprintf(fp,"%s\n",new_dish.dish_name);
-		fprintf(fp,"%lf\n",new_dish.dish_price);
-		fprintf(fp,"%d\n",new_dish.type); 
-		fprintf(fp,"%d\n",new_dish.has_options); // ← 新增：写入选项标记
-		
-		fclose(fp);
-		
-		//判断是否继续执行 
-		printf("是否继续添加菜品：\n");
-		printf("1.是\n");
-		printf("2.否\n");
-		scanf("%d",&choice);
-		
-		//输入异常检测
-		error_check(1,2,&choice);
-		 
-	}while(choice != 2);
-}
-
-
-
-
-
-
-/*
-* function_name: del_dish
-* return_type  : void
-* param        : NULL
-* description  : 删除菜品 
-*/ 
-void del_dish(){
-	int choice;
-	int quit_handle = 0;//是一个退出标志，用来处理"用户找不到菜品后选退出"的场景。
-	int pos;
-	do{
-		CLEAR_SCREEN();
-		printf("1.热菜\n");
-		printf("2.凉菜\n");
-		printf("3.主食\n");
-		printf("4.饮品\n");
-		printf("请选择删除菜品的类型:");
-		int type;
-		scanf("%d" , &type);
-		
-		error_check(1,4,&type);
-		
-		//依据菜品类型打开对应文件
-		char filename[20];
-		switch(type){
-			case 1:strcpy(filename,hot_dish_filename);break; 
-			case 2:strcpy(filename,cold_dish_filename);break;
-			case 3:strcpy(filename,staple_food_filename);break;
-			case 4:strcpy(filename,drink_filename);break;
-		}
-		 
-		FILE *fp;
-		dish_menu dm[MAX_LENGTH];//创建一个数组 dm，能装下【所有菜品】
-		dish_menu dm_new[MAX_LENGTH];//创建第二个数组 dm_new，装【删除后的新菜单】
-		int cnt = 0;
-		
-		fp = fopen(filename , "r");
-		if(fp == NULL){
-			printf("错误: 无法打开菜品文件 %s\n", filename);
-			getch();
-			return;
-		}
-		while(cnt < MAX_LENGTH && fscanf(fp,"%d",&dm[cnt].no) == 1){
-			if(fscanf(fp,"%s",dm[cnt].dish_name) != 1) break;
-			if(fscanf(fp,"%lf",&dm[cnt].dish_price) != 1) break;
-			if(fscanf(fp,"%d",&dm[cnt].type) != 1) break;
-			// --- 新增：读取口味选项标记（兼容旧文件）---
-			if(fscanf(fp,"%d",&dm[cnt].has_options) != 1) dm[cnt].has_options = 0;
-			cnt++;
-		}
-		fclose(fp);
-		
-		if(cnt == 0){
-			printf("该分类下暂无菜品！\n");
-			getch();
-			return;
-		}
-		
-		// 展示当前菜单
-		printf("当前菜品列表：\n");
-		printf("----------------------------------------------------------\n");
-		printf("%-8s %-24s %-10s %-8s\n", "编号", "名称", "价格", "选项");
-		int i;
-		for(i = 0; i < cnt; i++) {
-			const char* opt_str = dm[i].has_options ? "[选]" : "";
-			if(is_recommend(dm[i].type, dm[i].no))
-				printf("%-8d 【招牌】%-16s %10.2lf %-8s\n", dm[i].no, dm[i].dish_name, dm[i].dish_price, opt_str);
-			else
-				printf("%-8d %-24s %10.2lf %-8s\n", dm[i].no, dm[i].dish_name, dm[i].dish_price, opt_str);
-		}
-		printf("----------------------------------------------------------\n");
-		
-		printf("请输入需要删除的菜品编号：");
-		int del_no;
-		scanf("%d",&del_no);
-		
-		//检索文件 该菜品是否存在 
-		int flag = 0;
-		pos = -1;
-		do{
-			int j;
-			for(j = 0 ; j < cnt ; j++){
-				if(dm[j].no == del_no){
-					flag = 1;
-					pos = j;
-					break;
-				}
-			}
-			if(flag == 0){
-				printf("没有该菜品!\n");
-				printf("1.退出\n");
-				printf("2.重新输入\n");
-				
-				int _choice;
-				scanf("%d",&_choice);
-				
-				error_check(1,2,&_choice);
-				
-				if(_choice == 1){
-					quit_handle = 1;
-					break;
-				}
-				
-				if(_choice == 2) {
-					printf("请重新输入菜品编号：");
-					scanf("%d",&del_no);
-				}
-			}
-		}while(flag == 0);
-		
-		printf("是否确认删除<%s>菜品?1.是 2.否",dm[pos].dish_name);
-		int del_choice;
-		scanf("%d",&del_choice);
-		
-		error_check(1,2,&del_choice);
-		
-		//删除菜品
-		if(del_choice == 1){
-			int i;
-			int j = 0;
-			for(i = 0 ; i < cnt ; i++){
-				if(i == pos){ // 跳过该菜品 
-					continue; 
-				}
-				else{
-					dm_new[j].no = dm[i].no;
-					strcpy(dm_new[j].dish_name , dm[i].dish_name);
-					dm_new[j].dish_price = dm[i].dish_price;
-					dm_new[j].type = dm[i].type;
-					dm_new[j].has_options = dm[i].has_options; // ← 新增：保留选项标记
-					j++;
-				}
-			}
-			
-			//将 dm_new 重新覆盖录入到菜单文件中（删除后少一条，共 j 条）
-			fp = fopen(filename , "w");
-			for(i = 0 ; i < j ; i++){
-				fprintf(fp , "%d\n",dm_new[i].no);
-				fprintf(fp , "%s\n",dm_new[i].dish_name);
-				fprintf(fp , "%lf\n",dm_new[i].dish_price);
-				fprintf(fp , "%d\n",dm_new[i].type);
-				fprintf(fp , "%d\n",dm_new[i].has_options); // ← 新增：写入选项标记
-			}
-			fclose(fp);
-			
-			printf("删除成功！\n");	 
-		} 
-
-		printf("是否继续删除？1.是，2否？");
-		scanf("%d",&choice);
-		
-		error_check(1,2,&choice);
-	}while(choice != 2);
-}
-
 
 
 /*
