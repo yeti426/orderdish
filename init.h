@@ -59,7 +59,6 @@ typedef struct {
 
 // 购物车项结构（也是订单项结构）
 typedef struct {
-    int no;              // 菜品编号
     char dish_name[20];  // 菜品名称
     double dish_price;   // 单价
     int type;            // 类型

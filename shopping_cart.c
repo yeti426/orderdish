@@ -40,14 +40,13 @@ void display_cart() {
     if (cart.count == 0) {
         printf("\n选膳筐为空！\n");
     } else {
-        printf("\n%-4s %-6s %-12s %-8s %-6s %-9s %-8s %-10s\n", 
-               "序号", "编号", "菜品名称", "单价", "数量", "小计", "状态", "口味");
+        printf("\n%-3s %-20s %-8s %-18s %-15s %-8s %-10s\n", 
+               "序号", "菜品名称", "单价", "数量", "小计", "状态", "口味");
         printf("---------------------------------------------------------------------\n");
         
         for (int i = 0; i < cart.count; i++) { 
-            printf("%-4d %-6d %-12s ¥%-7.2lf %-6d ¥%-9.2lf %-8s %-10s\n",
+            printf("%-4d %-12s ¥%-7.2lf %-6d ¥%-9.2lf %-8s %-10s\n",
                    i + 1,
-                   cart.items[i].no,
                    cart.items[i].dish_name,
                    cart.items[i].dish_price,
                    cart.items[i].nums,
@@ -134,7 +133,6 @@ void remove_from_cart(int index) {
     }
 
     // 清空最后一个位置
-    cart.items[cart.count - 1].no = 0;
     cart.items[cart.count - 1].nums = 0;
     cart.items[cart.count - 1].subtotal = 0;
     cart.items[cart.count - 1].status = 0;
@@ -186,17 +184,16 @@ void submit_order() {
         // 为了稳健，我们先清空 final_orders，然后尝试解析所有可能的行。
         
         while (total_count < MAX_LENGTH) {
-            int ret = fscanf(fp, "%d %s %lf %d %d %d %s", 
-                      &final_orders[total_count].no,
+            int ret = fscanf(fp, "%s %lf %d %d %d %s", 
                       final_orders[total_count].dish_name,
                       &final_orders[total_count].dish_price,
                       &final_orders[total_count].type,
                       &final_orders[total_count].nums,
                       &final_orders[total_count].status,
                       final_orders[total_count].remark);
-            if (ret == 6) {
+            if (ret == 5) {
                 strcpy(final_orders[total_count].remark, "-");
-            } else if (ret < 6) {
+            } else if (ret < 5) {
                 break;
             } else if (strlen(final_orders[total_count].remark) == 0) {
                 strcpy(final_orders[total_count].remark, "-");
@@ -249,8 +246,7 @@ void submit_order() {
     
     for (int i = 0; i < total_count; i++) {
         const char* remark_str = (strlen(final_orders[i].remark) == 0) ? "-" : final_orders[i].remark;
-        fprintf(fp, "%d %s %.2lf %d %d %d %s\n",
-                final_orders[i].no,
+        fprintf(fp, "%s %.2lf %d %d %d %s\n",
                 final_orders[i].dish_name,
                 final_orders[i].dish_price,
                 final_orders[i].type,
@@ -266,9 +262,8 @@ void submit_order() {
     if (kfp) {
         for (int i = 0; i < cart.count; i++) {
             // 使用 | 作为分隔符，避免空格问题
-            fprintf(kfp, "%d %d %s %d %d %s\n", 
+            fprintf(kfp, "%d %s %d %d %s\n", 
                     cart.table_no,             // 桌号
-                    cart.items[i].no,          // 菜品编号
                     cart.items[i].dish_name,   // 菜名
                     cart.items[i].nums,        // 数量
                     cart.items[i].status,      // 初始状态
@@ -328,7 +323,6 @@ void init_cart(int table_no) {
     
     // 清空购物车数组
     for (int i = 0; i < MAX_LENGTH; i++) {
-        cart.items[i].no = 0;
         cart.items[i].nums = 0;
         cart.items[i].subtotal = 0;
         cart.items[i].status = 0;
@@ -343,7 +337,6 @@ void clear_cart_items() {
     cart.count = 0;
     cart.total_amount = 0;
     for (int i = 0; i < MAX_LENGTH; i++) {
-        cart.items[i].no = 0;
         cart.items[i].nums = 0;
         cart.items[i].subtotal = 0;
         memset(cart.items[i].dish_name, 0, sizeof(cart.items[i].dish_name));
