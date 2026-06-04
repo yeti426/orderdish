@@ -8,11 +8,12 @@ int format_output_income(FILE* fp, double* a, double* b, double* c, double* d, d
 int record_income(double account, double account_hot_dish, double account_cold_dish, double account_staple_food, double account_drink);
 
 /* 确保目录存在（跨平台） */
-static void ensure_dir(const char* dir) {
-    struct stat st;
-    if(stat(dir, &st) != 0) {
+static void ensure_dir(const char* dir) {//确保指定目录存在，不存在就创建，是一个跨平台的防御性目录初始化工具。
+   //static 表示该函数仅在本文件（income.c）内可见，不会被其他 .c 文件链接调用。
+    struct stat st; //struct stat 是操作系统（Linux/Windows）系统头文件自带的、专门存放【文件 / 文件夹全部属性】的系统结构体。
+    if(stat(dir, &st) != 0) {//stat(...) != 0 → 文件夹不存在。
 #ifdef _WIN32
-        mkdir(dir);
+        mkdir(dir);//mkdir = 创建文件夹。
 #else
         mkdir(dir, 0755);
 #endif
