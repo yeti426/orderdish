@@ -30,20 +30,24 @@ extern void update_total(void);                     // 更新购物车总金额
  * 函数功能：顾客主界面
  */
 void customer_form() {
-    CLEAR_SCREEN();               
+    CLEAR_SCREEN();    
+
     int greet_type = 1;
 	struct tm* p = get_time();
 	greet(p,greet_type);           // 根据时间和身份，打印问候语
     
     // 选桌
     printf("**************************************\n");
-    printf("请入坐雅间雅座：");
+    printf("本店共设雅座 20 桌，请输入雅座编号（1–20）：\n");
 
-    // 输入验证，确保整数
-    while (scanf("%d", &table_no) != 1) {
-        while (getchar() != '\n'); // 清空输入缓冲区
-        printf("雅座有误，请重报雅座编号：");
+    printf("请入坐雅间雅座：");
+    if (scanf("%d", &table_no) != 1) {
+        clear_stdin_buffer();
+        table_no = 0;
     }
+
+    error_check(1, 20, &table_no);
+
     
     init_cart(table_no);           // 初始化购物车（绑定雅座）
     
@@ -446,7 +450,7 @@ double display_order_common(int t_no, int show_menu) {
                    orders[i].remark);
         }
 
-        printf("----------------------------------------\n");
+        printf("-----------------------------------------------------------------------\n");
         printf("\n总金额: ¥%.2lf\n", total);
     }
 
