@@ -450,7 +450,7 @@ double display_order_common(int t_no, int show_menu) {
                    orders[i].remark);
         }
 
-        printf("----------------------------------------\n");
+        printf("-----------------------------------------------------------------------\n");
         printf("\n总金额: ¥%.2lf\n", total);
     }
 
