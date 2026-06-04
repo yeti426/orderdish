@@ -85,21 +85,24 @@ void complete_dish_in_queue(int index) {
                 if (ret < 6) continue;
 
                 char* rem_ptr = line + consumed;
-                while (*rem_ptr == ' ') rem_ptr++;
+                  
+                while (*rem_ptr == ' ') rem_ptr++;  //跳过所有前导空格字符 
                 size_t rlen = strlen(rem_ptr);
                 if (rlen > 0 && rem_ptr[rlen - 1] == '\n') {
-                    rem_ptr[rlen - 1] = '\0';
-                    rlen--;
+                    rem_ptr[rlen - 1] = '\0';  // 将换行符替换为字符串结束符
+                    rlen--;  // 更新字符串长度
                 }
+
                 if (rlen == 0) {
+                //检查处理后的字符串是否为空，为空则表示无备注内容，将备注设置为默认值"-" 
                     strcpy(orders[ocount].remark, "-");
                 } else {
                     strncpy(orders[ocount].remark, rem_ptr, sizeof(orders[ocount].remark) - 1);
-                    orders[ocount].remark[sizeof(orders[ocount].remark) - 1] = '\0';
+                    orders[ocount].remark[sizeof(orders[ocount].remark) - 1] = '\0'; //确保字符串正确终止 
                 }
 
-                // 匹配：菜品编号和备注都一致才更新状态
-                if (orders[ocount].no == dno &&
+                // 匹配：菜品名称和备注都一致才更新状态
+                if (strcmp(orders[ocount].dish_name, queue[index].dish_name) == 0 &&
                     strcmp(orders[ocount].remark, remark_target) == 0 &&
                     orders[ocount].status == ORDER_STATUS_PENDING) {
                     orders[ocount].status = STATUS_DONE;
@@ -182,44 +185,5 @@ void kitchen_form() {
     
     // 递归刷新
     if (seq != 0) kitchen_form();
-}
-
-/*
- * 函数功能：读取指定桌号的订单文件，返回待制作的菜品列表
- */
-int load_pending_orders(int table_no, cart_item* orders) {
-    char filename[50];
-    create_order_filename(table_no, filename, sizeof(filename));
-    
-    FILE* fp = fopen(filename, "r");
-    if (!fp) return 0;
-    
-    int count = 0;
-    while (count < MAX_LENGTH) {
-        // 尝试读取7个字段（兼容新格式）
-        int ret = fscanf(fp, "%d %s %lf %d %d %d %s", 
-                  &orders[count].no,
-                  orders[count].dish_name,
-                  &orders[count].dish_price,
-                  &orders[count].type,
-                  &orders[count].nums,
-                  &orders[count].status,
-                  orders[count].remark);
-        
-        // 旧格式没有备注字段，新格式有7个字段
-        if (ret == 6) {
-            strcpy(orders[count].remark, "-");
-        } else if (ret < 6) {
-            break;
-        } else if (strlen(orders[count].remark) == 0) {
-            strcpy(orders[count].remark, "-");
-        }
-        
-        if (orders[count].status == ORDER_STATUS_PENDING) {
-            count++;
-        }
-    }
-    fclose(fp);
-    return count;
 }
 

@@ -1,8 +1,4 @@
 #include "init.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-//#include <conio.h>
 
 //变量声明 
 extern int table_no;          //餐台号 
@@ -12,8 +8,6 @@ extern char staple_food_filename[20];
 extern char drink_filename[20]; 
 
 //外部函数声明   
-extern void error_check(int,int,int*);
-extern void create_order_filename(int,char*,int);
 extern void menu_controller(dish_menu* dm, int cnt);
 
 // 购物车全局变量
@@ -25,8 +19,6 @@ void display_cart();                           // 显示购物车
 void remove_from_cart(int index);              // 从购物车删除
 void update_total();                      // 更新总金额
 void submit_order();                           // 提交订单到厨房
-
-
 
 /*
  * 函数功能：显示购物车内容
@@ -40,14 +32,13 @@ void display_cart() {
     if (cart.count == 0) {
         printf("\n选膳筐为空！\n");
     } else {
-        printf("\n%-4s %-6s %-12s %-8s %-6s %-9s %-8s %-10s\n", 
-               "序号", "编号", "菜品名称", "单价", "数量", "小计", "状态", "口味");
+        printf("\n%-3s %-20s %-8s %-18s %-15s %-8s %-10s\n", 
+               "序号", "菜品名称", "单价", "数量", "小计", "状态", "口味");
         printf("---------------------------------------------------------------------\n");
         
         for (int i = 0; i < cart.count; i++) { 
-            printf("%-4d %-6d %-12s ¥%-7.2lf %-6d ¥%-9.2lf %-8s %-10s\n",
+            printf("%-4d %-12s ¥%-7.2lf %-6d ¥%-9.2lf %-8s %-10s\n",
                    i + 1,
-                   cart.items[i].no,
                    cart.items[i].dish_name,
                    cart.items[i].dish_price,
                    cart.items[i].nums,
@@ -61,16 +52,18 @@ void display_cart() {
     }
     
     printf("\n========================================\n");
-    
+     int choice;
     // 如果购物车为空，只显示返回选项
     if (cart.count == 0) {
         printf("1. 返回主菜单\n");
+       
     } else {
     	// 否则显示完整选项
     	printf("1. 提交，报送厨灶\n");
         printf("2. 删除菜品\n");
         printf("3. 继续加菜\n");
         printf("4. 返回\n");
+        
 	}
     printf("请选择: ");
         
@@ -149,7 +142,7 @@ void remove_from_cart(int index) {
  */
 void submit_order() {
     if (cart.count == 0) {
-        printf("购物车为空，无法提交！\n");
+        printf("选菜筐为空，无法提交！\n");
         getch();
         return;
     }
@@ -163,27 +156,8 @@ void submit_order() {
     cart_item final_orders[MAX_LENGTH];
     
     if (fp) {
-        // 跳过可能存在的状态行和备注行头（如果文件格式包含头部）
-        // 注意：原代码有 fprintf(fp, "1\n"); 和 fprintf(fp, "\n"); 
-        // 如果这是固定头部，我们需要先消耗掉它们，或者改变存储结构。
-        // 根据原代码逻辑，它似乎把 "1" 和空行当作文件头。
-        // 为了简化，我们尝试直接读取数据行。如果第一行是 "1"，fscanf 会失败或读错。
-        // 更好的方式是统一格式。这里我们尝试读取直到文件末尾，忽略非数据行可能比较困难。
-        // 鉴于原代码写入格式：
-        // Line 1: "1\n"
-        // Line 2: "\n"
-        // Data Lines...
-        // 我们需要先读取并丢弃前两行，或者修改写入逻辑不写这两行。
-        // 参考提供的修改方案，它似乎去掉了这两行头部，直接写入数据。
-        // 我将采用参考方案的逻辑：直接读写数据项。
-        
-        // 如果文件中包含旧的头部格式，可能需要特殊处理。
-        // 这里假设我们迁移到新格式：每行一个菜品，无全局头部。
-        // 如果文件不为空，尝试读取。
         
         char line[256];
-        // 简单处理：如果文件存在，尝试逐行解析。
-        // 为了稳健，我们先清空 final_orders，然后尝试解析所有可能的行。
         
         while (total_count < MAX_LENGTH) {
             int ret = fscanf(fp, "%d %s %lf %d %d %d %s", 
@@ -206,7 +180,7 @@ void submit_order() {
         fclose(fp);
     }
 
-    // 2. 将购物车的新菜品合并进去
+    // 将购物车的新菜品合并进去
     for (int i = 0; i < cart.count; i++) {
         int found = 0;
         // 在已有订单中查找是否已存在该菜品（菜名和口味备注都一致才合并数量）
@@ -228,24 +202,13 @@ void submit_order() {
         }
     }
 
-    // 3. 将合并后的完整清单写回文件（7个字段）
+    // 将合并后的完整清单写回文件（7个字段）
     fp = fopen(filename, "w");
     if (!fp) {
         printf("订单提交失败！\n");
         getch();
         return;
     }
-    
-    // 不再写入单独的头部行，直接写入数据，方便追加和解析
-    // 如果需要保留 "1" (待支付) 的状态标记，可以放在第一行，但解析时要特殊处理
-    // 这里参考方案是直接写入数据列表。我们可以约定第一行为元数据，或者只在文件名/其他地方存状态。
-    // 为了最小化改动风险，我将在第一行写入状态 "1"，后续行写入菜品。
-    // 但这样 fscanf 循环就需要跳过第一行。
-    // 让我们采用更简单的：只存菜品列表。状态可以通过文件是否存在或其他方式判断，
-    // 或者我们在第一行写入 "STATUS 1" 这样的标记。
-    
-    // 修正：为了兼容原系统可能的其他部分依赖 "1\n" 开头，我们保留它，但在读取时跳过。
-    // 不过参考方案里去掉了它。我将遵循参考方案，只写入菜品数据。
     
     for (int i = 0; i < total_count; i++) {
         const char* remark_str = (strlen(final_orders[i].remark) == 0) ? "-" : final_orders[i].remark;
@@ -277,19 +240,18 @@ void submit_order() {
         fclose(kfp);
     }
     
-    // 4. 清空购物车 [厨房已接收标记已移除] 
 
-    // 5. 提示用户并清空内存购物车
+    // 提示用户并清空内存购物车
     CLEAR_SCREEN();
     printf("========================================\n");
-    printf("         订单提交成功！\n");
+    printf("         膳单提交成功！\n");
     printf("========================================\n");
-    printf("\n菜品已加入总账单！\n");
+    printf("\n菜品已加入总膳单！\n");
     printf("总金额: %.2lf 元\n", cart.total_amount);
     printf("\n正在返回主菜单...\n");
     
     Sleep(1500);
-    clear_cart_items(); 
+    init_cart(cart.table_no); // 清空内存购物车但保留桌号绑定
     getch();
 }
 
@@ -335,17 +297,3 @@ void init_cart(int table_no) {
         memset(cart.items[i].dish_name, 0, sizeof(cart.items[i].dish_name));
     }
 } 
-
-
-
-//函数功能：清空菜品
-void clear_cart_items() {
-    cart.count = 0;
-    cart.total_amount = 0;
-    for (int i = 0; i < MAX_LENGTH; i++) {
-        cart.items[i].no = 0;
-        cart.items[i].nums = 0;
-        cart.items[i].subtotal = 0;
-        memset(cart.items[i].dish_name, 0, sizeof(cart.items[i].dish_name));
-    }
-}
