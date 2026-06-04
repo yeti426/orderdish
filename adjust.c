@@ -519,12 +519,15 @@ void del_dish() {
 				getch();
 				return;
 			}
+			int new_no = 1;  // 重新从1开始顺延编号
 			for(i = 0; i < cnt; i++) {
-				if(i != pos)
-					fprintf(fp, "%d\n%s\n%lf\n%d\n%d\n", dm[i].no, dm[i].dish_name, dm[i].dish_price, dm[i].type, dm[i].has_options);
+				if(i != pos) {
+					fprintf(fp, "%d\n%s\n%lf\n%d\n%d\n", new_no, dm[i].dish_name, dm[i].dish_price, dm[i].type, dm[i].has_options);
+					new_no++;
+				}
 			}
 			fclose(fp);
-			printf("删除成功！\n");
+			printf("删除成功！编号已自动顺延。\n");
 		}
 
 		printf("是否继续删除？1.是，2否？");
