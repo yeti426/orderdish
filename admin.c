@@ -80,6 +80,11 @@ void admin_form() {
         flag = check_password(pw_input);
         if(flag != 0) {
             wrong_time++;
+            if(wrong_time >= 3) {
+                printf("错误次数过多，已退出！\n");
+                getch();
+                return;
+            }
             printf("输入错误，请重新输入:");
             input_password(pw_input, wrong_time);
         } else {
@@ -639,7 +644,7 @@ void view_reviews() {
     // 读取并显示评价内容
     char filename[100];
 #ifdef _WIN32//拼出要打开的评价文件路径
-    snprintf(filename, sizeof(filename), "reviews\\review_table_%d.txt", choice);
+    snprintf(filename, sizeof(filename), "reviews\\review_table_%d.txt", choice);//snprintf = 安全版字符串拼接 + 格式化
 #else
     snprintf(filename, sizeof(filename), "reviews/review_table_%d.txt", choice);
 #endif
