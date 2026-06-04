@@ -323,22 +323,71 @@ void add_dish() {
 	do {
 		dish_menu new_dish;
 		CLEAR_SCREEN();
-		printf("请输入菜品编号：");
-		scanf("%d", &new_dish.no);
-		printf("请输入菜品名称：");
-		scanf("%s", new_dish.dish_name);
-		printf("请输入菜品价格：");
-		scanf("%lf", &new_dish.dish_price);
-		printf("请选择菜品种类(1.热菜 2.凉菜 3.主食 4.饮品)：");
-		scanf("%d", &new_dish.type);
+
+		// 1. 先选菜品种类
+		printf("请选择要添加的菜品种类：\n");
+		printf("1.热菜  2.凉菜  3.主食  4.饮品\n");
+		printf("请选择(1-4)：");
+		if(scanf("%d", &new_dish.type) != 1) {
+			clear_stdin_buffer();
+			new_dish.type = 0;//设一个无效值，确保 error_check 能触发"输入错误！烦请重填"
+		}
 		error_check(1, 4, &new_dish.type);
 
-		printf("该菜品是否需要调整辣度/口味？(1.是 0.否): ");
-		scanf("%d", &new_dish.has_options);
-
+		// 2. 加载并展示当前菜单
 		char filename[20];
 		get_dish_filename(new_dish.type, filename);
+		dish_menu dm[MAX_LENGTH];
+		int cnt = load_dishes(filename, dm);
 
+		printf("\n当前菜品列表(%d个)：\n", cnt);
+		printf("----------------------------------------------------------\n");
+		printf("编号    名称          价格\n");
+		if(cnt == 0) {
+			printf("  (暂无菜品)\n");
+		} else {
+			int i;
+			for(i = 0; i < cnt; i++) {
+				printf("%-8d %-14s %.2lf\n", dm[i].no, dm[i].dish_name, dm[i].dish_price);
+			}
+		}
+		printf("----------------------------------------------------------\n\n");
+
+		// 3. 自动计算编号（必须接在最大编号之后）
+		if(cnt == 0) {
+			new_dish.no = 1;  // 空菜单从1开始
+			printf("当前菜单为空，新菜品编号自动设为: 1\n");
+		} else {
+			// 找最大编号
+			int max_no = dm[0].no;
+			int i;
+			for(i = 1; i < cnt; i++) {
+				if(dm[i].no > max_no) max_no = dm[i].no;
+			}
+			new_dish.no = max_no + 1;
+			printf("新菜品编号自动设为: %d (接在%d之后)\n", new_dish.no, max_no);
+		}
+
+		printf("请输入菜品名称(输入0取消)：");
+		scanf("%s", new_dish.dish_name);
+		if(strcmp(new_dish.dish_name, "0") == 0) {
+			printf("已取消加菜。\n");
+			return;
+		}
+
+		printf("请输入菜品价格：");
+		scanf("%lf", &new_dish.dish_price);
+		if(new_dish.dish_price < 0) new_dish.dish_price = 0;
+
+		new_dish.has_options = -1;
+		printf("该菜品是否需要调整辣度/口味？(1.是 0.否): ");
+		if(scanf("%d", &new_dish.has_options) != 1) {
+			clear_stdin_buffer();
+			new_dish.has_options = -1;
+		}
+		error_check(0, 1, &new_dish.has_options);
+
+		// 4. 追加写入文件
 		FILE* fp = fopen(filename, "a");
 		if(fp == NULL) {
 			printf("错误: 无法打开菜品文件 %s\n", filename);
@@ -348,8 +397,13 @@ void add_dish() {
 		fprintf(fp, "%d\n%s\n%lf\n%d\n%d\n", new_dish.no, new_dish.dish_name, new_dish.dish_price, new_dish.type, new_dish.has_options);
 		fclose(fp);
 
-		printf("是否继续添加菜品：\n1.是\n2.否\n");
-		scanf("%d", &choice);
+		printf("\n添加成功！%s(编号%d, ¥%.2lf) 已加入菜单。\n", new_dish.dish_name, new_dish.no, new_dish.dish_price);
+
+		printf("\n是否继续添加菜品：\n1.是\n2.否\n");
+		if(scanf("%d", &choice) != 1) {
+			clear_stdin_buffer();
+			choice = 2;
+		}
 		error_check(1, 2, &choice);
 	} while(choice != 2);
 }
@@ -362,23 +416,23 @@ void add_dish() {
 */ 
 void del_dish() {
 	int choice;
-	int quit_handle = 0;
 	do {
 		CLEAR_SCREEN();
-		printf("1.热菜\n2.凉菜\n3.主食\n4.饮品\n");
+		printf("1.热菜\n2.凉菜\n3.主食\n4.饮品\n5.返回\n");
 		printf("请选择删除菜品的类型:");
 		int type;
 		if(scanf("%d", &type) != 1){
-		clear_stdin_buffer();
-		type = 0; // 设置为无效值，确保error_check能正确处理
-	}
-		error_check(1, 4, &type);
+			clear_stdin_buffer();
+			type = 0;
+		}
+		error_check(1, 5, &type);
+		if(type == 5) break;  // 返回上一级
 
 		char filename[20];
+		
 		get_dish_filename(type, filename);
 
 		dish_menu dm[MAX_LENGTH];
-		dish_menu dm_new[MAX_LENGTH];
 		int cnt = load_dishes(filename, dm);
 
 		if(cnt == 0) {
@@ -399,11 +453,15 @@ void del_dish() {
 		}
 		printf("----------------------------------------------------------\n");
 
-		printf("请输入需要删除的菜品编号：");
+		printf("请输入需要删除的菜品编号(输入0取消)：");
 		int del_no;
 		scanf("%d", &del_no);
+		if(del_no == 0) {
+			printf("已取消删除。\n");
+			continue;
+		}
 
-		int flag = 0, pos = -1;
+		int flag = 0, pos = -1, quit_handle = 0;
 		do {
 			int j;
 			for(j = 0; j < cnt; j++) {
@@ -419,23 +477,29 @@ void del_dish() {
 			}
 		} while(flag == 0);
 
+		if(quit_handle) {
+			printf("已取消删除。\n");
+			printf("是否继续删除？1.是，2否？");
+			scanf("%d", &choice);
+			error_check(1, 2, &choice);
+			continue;
+		}
+
 		printf("是否确认删除<%s>菜品?1.是 2.否", dm[pos].dish_name);
 		int del_choice;
 		scanf("%d", &del_choice);
 		error_check(1, 2, &del_choice);
 
 		if(del_choice == 1) {
-			int j = 0;
-			for(i = 0; i < cnt; i++) {
-				if(i != pos) {
-					dm_new[j] = dm[i]; // C语言支持同类型结构体直接赋值
-					j++;
-				}
-			}
-
 			FILE* fp = fopen(filename, "w");
-			for(i = 0; i < j; i++) {
-				fprintf(fp, "%d\n%s\n%lf\n%d\n%d\n", dm_new[i].no, dm_new[i].dish_name, dm_new[i].dish_price, dm_new[i].type, dm_new[i].has_options);
+			if(fp == NULL) {
+				printf("错误: 无法写入菜品文件 %s\n", filename);
+				getch();
+				return;
+			}
+			for(i = 0; i < cnt; i++) {
+				if(i != pos)
+					fprintf(fp, "%d\n%s\n%lf\n%d\n%d\n", dm[i].no, dm[i].dish_name, dm[i].dish_price, dm[i].type, dm[i].has_options);
 			}
 			fclose(fp);
 			printf("删除成功！\n");
