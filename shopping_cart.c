@@ -66,8 +66,6 @@ void display_cart() {
         
 	}
     printf("请选择: ");
-        
-    int choice;
     scanf("%d", &choice);
     // error_check(1, cart.kitchen_received || cart.count == 0 ? 1 : 3, &choice);
     // if (cart.kitchen_received || cart.count == 0){
