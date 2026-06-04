@@ -86,7 +86,10 @@ void set_recommend() {
 	printf("1.热菜\n2.凉菜\n3.主食\n4.饮品\n");
 	printf("请选择菜品种类：");
 	int type;
-	scanf("%d", &type);
+	if(scanf("%d", &type) != 1){
+		clear_stdin_buffer();
+		type = 0; // 设置为无效值，确保error_check能正确处理
+	}
 	error_check(1, 4, &type);
 
 	char filename[20];
@@ -231,7 +234,10 @@ void price_adjust() {
 		printf("1.热菜\n2.凉菜\n3.主食\n4.饮品\n");
 		printf("请选择修改菜品的类型:");
 		int type;
-		scanf("%d", &type);
+		if(scanf("%d", &type) != 1){
+		clear_stdin_buffer();
+		type = 0; // 设置为无效值，确保error_check能正确处理
+	}
 		error_check(1, 4, &type);
 
 		char filename[20];
@@ -362,7 +368,10 @@ void del_dish() {
 		printf("1.热菜\n2.凉菜\n3.主食\n4.饮品\n");
 		printf("请选择删除菜品的类型:");
 		int type;
-		scanf("%d", &type);
+		if(scanf("%d", &type) != 1){
+		clear_stdin_buffer();
+		type = 0; // 设置为无效值，确保error_check能正确处理
+	}
 		error_check(1, 4, &type);
 
 		char filename[20];

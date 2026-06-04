@@ -160,11 +160,11 @@ void kitchen_form() {
     if (count == 0) {
         printf("\n当前所有菜品已制作完毕！\n");
     } else {
-        printf("\n%-6s %-8s %-12s %-8s %-10s\n", "序号", "桌号", "菜品名称", "数量", "备注");
+        printf("\n%-6s %-8s %-15s %-8s %-10s\n", "序号", "桌号", "菜品名称", "数量", "备注");
         printf("----------------------------------------\n");
         for (int i = 0; i < count; i++) {
             if (queue[i].status == ORDER_STATUS_PENDING) {
-                printf("[%d]    %-8d %-12s x%d   [%s]\n", 
+                printf("[%d]    %-3d %-18s x%d   [%s]\n", 
                        i + 1, 
                        queue[i].table_no, 
                        queue[i].dish_name, 
@@ -177,7 +177,11 @@ void kitchen_form() {
     printf("\n----------------------------------------\n");
     printf("请输入【序号】标记完成 (输入0返回): ");
     int seq;
-    scanf("%d", &seq);
+    if(scanf("%d", &seq) != 1){
+		clear_stdin_buffer();
+		seq = 0; // 设置为无效值，确保error_check能正确处理
+	}
+	error_check(0, count, &seq); // 检查输入是否在有效范围内
     
     if (seq > 0) {
         complete_dish_in_queue(seq - 1); // 数组下标从0开始

@@ -440,8 +440,9 @@ int admin_menu(){
 	printf("9.退出\n");
 
 	printf("在此输入：");
-	while (scanf("%d", &choice) != 1) {
-		while (getchar() != '\n');  // 清空输入缓冲区，一个一个吃掉缓冲区里的字符，直到遇到换行符为止，把 abc\n 全部清空。
+	if(scanf("%d", &choice) != 1){
+		clear_stdin_buffer();
+		choice = 0;
 		printf("输入无效，请重新输入(1-9):");
 	}
 	

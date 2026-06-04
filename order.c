@@ -454,7 +454,10 @@ void save_review(int table_no) {
     printf("请选择 (1-5): ");           
 
     int choice;
-    scanf("%d", &choice);
+    if(scanf("%d", &choice) != 1){
+		clear_stdin_buffer();
+		choice = 0; // 设置为无效值，确保error_check能正确处理
+	}
     error_check(1, 5, &choice);
     
     char level[20];

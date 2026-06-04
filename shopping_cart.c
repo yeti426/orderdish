@@ -32,12 +32,12 @@ void display_cart() {
     if (cart.count == 0) {
         printf("\n选膳筐为空！\n");
     } else {
-        printf("\n%-3s %-20s %-8s %-18s %-15s %-8s %-10s\n", 
+        printf("\n%-3s %-20s %-8s %-7s %-12s %-8s %-10s\n", 
                "序号", "菜品名称", "单价", "数量", "小计", "状态", "口味");
         printf("---------------------------------------------------------------------\n");
         
         for (int i = 0; i < cart.count; i++) { 
-            printf("%-4d %-12s ¥%-7.2lf %-6d ¥%-9.2lf %-8s %-10s\n",
+            printf("%-3d %-20s ¥%-7.2lf %-5d ¥%-9.2lf %-8s %-10s\n",
                    i + 1,
                    cart.items[i].dish_name,
                    cart.items[i].dish_price,
@@ -66,7 +66,10 @@ void display_cart() {
         
 	}
     printf("请选择: ");
-    scanf("%d", &choice);
+    if(scanf("%d", &choice) != 1){
+		clear_stdin_buffer();
+		choice = 0; // 设置为无效值，确保error_check能正确处理
+	}
     // error_check(1, cart.kitchen_received || cart.count == 0 ? 1 : 3, &choice);
     // if (cart.kitchen_received || cart.count == 0){
     // 	return;
@@ -79,9 +82,21 @@ void display_cart() {
         }
         case 2:
         {
+            // 如果购物车为空，直接返回
+            if (cart.count == 0) {
+                printf("购物车为空，无法删除！\n");
+                getch();
+                break;
+            }
+            
             printf("请输入要删除的序号: ");
             int del_index;
-            scanf("%d", &del_index);
+            if(scanf("%d", &del_index) != 1){
+                clear_stdin_buffer();
+                printf("输入错误！\n");
+                getch();
+                break;
+            }
             
             if (del_index < 1 || del_index > cart.count) {
                 printf("无效的序号！\n");
@@ -93,7 +108,12 @@ void display_cart() {
             printf("确认删除 %s 吗？(1.是 2.否): ", 
                    cart.items[del_index - 1].dish_name);
             int confirm;
-            scanf("%d", &confirm);
+            if(scanf("%d", &confirm) != 1){
+                clear_stdin_buffer();
+                printf("输入错误！\n");
+                getch();
+                break;
+            }
             
             if (confirm == 1) {
                 remove_from_cart(del_index - 1);

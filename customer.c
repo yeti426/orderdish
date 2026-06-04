@@ -69,7 +69,10 @@ void customer_form() {
         printf("5. 退出\n");
         printf("========================================\n");
         printf("请选择: ");
-        scanf("%d", &choice);
+        if(scanf("%d", &choice) != 1){
+		clear_stdin_buffer();
+		choice = 0; // 设置为无效值，确保error_check能正确处理
+	}
         
         error_check(1, 5, &choice);
         
@@ -140,7 +143,10 @@ void ordering_menu() {
         printf("5. 返回主菜单\n");
         printf("========================================\n");
         printf("请选择: ");
-        scanf("%d", &choice);
+        if(scanf("%d", &choice) != 1){
+		clear_stdin_buffer();
+		choice = 0; // 设置为无效值，确保error_check能正确处理
+	}
         
         error_check(1, 5, &choice);
         
@@ -283,7 +289,10 @@ void menu_controller(dish_menu* dm, int cnt) {
     // 点菜
     do {
         printf("请输入要点的菜品编号(0返回)：");
-        scanf("%d", &choice);
+        if(scanf("%d", &choice) != 1){
+		clear_stdin_buffer();
+		choice = 0; // 设置为无效值，确保error_check能正确处理
+	}
 
         if (choice == 0) return;
 
@@ -427,8 +436,8 @@ double display_order_common(int t_no, int show_menu) {
     if (count == 0) {
         printf("暂无已点菜品\n");
     } else {
-        printf("%-6s %-18s %-10s %-8s %-12s %-10s %-10s\n",
-               "编号", "菜品名称", "单价", "数量", "小计", "状态", "口味");
+        printf("%-8s %-18s %-10s %-11s %-14s %-7s %-10s\n",
+               "序号", "菜品名称", "单价", "数量", "小计", "状态", "口味");
         printf("-----------------------------------------------------------------------\n");
 
         for (int i = 0; i < count; i++) {
@@ -469,14 +478,20 @@ void view_bill() {
 
     if (total < 0.0) {
         int choice;
-        scanf("%d", &choice);
+        if(scanf("%d", &choice) != 1){
+		clear_stdin_buffer();
+		choice = 0; // 设置为无效值，确保error_check能正确处理
+	}
         error_check(1, 2, &choice);
         if (choice == 1) ordering_menu();
         return;
     }
 
     int choice;
-    scanf("%d", &choice);
+    if(scanf("%d", &choice) != 1){
+		clear_stdin_buffer();
+		choice = 0; // 设置为无效值，确保error_check能正确处理
+	}
     error_check(1, 3, &choice);
 
     switch(choice) {  
