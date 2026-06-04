@@ -22,7 +22,7 @@ void change_password();                   //密码修改
 // void change_password_by_sms();             //手机验证码修改密码
 // void send_sms_code(char*, char*);          //发送短信验证码
 // void generate_code(char*);                 //生成验证码
-int input_new_password(char*);             //输入并确认新密码(返回1成功0失败) 
+int input_new_password(char*, const char*); //输入并确认新密码(返回1成功0失败)，第二个参数为旧密码用于比对
 void calculate_value(char* , double* , double* , double* , double * , double*);//计算收入 
 void create_date_filename(char*);         //生成当日文件名 
 void format_input_income(FILE*,double,double,double,double,double);            //收入格式化输入文件
@@ -61,7 +61,7 @@ void admin_form() {
 	order/ — 用来存订单文件
 	*/
 #ifdef _WIN32//编译器自带的宏，只要在 Windows 下编译运行，它就自动成立
-	system("mkdir income 2>nul");
+	system("mkdir income 2>nul");//只屏蔽报错，正常输出照常显示。
 	system("mkdir order 2>nul");
 #else
 	system("mkdir -p income");
@@ -268,7 +268,7 @@ void change_password(){
 		scanf("%19s", pw_old_input);
 	}
 	
-	if (!input_new_password(pw_new)) {
+	if (!input_new_password(pw_new, pw_old)) {
 		getch();
 		return;
 	}
@@ -292,19 +292,31 @@ void change_password(){
 
 /*
 * function_name: input_new_password
-* return_type  : void
-* param        : char*(新密码)
-* description  : 输入新密码并确认一致
+* return_type  : int (1成功, 0失败)
+* param        : char* pw_new(新密码), const char* pw_old(旧密码)
+* description  : 输入新密码并确认一致，同时校验是否与旧密码相同
 */
-int input_new_password(char* pw_new) {
+int input_new_password(char* pw_new, const char* pw_old) {
 	char pw_check[20];
 	int retry = 0;
 
 	printf("请输入新密码：");
-	scanf("%19s", pw_new);
+	if(scanf("%19s", pw_new) != 1) {
+		printf("输入无效，操作取消。\n");
+		return 0;
+	}
+
+	// 首次输入就检查是否与旧密码相同
+	if(strcmp(pw_new, pw_old) == 0) {
+		printf("新密码与旧密码相同，修改无效！\n");
+		return 0;
+	}
 
 	printf("请确认新密码：");
-	scanf("%19s", pw_check);
+	if(scanf("%19s", pw_check) != 1) {
+		printf("输入无效，操作取消。\n");
+		return 0;
+	}
 
 	while (strcmp(pw_new, pw_check) != 0) {
 		retry++;
@@ -314,9 +326,20 @@ int input_new_password(char* pw_new) {
 		}
 		printf("两次输入不一致！(剩余%d次)\n", 3 - retry);
 		printf("请输入新密码：");
-		scanf("%19s", pw_new);
+		if(scanf("%19s", pw_new) != 1) {
+			printf("输入无效，操作取消。\n");
+			return 0;
+		}
+		// 重输时也要检查是否与旧密码相同
+		if(strcmp(pw_new, pw_old) == 0) {
+			printf("新密码与旧密码相同，修改无效！\n");
+			return 0;
+		}
 		printf("请确认新密码：");
-		scanf("%19s", pw_check);
+		if(scanf("%19s", pw_check) != 1) {
+			printf("输入无效，操作取消。\n");
+			return 0;
+		}
 	}
 	return 1;
 }
@@ -519,7 +542,7 @@ void view_reviews() {
 	*/
 	
 	char pattern[100] = "reviews\\review_table_*.txt";
-	//* 是通配符，匹配任意字符，代替任意内容、任意字符、任意长度。
+	// 是通配符，匹配任意字符，代替任意内容、任意字符、任意长度。
     handle = _findfirst(pattern, &fileinfo);
 	//_findfirst = Windows 系统自带的【按规则找文件】函数。
 	//成功找到文件 → 返回一个 >= 0 的整数（句柄 / 编号）

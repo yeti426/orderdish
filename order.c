@@ -147,9 +147,6 @@ void check_bill() {
     double discount_rate = 0.88;
     double discounted_total = total * discount_rate;
     int final_total = (int)discounted_total;// 抹零取整
-    double reduction_double = discounted_total - final_total;
-    if (reduction_double < 0) reduction_double = 0; // 防止浮点误差导致的负数
-    int reduction = (int)(reduction_double * 100 + 0.5) / 100.0; 
     
     //直接计算小数部分，并处理浮点精度
     double reduction_amount = discounted_total - final_total;
@@ -457,7 +454,10 @@ void save_review(int table_no) {
     printf("请选择 (1-5): ");           
 
     int choice;
-    scanf("%d", &choice);
+    if(scanf("%d", &choice) != 1){
+		clear_stdin_buffer();
+		choice = 0; // 设置为无效值，确保error_check能正确处理
+	}
     error_check(1, 5, &choice);
     
     char level[20];

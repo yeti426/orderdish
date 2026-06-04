@@ -16,8 +16,10 @@ int main_form(){
 	printf("3.后厨掌勺\n");     // 厨师界面
 	printf("4.打烊离去\n");     // 退出程序
 	printf("请在此输入：");
-	scanf("%d",&op);
-	
+	if(scanf("%d", &op) != 1){
+		clear_stdin_buffer();
+		op = 0; // 设置为无效值，确保error_check能正确处理
+	}
 	error_check(1,4,&op);	   // 差错检测，防止输入错误选择导致程序崩溃
 	return op; 
 }
@@ -27,9 +29,22 @@ int main_form(){
  * 函数功能: 用于检测输入是否正确，若为非法输入，则重复修改选择直至合法输入
  */
 void error_check(int range_left ,int range_right, int* op){
-	while(*op < range_left || *op > range_right){
+	while(1){
+		// 检查输入是否在有效范围内
+		if(*op >= range_left && *op <= range_right){
+			break;
+		}
+		
+		// 输入无效，提示用户重新输入
 		printf("输入错误！烦请重填:");
-		scanf("%d",op); 
+		
+		// 清空输入缓冲区
+		clear_stdin_buffer();
+		// 尝试读取整数
+		if(scanf("%d", op) != 1){
+			// 如果读取失败，设置op为无效值，确保循环继续
+			*op = range_left - 1;
+		} 
 	}
 }
 
