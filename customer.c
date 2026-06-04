@@ -38,7 +38,7 @@ extern void update_total(void);                     // 更新购物车总金额
  * 函数功能：顾客主界面
  */
 void customer_form() {
-    CLEAR_SCREEN();
+    CLEAR_SCREEN();                // 清屏
     int greet_type = 1;
 	struct tm* p = get_time();
 	greet(p,greet_type);           // 根据时间和身份，打印问候语
@@ -334,21 +334,10 @@ void menu_controller(dish_menu* dm, int cnt) {
         int idx = find_item_in_cart(selected.dish_name, spicy_remark);
 
         if (idx != -1) {
-            // 如果已有同编号菜品，检查辣度是否一致，一致则累加数量
-            if (strcmp(cart.items[idx].remark, spicy_remark) == 0) {
-                cart.items[idx].nums += nums;
-            } else {
-                // 辣度不同，作为新菜品添加
-                cart.items[cart.count].no = selected.no;
-                strcpy(cart.items[cart.count].dish_name, selected.dish_name);
-                cart.items[cart.count].dish_price = selected.dish_price;
-                cart.items[cart.count].type = selected.type;
-                cart.items[cart.count].nums = nums;
-                cart.items[cart.count].status = ORDER_STATUS_PENDING;
-                strcpy(cart.items[cart.count].remark, spicy_remark);
-                cart.count++;
-            }
+            // 找到：同菜名 + 同辣度 → 数量累加
+            cart.items[idx].nums += nums;
         } else {
+            // 没找到或辣度不同 → 统一新增菜品
             cart.items[cart.count].no = selected.no;
             strcpy(cart.items[cart.count].dish_name, selected.dish_name);
             cart.items[cart.count].dish_price = selected.dish_price;
