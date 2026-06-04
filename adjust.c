@@ -185,12 +185,34 @@ void cancel_recommend() {
 	}
 
 	printf("当前招牌菜：\n----------------------------------------------------------\n");
-	printf("序号  分类    编号\n");
-	int i;
+	printf("%-6s %-8s %-14s\n", "序号", "分类", "菜品名称");
+	
 	char* type_names[] = {"", "热菜", "凉菜", "主食", "饮品"};
+
+	int i;
 	for(i = 0; i < cnt; i++) {
-		printf("%-6d %-8s %d\n", i + 1, type_names[types[i]], nos[i]);
+		char filename[20];
+		get_dish_filename(types[i], filename);
+
+		dish_menu dm[MAX_LENGTH];
+		int dish_cnt = load_dishes(filename, dm);
+
+		const char* dish_name = "未知菜品";
+		int j;
+		for(j = 0; j < dish_cnt; j++) {
+			if(dm[j].no == nos[i]) {
+				dish_name = dm[j].dish_name;
+				break;
+			}
+		}
+
+		printf("%-6d %-8s %-14s\n",
+		       i + 1,
+		       type_names[types[i]],
+		       dish_name);
 	}
+	
+	
 	printf("----------------------------------------------------------\n");
 
 	printf("请输入要取消的序号(0退出)：");
